@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -73,22 +75,50 @@ class SplashController extends GetxController
     final token = StorageService.getToken();
 
     if (token != null && token.isNotEmpty) {
-      Get.put(ProfileController(), permanent: true);
+      final profileController = Get.put(ProfileController(), permanent: true);
       
-      // Check if profile is complete first - if yes, go to home
-      // Also check if all steps are done (for legacy users who might not have petProfileComplete flag)
-      final isProfileComplete = StorageService.isStepDone(StorageService.petProfileComplete);
-      final allStepsDone = StorageService.isStepDone(StorageService.signupDone) &&
-          StorageService.isStepDone(StorageService.editProfileDone) &&
-          StorageService.isStepDone(StorageService.petOwnerDone);
-      
-      if (isProfileComplete || allStepsDone) {
-        Future.microtask(() => Get.find<MapController>().selectFeature("user"));
-        Get.offAllNamed(AppRoutes.home);
-        return; // Important: stop checking other conditions
+      try {
+        // Fetch profile from backend to check completion status
+        log("Fetching profile to determine completion status...");
+        await profileController.fetchProfilee();
+        
+        // Check if user has a pet profile (indicates profile is complete)
+        final hasPet = profileController.userPet.value != null;
+        final hasProfile = profileController.profile.value != null;
+        
+        log("Profile check - hasPet: $hasPet, hasProfile: $hasProfile");
+        
+        // If user has both profile and pet, they've completed setup
+        if (hasProfile && hasPet) {
+          log("Profile complete - navigating to home");
+          // Update local flags to prevent future checks
+          await StorageService.setStepDone(StorageService.petProfileComplete);
+          Future.microtask(() => Get.find<MapController>().selectFeature("user"));
+          Get.offAllNamed(AppRoutes.home);
+          return;
+        }
+        
+        // If profile exists but no pet, check if they chose "don't have pet"
+        if (hasProfile && !hasPet) {
+          final userData = StorageService.getUser();
+          final hasPetChoice = userData?['hasPet'] == false;
+          
+          if (hasPetChoice) {
+            log("User chose not to have pet - navigating to home");
+            await StorageService.setStepDone(StorageService.petProfileComplete);
+            Future.microtask(() => Get.find<MapController>().selectFeature("user"));
+            Get.offAllNamed(AppRoutes.home);
+            return;
+          }
+        }
+        
+        log("Profile incomplete - checking which step to navigate to");
+      } catch (e) {
+        log("Error fetching profile: $e - falling back to local flags");
       }
       
-      // Otherwise, check which step is incomplete and navigate there
+      // Fallback to local flags if API call fails or profile is incomplete
+      // Check which step is incomplete and navigate there
       if (!StorageService.isStepDone(StorageService.signupDone)) {
         Get.put(SignupController(), permanent: true);
         Get.offAllNamed(AppRoutes.verifyEmailView);
@@ -110,7 +140,9 @@ class SplashController extends GetxController
       } else if (!StorageService.isStepDone(StorageService.petOwnerDone)) {
         Get.offAllNamed(AppRoutes.ownerInfo, arguments: true);
       } else {
-        // All steps done, go to home
+        // All local flags are set, assume complete and go to home
+        log("All local flags set - navigating to home");
+        await StorageService.setStepDone(StorageService.petProfileComplete);
         Future.microtask(() => Get.find<MapController>().selectFeature("user"));
         Get.offAllNamed(AppRoutes.home);
       }
