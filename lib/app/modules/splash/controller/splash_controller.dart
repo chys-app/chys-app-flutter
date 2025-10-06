@@ -64,7 +64,10 @@ class SplashController extends GetxController
   }
 
   Future<void> navigateToNextScreen() async {
-    await Future.delayed(const Duration(seconds: 4));
+    // Skip delay during hot reload for faster development
+    if (!Get.isRegistered<ProfileController>() || Get.currentRoute == AppRoutes.initial) {
+      await Future.delayed(const Duration(seconds: 4));
+    }
     NotificationUtil.requestNotificationPermission();
 
     final token = StorageService.getToken();
@@ -73,7 +76,13 @@ class SplashController extends GetxController
       Get.put(ProfileController(), permanent: true);
       
       // Check if profile is complete first - if yes, go to home
-      if (StorageService.isStepDone(StorageService.petProfileComplete)) {
+      // Also check if all steps are done (for legacy users who might not have petProfileComplete flag)
+      final isProfileComplete = StorageService.isStepDone(StorageService.petProfileComplete);
+      final allStepsDone = StorageService.isStepDone(StorageService.signupDone) &&
+          StorageService.isStepDone(StorageService.editProfileDone) &&
+          StorageService.isStepDone(StorageService.petOwnerDone);
+      
+      if (isProfileComplete || allStepsDone) {
         Future.microtask(() => Get.find<MapController>().selectFeature("user"));
         Get.offAllNamed(AppRoutes.home);
         return; // Important: stop checking other conditions
