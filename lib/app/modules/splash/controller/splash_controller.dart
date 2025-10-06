@@ -64,10 +64,7 @@ class SplashController extends GetxController
   }
 
   Future<void> navigateToNextScreen() async {
-    // Skip delay during hot reload for faster development
-    if (!Get.isRegistered<ProfileController>() || Get.currentRoute == AppRoutes.initial) {
-      await Future.delayed(const Duration(seconds: 4));
-    }
+    await Future.delayed(const Duration(seconds: 4));
     NotificationUtil.requestNotificationPermission();
 
     final token = StorageService.getToken();
