@@ -71,10 +71,15 @@ class SplashController extends GetxController
 
     if (token != null && token.isNotEmpty) {
       Get.put(ProfileController(), permanent: true);
+      
+      // Check if profile is complete first - if yes, go to home
       if (StorageService.isStepDone(StorageService.petProfileComplete)) {
         Future.microtask(() => Get.find<MapController>().selectFeature("user"));
         Get.offAllNamed(AppRoutes.home);
+        return; // Important: stop checking other conditions
       }
+      
+      // Otherwise, check which step is incomplete and navigate there
       if (!StorageService.isStepDone(StorageService.signupDone)) {
         Get.put(SignupController(), permanent: true);
         Get.offAllNamed(AppRoutes.verifyEmailView);
@@ -96,6 +101,7 @@ class SplashController extends GetxController
       } else if (!StorageService.isStepDone(StorageService.petOwnerDone)) {
         Get.offAllNamed(AppRoutes.ownerInfo, arguments: true);
       } else {
+        // All steps done, go to home
         Future.microtask(() => Get.find<MapController>().selectFeature("user"));
         Get.offAllNamed(AppRoutes.home);
       }
