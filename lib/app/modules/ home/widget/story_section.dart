@@ -45,11 +45,15 @@ class _StorySectionState extends State<StorySection> {
 
   final contrroller = Get.put(HomeController(), tag: 'home');
 
-  void _refreshAfterPosting(Future Function() action) async {
-    await action(); // Wait for story upload or editor to complete
-    setState(() {
-      _loadStories(); // Re-fetch the stories
-    });
+  void _refreshAfterPosting(Future<void> Function() action) async {
+    try {
+      await action(); // Wait for story upload or editor to complete
+      setState(() {
+        _loadStories(); // Re-fetch the stories
+      });
+    } catch (e) {
+      log('Error in story action: $e');
+    }
   }
 
   @override

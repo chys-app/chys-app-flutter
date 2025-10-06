@@ -11,6 +11,7 @@ import 'package:chys/app/services/custom_Api.dart';
 import 'package:chys/app/widget/common/custom_post_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../routes/app_routes.dart';
 import '../../widget/shimmer/cat_quote_shimmer.dart';
@@ -146,7 +147,7 @@ class HomeView extends GetView<HomeController> {
                                               right: 0,
                                               child: GestureDetector(
                                                 onTap: () {
-                                                  controller.uploadStory();
+                                                  controller.pickMedia(source: ImageSource.gallery);
                                                 },
                                                 child: Container(
                                                   width: 20,
