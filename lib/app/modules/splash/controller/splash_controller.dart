@@ -52,7 +52,11 @@ class SplashController extends GetxController
     // Start animations
     animationController.forward();
     _startLogoAndTaglineAnimation();
-    navigateToNextScreen();
+    
+    // Wait for the first frame to ensure GetMaterialApp is ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      navigateToNextScreen();
+    });
   }
 
   void _startLogoAndTaglineAnimation() async {

@@ -29,6 +29,12 @@ class _StorySectionState extends State<StorySection> {
   @override
   void initState() {
     super.initState();
+    // Try to find existing controller, or create a new one if not found
+    if (Get.isRegistered<HomeController>()) {
+      contrroller = Get.find<HomeController>();
+    } else {
+      contrroller = Get.put(HomeController());
+    }
     _loadStories();
   }
 
@@ -43,7 +49,7 @@ class _StorySectionState extends State<StorySection> {
     ]);
   }
 
-  final contrroller = Get.put(HomeController(), tag: 'home');
+  late final HomeController contrroller;
 
   void _refreshAfterPosting(Future Function() action) async {
     await action(); // Wait for story upload or editor to complete
@@ -358,6 +364,7 @@ class _StorySectionState extends State<StorySection> {
   }
 
   void _showStoryCreationOptions() {
+    log("_showStoryCreationOptions called");
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
