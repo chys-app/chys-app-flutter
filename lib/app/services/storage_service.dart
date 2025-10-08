@@ -23,6 +23,7 @@ class StorageService {
 
   static const String petProfileComplete = 'pet_profile_complete';
   static const String petProfileDraft = 'pet_profile_draft';
+  static const String splashShown = 'splash_shown';
 
   // Must be called before using GetStorage
   static Future<void> init() async {
