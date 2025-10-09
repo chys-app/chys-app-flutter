@@ -36,13 +36,11 @@ class HomeController extends GetxController {
 
   Future<void> pickMedia({ImageSource source = ImageSource.gallery}) async {
     try {
-      log("pickMedia called with source: $source");
       final ImagePicker picker = ImagePicker();
       final XFile? media = await picker.pickImage(
         source: source,
         imageQuality: 80,
       );
-      log("Media picked: ${media?.path ?? 'null'}");
 
       if (media != null) {
         // Show the Instagram-like story editor
@@ -50,11 +48,11 @@ class HomeController extends GetxController {
           MaterialPageRoute(
             builder: (context) => InstagramStoryEditor(
               imageFile: File(media.path),
-              onSave: (File editedImage) async {
+              onSave: (File editedImage) {
                 selectedMedia.value = editedImage;
                 Navigator.of(context).pop();
                 // Automatically upload the story after editing
-                await uploadStory();
+                uploadStory();
               },
               onCancel: () {
                 selectedMedia.value = null;
@@ -63,9 +61,6 @@ class HomeController extends GetxController {
             ),
           ),
         );
-      } else {
-        // User cancelled the picker
-        selectedMedia.value = null;
       }
     } catch (e) {
       log("Failed $e");
@@ -87,9 +82,6 @@ class HomeController extends GetxController {
         selectedMedia.value = File(video.path);
         // Automatically upload the story after recording
         uploadStory();
-      } else {
-        // User cancelled video recording
-        selectedMedia.value = null;
       }
     } catch (e) {
       log("Failed to pick video: $e");
@@ -100,7 +92,7 @@ class HomeController extends GetxController {
 
   Future<void> uploadStory() async {
     if (selectedMedia.value == null) {
-      // Silently return if no media selected (user cancelled)
+      ShortMessageUtils.showError('Please select a media file');
       return;
     }
 

@@ -1,15 +1,11 @@
 import 'dart:developer';
 
-import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/const/app_colors.dart';
 import '../../../routes/app_routes.dart';
-import '../../../services/notification_service.dart';
 import '../../../services/storage_service.dart';
-import '../../map/controllers/map_controller.dart';
-import '../../signup/controller/signup_controller.dart';
 
 class SplashController extends GetxController
     with GetSingleTickerProviderStateMixin {
@@ -23,14 +19,23 @@ class SplashController extends GetxController
   final RxDouble logoScale = 0.8.obs;
   final RxDouble logoOpacity = 0.0.obs;
   final RxDouble taglineOpacity = 0.0.obs;
+  late final bool _hasShownSplash;
+
+  bool get hasShownSplash => _hasShownSplash;
 
   @override
   void onInit() {
     super.onInit();
+    _hasShownSplash = StorageService.isStepDone(StorageService.splashShown);
     animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
     );
+
+    if (_hasShownSplash) {
+      Future.microtask(() => navigateToNextScreen(skipDelay: true));
+      return;
+    }
 
     // Animated gradient between two brand colors
     gradientColor1 = ColorTween(
@@ -52,11 +57,13 @@ class SplashController extends GetxController
     // Start animations
     animationController.forward();
     _startLogoAndTaglineAnimation();
-    
-    // Wait for the first frame to ensure GetMaterialApp is ready
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      navigateToNextScreen();
-    });
+    navigateToNextScreen();
+  }
+
+  Future<void> waitForInitialDelay({required bool skipDelay}) async {
+    if (!skipDelay) {
+      await Future.delayed(const Duration(seconds: 2));
+    }
   }
 
   void _startLogoAndTaglineAnimation() async {
@@ -69,88 +76,24 @@ class SplashController extends GetxController
     taglineOpacity.value = 1.0;
   }
 
-  Future<void> navigateToNextScreen() async {
-    // Skip delay during hot reload for faster development
-    if (!Get.isRegistered<ProfileController>() || Get.currentRoute == AppRoutes.initial) {
-      await Future.delayed(const Duration(seconds: 4));
-    }
-    NotificationUtil.requestNotificationPermission();
+  Future<void> navigateToNextScreen({bool skipDelay = false}) async {
+    try {
+      await waitForInitialDelay(skipDelay: skipDelay);
 
-    final token = StorageService.getToken();
+      final hasShownSplash =
+          StorageService.isStepDone(StorageService.splashShown);
+      if (!hasShownSplash) {
+        await StorageService.setStepDone(StorageService.splashShown);
+      }
 
-    if (token != null && token.isNotEmpty) {
-      final profileController = Get.put(ProfileController(), permanent: true);
-      
-      try {
-        // Fetch profile from backend to check completion status
-        log("Fetching profile to determine completion status...");
-        await profileController.fetchProfilee();
-        
-        // Check if user has a pet profile (indicates profile is complete)
-        final hasPet = profileController.userPet.value != null;
-        final hasProfile = profileController.profile.value != null;
-        
-        log("Profile check - hasPet: $hasPet, hasProfile: $hasProfile");
-        
-        // If user has both profile and pet, they've completed setup
-        if (hasProfile && hasPet) {
-          log("Profile complete - navigating to home");
-          // Update local flags to prevent future checks
-          await StorageService.setStepDone(StorageService.petProfileComplete);
-          Future.microtask(() => Get.find<MapController>().selectFeature("user"));
-          Get.offAllNamed(AppRoutes.home);
-          return;
-        }
-        
-        // If profile exists but no pet, check if they chose "don't have pet"
-        if (hasProfile && !hasPet) {
-          final userData = StorageService.getUser();
-          final hasPetChoice = userData?['hasPet'] == false;
-          
-          if (hasPetChoice) {
-            log("User chose not to have pet - navigating to home");
-            await StorageService.setStepDone(StorageService.petProfileComplete);
-            Future.microtask(() => Get.find<MapController>().selectFeature("user"));
-            Get.offAllNamed(AppRoutes.home);
-            return;
-          }
-        }
-        
-        log("Profile incomplete - checking which step to navigate to");
-      } catch (e) {
-        log("Error fetching profile: $e - falling back to local flags");
-      }
-      
-      // Fallback to local flags if API call fails or profile is incomplete
-      // Check which step is incomplete and navigate there
-      if (!StorageService.isStepDone(StorageService.signupDone)) {
-        Get.put(SignupController(), permanent: true);
-        Get.offAllNamed(AppRoutes.verifyEmailView);
-      } else if (!StorageService.isStepDone(StorageService.editProfileDone)) {
-        Get.offAllNamed(AppRoutes.editProfile, arguments: true);
-      } else if (!StorageService.isStepDone(StorageService.petOwnershipDone)) {
-        Get.offAllNamed(AppRoutes.petOwnership, arguments: true);
-      } else if (!StorageService.isStepDone(StorageService.petSelectionDone)) {
-        Get.offAllNamed(AppRoutes.petSelection, arguments: true);
-      } else if (!StorageService.isStepDone(StorageService.petBasicDataDone)) {
-        Get.offAllNamed(AppRoutes.petProfile, arguments: true);
-      } else if (!StorageService.isStepDone(StorageService.petApearenceDone)) {
-        Get.offAllNamed(AppRoutes.appearance, arguments: true);
-      } else if (!StorageService.isStepDone(
-          StorageService.petIdentificationDone)) {
-        Get.offAllNamed(AppRoutes.identification, arguments: true);
-      } else if (!StorageService.isStepDone(StorageService.petBehavioralDone)) {
-        Get.offAllNamed(AppRoutes.behavioral, arguments: true);
-      } else if (!StorageService.isStepDone(StorageService.petOwnerDone)) {
-        Get.offAllNamed(AppRoutes.ownerInfo, arguments: true);
-      } else {
-        // All local flags are set, assume complete and go to home
-        log("All local flags set - navigating to home");
-        await StorageService.setStepDone(StorageService.petProfileComplete);
-        Future.microtask(() => Get.find<MapController>().selectFeature("user"));
-        Get.offAllNamed(AppRoutes.home);
-      }
-    } else {
+      final token = StorageService.getToken();
+      final nextRoute =
+          token != null && token.isNotEmpty ? AppRoutes.home : AppRoutes.login;
+
+      log('Navigating from splash to $nextRoute');
+      Get.offAllNamed(nextRoute);
+    } catch (e, stackTrace) {
+      log("Splash navigation failed: $e", stackTrace: stackTrace);
       Get.offAllNamed(AppRoutes.login);
     }
   }
