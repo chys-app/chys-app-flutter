@@ -175,7 +175,7 @@ class PrivacyView extends StatelessWidget {
                 const Color(0xFF06B6D4),
                 'Protecting young users',
                 [
-                  'Minimum age requirement (13+)',
+                  'Minimum age requirement (16+)',
                   'Parental supervision guidelines',
                   'Content moderation protocols',
                   'Reporting abuse mechanisms',

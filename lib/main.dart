@@ -5,10 +5,7 @@ import 'package:chys/app/services/notification_service.dart';
 import 'package:chys/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'dart:developer' as developer;
-
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -24,15 +21,6 @@ import 'app/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    await dotenv.load(fileName: '.env');
-  } catch (e) {
-    developer.log(
-      'Failed to load .env file: $e. Falling back to --dart-define values if provided.',
-      name: 'Main',
-      level: 900,
-    );
-  }
   await GetStorage.init();
   CustomApiService();
   Get.put(ProfileController());

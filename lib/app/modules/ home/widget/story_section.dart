@@ -13,7 +13,6 @@ import '../../../modules/profile/controllers/profile_controller.dart';
 import '../../../services/custom_Api.dart';
 import '../../../widget/shimmer/story_shimmer.dart';
 import '../home_controller.dart';
-import '../home_view.dart';
 import '../story_view.dart';
 
 class StorySection extends StatefulWidget {
@@ -30,6 +29,12 @@ class _StorySectionState extends State<StorySection> {
   @override
   void initState() {
     super.initState();
+    // Try to find existing controller, or create a new one if not found
+    if (Get.isRegistered<HomeController>()) {
+      contrroller = Get.find<HomeController>();
+    } else {
+      contrroller = Get.put(HomeController());
+    }
     _loadStories();
   }
 
@@ -44,7 +49,7 @@ class _StorySectionState extends State<StorySection> {
     ]);
   }
 
-  final contrroller = Get.put(HomeController(), tag: 'home');
+  late final HomeController contrroller;
 
   void _refreshAfterPosting(Future Function() action) async {
     await action(); // Wait for story upload or editor to complete
@@ -80,8 +85,8 @@ class _StorySectionState extends State<StorySection> {
             final currentUserStoriesData = snapshot.data![0]['stories'] ?? [];
             final publicStoriesData = snapshot.data![1]['data'] ?? [];
 
-            final List<StoryModel> currentUserStories = currentUserStoriesData
-                .map<StoryModel>((e) => StoryModel.fromMap(e))
+            final List<Story> currentUserStories = currentUserStoriesData
+                .map<Story>((e) => Story.fromMap(e))
                 .toList();
 
             final List<UserStory> userStories = publicStoriesData
@@ -152,7 +157,7 @@ class _StorySectionState extends State<StorySection> {
                                             .toList();
                                         Get.to(() => StoryPreviewPage(
                                               mediaUrls: urls,
-                                              userName: firstStory?.userName ?? 'You',
+                                              userName: 'You',
                                               storyIds: storyIds,
                                               viewCounts: viewCounts,
                                             ));
@@ -359,6 +364,7 @@ class _StorySectionState extends State<StorySection> {
   }
 
   void _showStoryCreationOptions() {
+    log("_showStoryCreationOptions called");
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,

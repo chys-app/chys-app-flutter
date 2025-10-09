@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -50,7 +52,11 @@ class SplashController extends GetxController
     // Start animations
     animationController.forward();
     _startLogoAndTaglineAnimation();
-    navigateToNextScreen();
+    
+    // Wait for the first frame to ensure GetMaterialApp is ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      navigateToNextScreen();
+    });
   }
 
   void _startLogoAndTaglineAnimation() async {
@@ -64,17 +70,59 @@ class SplashController extends GetxController
   }
 
   Future<void> navigateToNextScreen() async {
-    await Future.delayed(const Duration(seconds: 4));
+    // Skip delay during hot reload for faster development
+    if (!Get.isRegistered<ProfileController>() || Get.currentRoute == AppRoutes.initial) {
+      await Future.delayed(const Duration(seconds: 4));
+    }
     NotificationUtil.requestNotificationPermission();
 
     final token = StorageService.getToken();
 
     if (token != null && token.isNotEmpty) {
-      Get.put(ProfileController(), permanent: true);
-      if (StorageService.isStepDone(StorageService.petProfileComplete)) {
-        Future.microtask(() => Get.find<MapController>().selectFeature("user"));
-        Get.offAllNamed(AppRoutes.home);
+      final profileController = Get.put(ProfileController(), permanent: true);
+      
+      try {
+        // Fetch profile from backend to check completion status
+        log("Fetching profile to determine completion status...");
+        await profileController.fetchProfilee();
+        
+        // Check if user has a pet profile (indicates profile is complete)
+        final hasPet = profileController.userPet.value != null;
+        final hasProfile = profileController.profile.value != null;
+        
+        log("Profile check - hasPet: $hasPet, hasProfile: $hasProfile");
+        
+        // If user has both profile and pet, they've completed setup
+        if (hasProfile && hasPet) {
+          log("Profile complete - navigating to home");
+          // Update local flags to prevent future checks
+          await StorageService.setStepDone(StorageService.petProfileComplete);
+          Future.microtask(() => Get.find<MapController>().selectFeature("user"));
+          Get.offAllNamed(AppRoutes.home);
+          return;
+        }
+        
+        // If profile exists but no pet, check if they chose "don't have pet"
+        if (hasProfile && !hasPet) {
+          final userData = StorageService.getUser();
+          final hasPetChoice = userData?['hasPet'] == false;
+          
+          if (hasPetChoice) {
+            log("User chose not to have pet - navigating to home");
+            await StorageService.setStepDone(StorageService.petProfileComplete);
+            Future.microtask(() => Get.find<MapController>().selectFeature("user"));
+            Get.offAllNamed(AppRoutes.home);
+            return;
+          }
+        }
+        
+        log("Profile incomplete - checking which step to navigate to");
+      } catch (e) {
+        log("Error fetching profile: $e - falling back to local flags");
       }
+      
+      // Fallback to local flags if API call fails or profile is incomplete
+      // Check which step is incomplete and navigate there
       if (!StorageService.isStepDone(StorageService.signupDone)) {
         Get.put(SignupController(), permanent: true);
         Get.offAllNamed(AppRoutes.verifyEmailView);
@@ -96,6 +144,9 @@ class SplashController extends GetxController
       } else if (!StorageService.isStepDone(StorageService.petOwnerDone)) {
         Get.offAllNamed(AppRoutes.ownerInfo, arguments: true);
       } else {
+        // All local flags are set, assume complete and go to home
+        log("All local flags set - navigating to home");
+        await StorageService.setStepDone(StorageService.petProfileComplete);
         Future.microtask(() => Get.find<MapController>().selectFeature("user"));
         Get.offAllNamed(AppRoutes.home);
       }

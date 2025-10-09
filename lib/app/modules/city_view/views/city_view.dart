@@ -66,6 +66,22 @@ class CityView extends GetView<SignupController> {
               // Spacer to push button to bottom
               const Spacer(),
 
+              // Add a Pet Button
+              Center(
+                child: Appbutton(
+                  width: Get.width * 0.7,
+                  borderColor: AppColors.blue,
+                  backgroundColor: AppColors.blue,
+                  borderWidth: 0,
+                  label: "Add a Pet",
+                  onPressed: () {
+                    Get.toNamed('/pet-selection', arguments: true);
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+
               // Let's Go Button
               Appbutton(
                 width: Get.width,
