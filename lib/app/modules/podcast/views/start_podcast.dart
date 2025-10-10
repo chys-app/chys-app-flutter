@@ -919,12 +919,12 @@ class StartPodcastScreen extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
-          colors: [Color(0xFF0095F6), Color(0xFF0066CC)],
+          colors: [Color(0xFF10B981), Color(0xFF059669)],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0095F6).withOpacity(0.3),
+            color: const Color(0xFF10B981).withOpacity(0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

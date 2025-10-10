@@ -27,6 +27,7 @@ class ProfileController extends GetxController {
   
   // Profile data
   var profile = Rxn<OwnProfileModel>();
+  final RxList<PetModel> userPets = <PetModel>[].obs;
   var userPet = Rxn<PetModel>();
   
   // Current user ID for comparison
@@ -374,6 +375,7 @@ class ProfileController extends GetxController {
       // Clear profile data when fetching a different user's profile
       if (userId != null && profile.value != null && profile.value!.id != userId) {
         profile.value = null;
+        userPets.clear();
         userPet.value = null;
         log("Cleared existing profile data for different user");
       }
@@ -429,10 +431,20 @@ class ProfileController extends GetxController {
       }
       final petProfiles = response["petProfiles"];
       if (petProfiles is List && petProfiles.isNotEmpty) {
-        userPet.value = PetModel.fromJson(petProfiles[0]);
+        final pets = petProfiles
+            .whereType<Map<String, dynamic>>()
+            .map(PetModel.fromJson)
+            .toList();
+        userPets
+          ..clear()
+          ..addAll(pets);
+        userPet.value = pets.first;
+        selectedTab.value = 0;
       } else {
         log("No pet profile found.");
+        userPets.clear();
         userPet.value = null;
+        selectedTab.value = 0;
       }
       log("Profile is $response");
       nameController.text = profile.value!.name;
@@ -567,6 +579,7 @@ class ProfileController extends GetxController {
 
   void clearProfileData() {
     profile.value = null;
+    userPets.clear();
     userPet.value = null;
     isFollowing.value = false;
     followersCount.value = 0;
@@ -575,6 +588,14 @@ class ProfileController extends GetxController {
     log("Profile data cleared");
   }
 
+  void selectPet(int index) {
+    if (index < 0 || index >= userPets.length) {
+      log("Invalid pet index selected: $index");
+      return;
+    }
+    userPet.value = userPets[index];
+    selectedTab.value = index;
+  }
   bool get isCurrentUserProfile {
     final profileId = profile.value?.id;
     final currentId = userCurrentId.value;

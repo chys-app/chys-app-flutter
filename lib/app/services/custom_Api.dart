@@ -55,6 +55,23 @@ class CustomApiService extends GetxService {
     }
   }
 
+  /// PUT request with JSON body
+  Future<dynamic> putRequest(
+      String endpoint, Map<String, dynamic> data) async {
+    final uri = Uri.parse('$baseUrl/$endpoint');
+    final response = await http.put(
+      uri,
+      headers: getHeaders(),
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('PUT failed: ${response.statusCode} → ${response.body}');
+    }
+  }
+
   /// DELETE request
   Future<dynamic> deleteRequest(String endpoint) async {
     final uri = Uri.parse('$baseUrl/$endpoint');
@@ -71,25 +88,12 @@ class CustomApiService extends GetxService {
   /// Track story view
   Future<dynamic> trackStoryView(String storyId) async {
     try {
-      // Try different possible endpoints for story view tracking
-      final possibleEndpoints = [
-        'stories/$storyId/view',
-        'story/$storyId/view',
-        'stories/view',
-        'story/view',
-      ];
-
-      for (String endpoint in possibleEndpoints) {
-        try {
-          log("📊 [STORY VIEW] Trying endpoint: $endpoint");
-          return await postRequest(endpoint, {'storyId': storyId});
-        } catch (e) {
-          log("❌ [STORY VIEW] Endpoint $endpoint failed: $e");
-          continue;
-        }
-      }
-
-      // If all endpoints fail, try direct HTTP call
+      // Use the same pattern as post view tracking
+      return await postRequest('stories/$storyId/view', {});
+    } catch (e) {
+      log("❌ [STORY VIEW] Failed to track view using postRequest: $e");
+      
+      // Fallback to direct HTTP call with detailed logging
       final uri = Uri.parse('$baseUrl/stories/$storyId/view');
       log("📊 [STORY VIEW] Fallback - Tracking view for story: $storyId");
       log("📊 [STORY VIEW] Fallback - Full URL: $uri");
@@ -98,7 +102,7 @@ class CustomApiService extends GetxService {
       final response = await http.post(
         uri,
         headers: getHeaders(),
-        body: jsonEncode({'storyId': storyId}),
+        body: jsonEncode({}), // Empty body as per API spec
       );
 
       log("📊 [STORY VIEW] Fallback - Response status: ${response.statusCode}");
@@ -108,14 +112,9 @@ class CustomApiService extends GetxService {
         log("✅ [STORY VIEW] Successfully tracked view for story: $storyId");
         return jsonDecode(response.body);
       } else {
-        log("⚠️ [STORY VIEW] API endpoint not available (${response.statusCode}), but continuing...");
-        // Don't throw exception - just log and continue
-        return {'success': false, 'message': 'View tracking not available'};
+        log("❌ [STORY VIEW] Failed to track view: ${response.statusCode} → ${response.body}");
+        throw Exception('STORY VIEW tracking failed: ${response.statusCode} → ${response.body}');
       }
-    } catch (e) {
-      log("⚠️ [STORY VIEW] View tracking failed but continuing: $e");
-      // Don't throw exception - just log and continue
-      return {'success': false, 'message': 'View tracking failed'};
     }
   }
 

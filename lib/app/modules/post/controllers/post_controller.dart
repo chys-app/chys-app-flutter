@@ -18,7 +18,6 @@ import 'package:video_thumbnail/video_thumbnail.dart' as th;
 
 import '../../../services/short_message_utils.dart';
 import '../../adored_posts/controller/controller.dart';
-import '../../../routes/app_routes.dart';
 
 class PostController extends GetxController {
   // Constants for better maintainability
@@ -260,25 +259,8 @@ class PostController extends GetxController {
   }
 
   Future<void> stopVideoRecording() async {
-    // Check if camera controller exists and is initialized
-    if (cameraController == null || !cameraController!.value.isInitialized) {
-      log('Camera not ready, ignoring stop request');
-      isRecording.value = false;
-      _recordingTimer?.cancel();
-      return;
-    }
-
-    // Check if we think we're recording
     if (!isRecording.value) {
-      log('Not recording according to our state, ignoring stop request');
-      return;
-    }
-
-    // Check if camera controller is actually recording
-    if (!cameraController!.value.isRecordingVideo) {
-      log('Camera controller is not recording, syncing state');
-      isRecording.value = false;
-      _recordingTimer?.cancel();
+      log('Not recording, ignoring stop request');
       return;
     }
 
@@ -318,24 +300,10 @@ class PostController extends GetxController {
       
       Get.find<LoadingController>().hide();
       
-      // Small delay to ensure UI is ready, then navigate
-      await Future.delayed(const Duration(milliseconds: 100));
-      
       // Navigate to new post preview
-      log('🎬 Navigating to new post preview with ${selectedMedia.length} media files');
       _navigateToNewPostPreview();
     } catch (e) {
       Get.find<LoadingController>().hide();
-      // Reset recording state on error
-      isRecording.value = false;
-      _recordingTimer?.cancel();
-      
-      // Check if it's the specific "no video recording" error
-      if (e.toString().contains('No video is recording')) {
-        log('Camera was not actually recording, state synced');
-        return;
-      }
-      
       ShortMessageUtils.showError('Failed to save video: $e');
       log('❌ Error stopping recording: $e');
     }
@@ -946,21 +914,7 @@ class PostController extends GetxController {
   }
 
   void _navigateToNewPostPreview() {
-    try {
-      log('🚀 Attempting to navigate to new post preview...');
-      Get.toNamed('/new-post-preview');
-      log('✅ Navigation to new post preview successful');
-    } catch (e) {
-      log('❌ Error navigating to new post preview: $e');
-      // Fallback navigation
-      try {
-        Get.toNamed(AppRoutes.newPostPreview);
-        log('✅ Fallback navigation successful');
-      } catch (fallbackError) {
-        log('❌ Fallback navigation also failed: $fallbackError');
-        ShortMessageUtils.showError('Failed to open post preview');
-      }
-    }
+    Get.toNamed('/new-post-preview');
   }
 
   @override

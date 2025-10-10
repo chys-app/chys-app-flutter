@@ -12,8 +12,6 @@ import 'package:get/get.dart';
 import 'package:readmore/readmore.dart';
 import 'package:video_player/video_player.dart';
 
-
-
 class PostPreviewView extends StatefulWidget {
   const PostPreviewView({Key? key}) : super(key: key);
 
@@ -120,20 +118,20 @@ class _PostPreviewViewState extends State<PostPreviewView>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                                  const Icon(
-                    Icons.error_outline,
+                const Icon(
+                  Icons.error_outline,
+                  color: Colors.black,
+                  size: 64,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Failed to load post',
+                  style: TextStyle(
                     color: Colors.black,
-                    size: 64,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Failed to load post',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                ),
                 const SizedBox(height: 24),
                 GestureDetector(
                   onTap: () => Get.back(),
@@ -302,7 +300,8 @@ class _PostPreviewViewState extends State<PostPreviewView>
                                   ),
                                   padding: const EdgeInsets.all(20),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       // Description
                                       ReadMoreText(
@@ -351,91 +350,95 @@ class _PostPreviewViewState extends State<PostPreviewView>
                                       const SizedBox(height: 16),
                                       // Stats
                                       Obx(() => Row(
-                                        children: [
-                                          // Views
-                                          Row(
                                             children: [
-                                              const Icon(
-                                                Icons.remove_red_eye,
-                                                color: Colors.white70,
-                                                size: 16,
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                '${post.viewCount} views',
-                                                style: const TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
-                                                  shadows: [
-                                                    Shadow(
-                                                      offset: Offset(0, 1),
-                                                      blurRadius: 2,
-                                                      color: Colors.black54,
+                                              // Views
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.remove_red_eye,
+                                                    color: Colors.white70,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    '${post.viewCount} views',
+                                                    style: const TextStyle(
+                                                      color: Colors.white70,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      shadows: [
+                                                        Shadow(
+                                                          offset: Offset(0, 1),
+                                                          blurRadius: 2,
+                                                          color: Colors.black54,
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ],
-                                                ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(width: 20),
+                                              // Likes
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.favorite,
+                                                    color:
+                                                        post.isCurrentUserLiked
+                                                            ? Colors.red
+                                                            : Colors.white70,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    '${post.likes.length} likes',
+                                                    style: const TextStyle(
+                                                      color: Colors.white70,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      shadows: [
+                                                        Shadow(
+                                                          offset: Offset(0, 1),
+                                                          blurRadius: 2,
+                                                          color: Colors.black54,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(width: 20),
+                                              // Comments
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.comment,
+                                                    color: Colors.white70,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    '${post.comments.length} comments',
+                                                    style: const TextStyle(
+                                                      color: Colors.white70,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      shadows: [
+                                                        Shadow(
+                                                          offset: Offset(0, 1),
+                                                          blurRadius: 2,
+                                                          color: Colors.black54,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ],
-                                          ),
-                                          const SizedBox(width: 20),
-                                          // Likes
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.favorite,
-                                                color: post.isCurrentUserLiked
-                                                    ? Colors.red
-                                                    : Colors.white70,
-                                                size: 16,
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                '${post.likes.length} likes',
-                                                style: const TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
-                                                  shadows: [
-                                                    Shadow(
-                                                      offset: Offset(0, 1),
-                                                      blurRadius: 2,
-                                                      color: Colors.black54,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(width: 20),
-                                          // Comments
-                                          Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.comment,
-                                                color: Colors.white70,
-                                                size: 16,
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                '${post.comments.length} comments',
-                                                style: const TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
-                                                  shadows: [
-                                                    Shadow(
-                                                      offset: Offset(0, 1),
-                                                      blurRadius: 2,
-                                                      color: Colors.black54,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      )),
+                                          )),
                                     ],
                                   ),
                                 ),
@@ -469,19 +472,19 @@ class _PostPreviewViewState extends State<PostPreviewView>
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                                                              Icon(
-                                          Icons.image_not_supported,
+                                      Icon(
+                                        Icons.image_not_supported,
+                                        color: Colors.black,
+                                        size: 64,
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'Failed to load image',
+                                        style: TextStyle(
                                           color: Colors.black,
-                                          size: 64,
+                                          fontSize: 16,
                                         ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          'Failed to load image',
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 16,
-                                          ),
-                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -563,90 +566,90 @@ class _PostPreviewViewState extends State<PostPreviewView>
                               const SizedBox(height: 16),
                               // Stats
                               Obx(() => Row(
-                                children: [
-                                  // Views
-                                  Row(
                                     children: [
-                                      const Icon(
-                                        Icons.remove_red_eye,
-                                        color: Colors.white70,
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        '${post.viewCount} views',
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                          shadows: [
-                                            Shadow(
-                                              offset: Offset(0, 1),
-                                              blurRadius: 2,
-                                              color: Colors.black54,
+                                      // Views
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.remove_red_eye,
+                                            color: Colors.white70,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '${post.viewCount} views',
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              shadows: [
+                                                Shadow(
+                                                  offset: Offset(0, 1),
+                                                  blurRadius: 2,
+                                                  color: Colors.black54,
+                                                ),
+                                              ],
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(width: 20),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.favorite,
+                                            color: post.isCurrentUserLiked
+                                                ? Colors.red
+                                                : Colors.white70,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '${post.likes.length} likes',
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              shadows: [
+                                                Shadow(
+                                                  offset: Offset(0, 1),
+                                                  blurRadius: 2,
+                                                  color: Colors.black54,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(width: 20),
+                                      // Comments
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.comment,
+                                            color: Colors.white70,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '${post.comments.length} comments',
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              shadows: [
+                                                Shadow(
+                                                  offset: Offset(0, 1),
+                                                  blurRadius: 2,
+                                                  color: Colors.black54,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
-                                  ),
-                                  const SizedBox(width: 20),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.favorite,
-                                        color: post.isCurrentUserLiked
-                                            ? Colors.red
-                                            : Colors.white70,
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        '${post.likes.length} likes',
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                          shadows: [
-                                            Shadow(
-                                              offset: Offset(0, 1),
-                                              blurRadius: 2,
-                                              color: Colors.black54,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(width: 20),
-                                  // Comments
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.comment,
-                                        color: Colors.white70,
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        '${post.comments.length} comments',
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                          shadows: [
-                                            Shadow(
-                                              offset: Offset(0, 1),
-                                              blurRadius: 2,
-                                              color: Colors.black54,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              )),
+                                  )),
                             ],
                           ),
                         ),
@@ -913,7 +916,7 @@ class _PostPreviewViewState extends State<PostPreviewView>
     final userName = post.creator.name;
     final initials = getUserInitials(userName);
     final color = getAvatarColor(initials);
-    
+
     return Container(
       width: 32,
       height: 32,

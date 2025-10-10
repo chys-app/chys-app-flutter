@@ -18,6 +18,7 @@ class OtherUserProfileController extends GetxController {
 
   // Profile data
   var profile = Rxn<OwnProfileModel>();
+  final RxList<PetModel> userPets = <PetModel>[].obs;
   var userPet = Rxn<PetModel>();
 
   // Current user ID for comparison
@@ -154,10 +155,18 @@ class OtherUserProfileController extends GetxController {
       // Load pet profiles
       final petProfiles = response["petProfiles"];
       if (petProfiles is List && petProfiles.isNotEmpty) {
-        userPet.value = PetModel.fromJson(petProfiles[0]);
-        log("Pet profile loaded for other user");
+        final pets = petProfiles
+            .whereType<Map<String, dynamic>>()
+            .map(PetModel.fromJson)
+            .toList();
+        userPets
+          ..clear()
+          ..addAll(pets);
+        userPet.value = pets.first;
+        log("Loaded ${pets.length} pet profiles for other user");
       } else {
         log("No pet profile found for other user.");
+        userPets.clear();
         userPet.value = null;
       }
 
@@ -173,6 +182,7 @@ class OtherUserProfileController extends GetxController {
 
   void clearProfileData() {
     profile.value = null;
+    userPets.clear();
     userPet.value = null;
     isFollowing.value = false;
     followersCount.value = 0;
@@ -245,7 +255,13 @@ class OtherUserProfileController extends GetxController {
   }
 
   void setSelectedTab(int index) {
+    if (index < 0 || index >= userPets.length) {
+      selectedTab.value = 0;
+      userPet.value = userPets.isNotEmpty ? userPets.first : null;
+      return;
+    }
     selectedTab.value = index;
+    userPet.value = userPets[index];
   }
 
   /// Reload current user ID from storage

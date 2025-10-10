@@ -201,39 +201,55 @@ class ChatListView extends GetView<ChatController> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            controller.searchController.text.isEmpty
-                ? 'Start a conversation with your friends'
-                : 'Try searching with a different name',
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF8E8E93), // Instagram's secondary text color
-            ),
-          ),
+          Obx(() {
+            final hasPetProfile =
+                controller.profileController.userPets.isNotEmpty;
+            final helperText = controller.searchController.text.isEmpty
+                ? hasPetProfile
+                    ? 'Start a conversation with your friends'
+                    : 'Add a pet and start a conversation with your friends'
+                : 'Try searching with a different name';
+
+            return Text(
+              helperText,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF8E8E93), // Instagram's secondary text color
+              ),
+            );
+          }),
           if (controller.searchController.text.isEmpty) ...[
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                // New message functionality
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    const Color(0xFF0095F6), // Instagram's blue color
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+            Obx(() {
+              final hasPetProfile =
+                  controller.profileController.userPets.isNotEmpty;
+              return ElevatedButton(
+                onPressed: hasPetProfile
+                    ? () {
+                        // New message functionality
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      const Color(0xFF0095F6), // Instagram's blue color
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  disabledForegroundColor: Colors.grey.shade600,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Start a Chat',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                child: const Text(
+                  'Start a Chat',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ),
+              );
+            }),
           ],
         ],
       ),

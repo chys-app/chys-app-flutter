@@ -68,27 +68,6 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> pickVideoForStory() async {
-    try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? video = await picker.pickVideo(
-        source: ImageSource.camera,
-        maxDuration: const Duration(seconds: 60), // Limit to 60 seconds for stories
-      );
-
-      if (video != null) {
-        // For videos, directly upload without editing for now
-        // In the future, you can create a video editor similar to InstagramStoryEditor
-        selectedMedia.value = File(video.path);
-        // Automatically upload the story after recording
-        uploadStory();
-      }
-    } catch (e) {
-      log("Failed to pick video: $e");
-      ShortMessageUtils.showError('Failed to record video');
-    }
-  }
-
 
   Future<void> uploadStory() async {
     if (selectedMedia.value == null) {

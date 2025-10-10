@@ -43,7 +43,6 @@ abstract class AppRoutes {
   static const adoredPost = '/adoredPost';
   static const postPreview = '/post-preview';
   static const newPostPreview = '/new-post-preview';
-  static const liveVideo = '/live-video';
 
   // Pet onboarding routes
   static const petOwnership = '/pet-ownership';

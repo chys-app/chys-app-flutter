@@ -1,10 +1,8 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:story_view/story_view.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
-import 'package:video_player/video_player.dart';
 import '../../services/custom_Api.dart';
-import '../../core/const/app_colors.dart';
 
 class StoryPreviewPage extends StatefulWidget {
   final List<String> mediaUrls;
@@ -41,21 +39,21 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
 
   /// Track story view when user views a story
   void _trackStoryView(int index) {
-    if (widget.storyIds != null &&
-        index < widget.storyIds!.length &&
+    if (widget.storyIds != null && 
+        index < widget.storyIds!.length && 
         index < widget.mediaUrls.length) {
+      
       final storyId = widget.storyIds![index];
-
+      
       // Only track if not already viewed in this session
       if (!_viewedStoryIds.contains(storyId)) {
         _viewedStoryIds.add(storyId);
-
-        // Track the view asynchronously - don't let errors affect the UI
-        _apiService.trackStoryView(storyId).then((result) {
-          log("✅ [STORY VIEW] Successfully tracked view for story: $storyId");
-        }).catchError((error) {
-          log("⚠️ [STORY VIEW] Failed to track view for story $storyId: $error");
-          // Don't remove from viewed set - just log the error and continue
+        
+        // Track the view asynchronously
+        _apiService.trackStoryView(storyId).catchError((error) {
+          print('Failed to track story view: $error');
+          // Remove from viewed set so it can be retried
+          _viewedStoryIds.remove(storyId);
         });
       }
     }
@@ -63,7 +61,7 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
 
   /// Get view count for current story
   int _getCurrentViewCount() {
-    if (widget.viewCounts != null &&
+    if (widget.viewCounts != null && 
         _currentIndex < widget.viewCounts!.length) {
       return widget.viewCounts![_currentIndex];
     }
@@ -77,70 +75,6 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
     if (count < 1000) return '$count views';
     if (count < 1000000) return '${(count / 1000).toStringAsFixed(1)}K views';
     return '${(count / 1000000).toStringAsFixed(1)}M views';
-  }
-
-  // Get screen dimensions - 80% height, full width
-  double get _screenHeight => MediaQuery.of(Get.context!).size.height ; // 80% of screen height
-  double get _screenWidth => MediaQuery.of(Get.context!).size.width; // Full width
-
-
-  // Full screen image widget
-  Widget _buildImageWidget(String url) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      color: AppColors.background,
-      child: Stack(
-        children: [
-          // Full screen image
-          Positioned.fill(
-            child: Image.network(
-              url,
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
-                  color: AppColors.background,
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.primary,
-                      strokeWidth: 2,
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                          : null,
-                    ),
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) => Container(
-                color: AppColors.background,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: AppColors.error,
-                        size: 50,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'Failed to load story',
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -158,60 +92,82 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        color: AppColors.background,
+        color: Colors.white,
         child: Stack(
           children: [
-            // Story content - 80% height, full width
+            // Full screen story content
             Positioned.fill(
-              child: Center(
-                child: Container(
-                  width: _screenWidth,
-                  height: _screenHeight,
-                  child: PageView.builder(
-                    itemCount: widget.mediaUrls.length,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentIndex = index;
-                      });
-                      // Track story view when user navigates to a story
-                      _trackStoryView(index);
-                    },
-                    itemBuilder: (context, index) {
-                      final url = widget.mediaUrls[index];
-                      final isVideo = url.endsWith(".mp4") || url.contains("video");
-
-                      return Container(
-                        width: _screenWidth,
-                        height: _screenHeight,
-                        color: AppColors.background,
-                        child: isVideo
-                            ? VideoPlayerWidget(url: url)
-                            : _buildImageWidget(url),
-                      );
-                    },
-                  ),
+              child: Container(
+                width: double.infinity,
+                height: double.infinity,
+                color: Colors.white,
+                child: PageView.builder(
+                  itemCount: widget.mediaUrls.length,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                    // Track story view when user navigates to a story
+                    _trackStoryView(index);
+                  },
+                  itemBuilder: (context, index) {
+                    final url = widget.mediaUrls[index];
+                    final isVideo = url.endsWith(".mp4") || url.contains("video");
+                    
+                    return Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: Colors.white,
+                      child: isVideo
+                          ? VideoPlayerWidget(url: url)
+                          : CachedNetworkImage(
+                              imageUrl: url,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              placeholder: (context, url) => Container(
+                                color: Colors.white,
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                color: Colors.white,
+                                child: Center(
+                                  child: Icon(
+                                    Icons.error,
+                                    color: Colors.black,
+                                    size: 50,
+                                  ),
+                                ),
+                              ),
+                            ),
+                    );
+                  },
                 ),
               ),
             ),
-            // Progress indicators - App theme style
+            // Progress indicators
             Positioned(
-              top: MediaQuery.of(context).padding.top + 8,
-              left: 8,
-              right: 8,
+              top: MediaQuery.of(context).padding.top + 50,
+              left: 16,
+              right: 16,
               child: Row(
                 children: List.generate(widget.mediaUrls.length, (index) {
                   return Expanded(
                     child: Container(
                       height: 3,
-                      margin: EdgeInsets.symmetric(horizontal: 1),
+                      margin: EdgeInsets.symmetric(horizontal: 2),
                       decoration: BoxDecoration(
-                        color: index <= _currentIndex
-                            ? AppColors.primary
-                            : AppColors.primary.withOpacity(0.3),
+                        color: index <= _currentIndex 
+                            ? Colors.black 
+                            : Colors.black.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -219,21 +175,31 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
                 }),
               ),
             ),
-            // App theme header - Name only
+            // Instagram-like header
             Positioned(
-              top: MediaQuery.of(context).padding.top + 20,
+              top: MediaQuery.of(context).padding.top + 10,
               left: 16,
               right: 16,
               child: Row(
                 children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.grey.shade200,
+                    child: const Icon(
+                      Icons.person,
+                      color: Colors.black,
+                      size: 16,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           widget.userName,
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
+                          style: const TextStyle(
+                            color: Colors.black,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
@@ -241,7 +207,7 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
                         Text(
                           'now',
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: Colors.grey.shade600,
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
                           ),
@@ -250,29 +216,27 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
                     ),
                   ),
                   // View count display
-                  if (widget.viewCounts != null &&
-                      widget.viewCounts!.isNotEmpty)
+                  if (widget.viewCounts != null && widget.viewCounts!.isNotEmpty)
                     Container(
                       margin: const EdgeInsets.only(right: 12),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.secondary,
+                        color: Colors.black.withOpacity(0.6),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.visibility,
-                            color: AppColors.primary,
+                            color: Colors.white,
                             size: 14,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             _formatViewCount(_getCurrentViewCount()),
-                            style: TextStyle(
-                              color: AppColors.textPrimary,
+                            style: const TextStyle(
+                              color: Colors.white,
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -285,12 +249,12 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.secondary,
+                        color: Colors.grey.shade200,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.close,
-                        color: AppColors.primary,
+                        color: Colors.black,
                         size: 20,
                       ),
                     ),
@@ -305,155 +269,44 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
   }
 }
 
-// Video player widget with proper video playback
-class VideoPlayerWidget extends StatefulWidget {
+// Simple video player widget
+class VideoPlayerWidget extends StatelessWidget {
   final String url;
-
+  
   VideoPlayerWidget({Key? key, required this.url}) : super(key: key);
-
-  @override
-  State<VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
-}
-
-class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
-  late VideoPlayerController _controller;
-  bool _isInitialized = false;
-  bool _hasError = false;
-  bool _isPlaying = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeVideo();
-  }
-
-  Future<void> _initializeVideo() async {
-    try {
-      _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
-      await _controller.initialize();
-      
-      if (mounted) {
-        setState(() {
-          _isInitialized = true;
-        });
-        
-        // Auto-play the video
-        _controller.play();
-        setState(() {
-          _isPlaying = true;
-        });
-        
-        // Listen for video completion
-        _controller.addListener(() {
-          if (_controller.value.position >= _controller.value.duration) {
-            // Video finished, restart it for stories
-            _controller.seekTo(Duration.zero);
-            _controller.play();
-          }
-        });
-      }
-    } catch (e) {
-      print('Error initializing video: $e');
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-        });
-      }
-    }
-  }
-
-  void _togglePlayPause() {
-    if (_isInitialized) {
-      if (_isPlaying) {
-        _controller.pause();
-      } else {
-        _controller.play();
-      }
-      setState(() {
-        _isPlaying = !_isPlaying;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
+  
   @override
   Widget build(BuildContext context) {
-    if (_hasError) {
-      return Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: AppColors.background,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                color: AppColors.error,
-                size: 50,
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Failed to load video',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (!_isInitialized) {
-      return Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: AppColors.background,
-        child: Center(
-          child: CircularProgressIndicator(
-            color: AppColors.primary,
-            strokeWidth: 2,
-          ),
-        ),
-      );
-    }
-
-    return GestureDetector(
-      onTap: _togglePlayPause,
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: AppColors.background, // White background like images
-        child: Stack(
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: Colors.white,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Video player - full screen like images
-            Positioned.fill(
-              child: VideoPlayer(_controller),
+            Icon(
+              Icons.play_circle_outline,
+              color: Colors.black,
+              size: 80,
             ),
-            
-            // Play/Pause overlay
-            if (!_isPlaying)
-              Center(
-                child: Container(
-                  padding: EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.play_arrow,
-                    color: Colors.white,
-                    size: 60,
-                  ),
-                ),
+            SizedBox(height: 16),
+            Text(
+              'Video Story',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
               ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Tap to play video',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 14,
+              ),
+            ),
           ],
         ),
       ),

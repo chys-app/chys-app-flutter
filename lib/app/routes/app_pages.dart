@@ -45,7 +45,6 @@ import '../modules/post/bindings/post_binding.dart';
 import '../modules/post/views/add_post_view.dart';
 import '../modules/post/views/post_preview_view.dart';
 import '../modules/post/views/new_post_preview_view.dart';
-import '../modules/live_video/views/live_video_view.dart';
 import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_view.dart';
 import '../modules/profile/views/other_user_profile_view.dart';
@@ -225,11 +224,6 @@ class AppPages {
       name: AppRoutes.newPostPreview,
       page: () => const NewPostPreviewView(),
       binding: PostBinding(),
-      transition: Transition.cupertino,
-    ),
-    GetPage(
-      name: AppRoutes.liveVideo,
-      page: () => const LiveVideoView(),
       transition: Transition.cupertino,
     ),
     GetPage(

@@ -1,7 +1,6 @@
 import 'dart:developer';
 import 'package:chys/app/core/const/app_colors.dart';
 import 'package:chys/app/core/const/app_text.dart';
-import 'package:chys/app/core/utils/app_size.dart';
 import 'package:chys/app/data/models/own_profile.dart';
 import 'package:chys/app/data/models/pet_profile.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
@@ -344,61 +343,163 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
   Widget _buildProfileHeader() {
     return Obx(() {
       final profileData = profileController.profile.value;
+      final pets = profileController.userPets;
+      final petCount = pets.length;
+      final hasMultiplePets = petCount > 1;
       final userPet = profileController.userPet.value;
-      
+
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User Profile Picture - Instagram Style
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey.shade300, width: 1),
-              ),
-              child: userPet == null?_buildProfileAvatar(profileData,):_buildPetProfileAvatar(userPet),
-            ),
+            if (hasMultiplePets) ...[
+              SizedBox(
+                height: 110,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: pets.length + 1,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final isAddItem = index == pets.length;
+                    if (isAddItem) {
+                      return _buildAddPetCircle();
+                    }
 
-            const SizedBox(width: 24),
-
-            // Profile Info - Instagram Style
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              userPet?.name ?? profileData?.name ?? "User Name",
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                    final pet = pets[index];
+                    final isSelected = pet.id == userPet?.id;
+                    return GestureDetector(
+                      onTap: () => profileController.selectPet(index),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected
+                                    ? AppColors.blue
+                                    : Colors.grey.shade300,
+                                width: isSelected ? 2.5 : 1,
                               ),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: AppColors.blue.withOpacity(0.2),
+                                        blurRadius: 8,
+                                        spreadRadius: 1,
+                                      ),
+                                    ]
+                                  : null,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "@${(userPet?.name ?? profileData?.name ?? "username").toLowerCase().replaceAll(' ', '')}",
+                            child: _buildPetProfileAvatar(pet, size: 64),
+                          ),
+                          const SizedBox(height: 6),
+                          SizedBox(
+                            width: 72,
+                            child: Text(
+                              pet.name ?? 'Pet',
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey.shade600,
+                                fontSize: 12,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: isSelected
+                                    ? Colors.black
+                                    : Colors.grey.shade600,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            // Birthday Section
-                            _buildBirthdaySection(),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ] else if (petCount == 1) ...[
+              Row(
+                children: [
+                  _buildAddPetCircle(),
                 ],
               ),
+              const SizedBox(height: 16),
+            ] else ...[
+              Row(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border:
+                          Border.all(color: Colors.grey.shade300, width: 1),
+                    ),
+                    child: _buildProfileAvatar(profileData),
+                  ),
+                  const SizedBox(width: 24),
+                ],
+              ),
+              Row(
+                children: [
+                  _buildAddPetCircle(),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (hasMultiplePets)
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.transparent,
+                        width: 0,
+                      ),
+                    ),
+                    child: _buildPetProfileAvatar(userPet, size: 80),
+                  )
+                else
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border:
+                          Border.all(color: Colors.grey.shade300, width: 1),
+                    ),
+                    child: _buildProfileAvatar(profileData),
+                  ),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        userPet?.name ?? profileData?.name ?? "User Name",
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "@${(userPet?.name ?? profileData?.name ?? "username").toLowerCase().replaceAll(' ', '')}",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      _buildBirthdaySection(),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -528,6 +629,50 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
     );
   }
 
+  Widget _buildAddPetCircle() {
+    return GestureDetector(
+      onTap: () => Get.toNamed(AppRoutes.petOwnership),
+      child: Column(
+        children: [
+          Container(
+            height: 70,
+            width: 70,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.blue.withValues(alpha: 0.08),
+              border: Border.all(
+                color: AppColors.blue,
+                width: 2,
+              ),
+            ),
+            child: Center(
+              child: Icon(
+                Icons.add,
+                size: 28,
+                color: AppColors.blue,
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            width: 72,
+            child: Text(
+              "Add Pet",
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.blue,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildActionButtons(String? argument) {
     // This view is only for current user's profile
     // Other users' profiles will use OtherUserProfileView
@@ -542,7 +687,7 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _buildActionButton(
-            label: "Profile",
+            label: "Edit Profile",
             onTap: () {
               // Navigate to pet edit flow
               final hasPet = profileController.userPet.value != null;
@@ -920,78 +1065,85 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
     );
   }
 
-
-
-  Widget _buildProfileAvatar(OwnProfileModel? profileData) {
-    if (profileData?.profilePic != null && profileData!.profilePic!.isNotEmpty) {
+  Widget _buildProfileAvatar(OwnProfileModel? profileData, {double size = 80}) {
+    final imageUrl = profileData?.profilePic;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
       return ClipOval(
         child: SizedBox(
-          width: 80,
-          height: 80,
+          width: size,
+          height: size,
           child: Image.network(
-            profileData.profilePic!,
+            imageUrl,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
-              return _buildInitialsAvatar(profileData.name);
+              return _buildInitialsAvatar(profileData?.name, size: size);
             },
           ),
         ),
       );
-    } else {
-      return SizedBox(
-        width: 80,
-        height: 80,
-        child: ClipOval(
-          child: _buildInitialsAvatar(profileData?.name),
-        ),
-      );
     }
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: ClipOval(
+        child: _buildInitialsAvatar(profileData?.name, size: size),
+      ),
+    );
   }
 
-  Widget _buildPetProfileAvatar(PetModel? userPet) {
-    if (userPet?.profilePic != null && userPet!.profilePic!.isNotEmpty) {
+  Widget _buildPetProfileAvatar(PetModel? userPet, {double size = 80}) {
+    final imageUrl = userPet?.profilePic;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
       return ClipOval(
         child: SizedBox(
-          width: 80,
-          height: 80,
+          width: size,
+          height: size,
           child: Image.network(
-            userPet.profilePic!,
+            imageUrl,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
-              return _buildInitialsAvatar(userPet.name);
+              return _buildInitialsAvatar(userPet?.name, size: size);
             },
           ),
         ),
       );
-    } else {
-      return SizedBox(
-        width: 80,
-        height: 80,
-        child: ClipOval(
-          child: _buildInitialsAvatar(userPet?.name),
-        ),
-      );
     }
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: ClipOval(
+        child: _buildInitialsAvatar(userPet?.name, size: size),
+      ),
+    );
   }
 
-  Widget _buildInitialsAvatar(String? userName) {
-    final initials = getUserInitials(userName);
-    final color = getAvatarColor(initials);
-
+  Widget _buildInitialsAvatar(String? name, {double size = 80}) {
+    final initials = _getInitials(name ?? "");
     return Container(
-      color: color,
+      color: AppColors.blue.withValues(alpha: 0.1),
       child: Center(
         child: Text(
           initials,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 32,
+          style: TextStyle(
+            fontSize: size * 0.3,
             fontWeight: FontWeight.bold,
+            color: AppColors.blue,
           ),
         ),
       ),
     );
   }
 
-
+  String _getInitials(String name) {
+    if (name.trim().isEmpty) {
+      return "?";
+    }
+    final parts = name.trim().split(RegExp(r"\s+"));
+    if (parts.length == 1) {
+      return parts.first.substring(0, 1).toUpperCase();
+    }
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
 }

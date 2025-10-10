@@ -16,6 +16,12 @@ class PetOwnershipService {
       // First try to get from ProfileController
       if (Get.isRegistered<ProfileController>()) {
         final profileController = Get.find<ProfileController>();
+
+        // Multi-pet support: treat any non-empty pet list as ownership
+        if (profileController.userPets.isNotEmpty) {
+          return true;
+        }
+
         final userPet = profileController.userPet.value;
         if (userPet != null) {
           return userPet.isHavePet == true || userPet.name != null;
@@ -48,34 +54,94 @@ class PetOwnershipService {
   bool get canCreatePodcasts => hasPet;
 
   /// Get restriction message for posts
-  String get postRestrictionMessage => 
-    "You need to have a pet to create posts. Add a pet to your profile to unlock this feature!";
+  String get postRestrictionMessage =>
+      "Add a pet to your profile to create posts!";
 
   /// Get restriction message for podcasts
-  String get podcastRestrictionMessage => 
-    "You need to have a pet to create podcasts. Add a pet to your profile to unlock this feature!";
+  String get podcastRestrictionMessage =>
+      "Add a pet to your profile to create podcasts!";
 
-  // /// Show restriction dialog for posts
-  // void showPostRestriction() {
-  //   Get.dialog(
-  //     _buildRestrictionDialog(
-  //       title: "Post Creation Restricted",
-  //       message: postRestrictionMessage,
-  //       icon: Icons.photo_camera,
-  //     ),
-  //   );
-  // }
+// Get restriction message for stories
+  String get storiesRestrictionMessage =>
+      "Add a pet to your profile to create stories!";
 
-  // /// Show restriction dialog for podcasts
-  // void showPodcastRestriction() {
-  //   Get.dialog(
-  //     _buildRestrictionDialog(
-  //       title: "Podcast Creation Restricted",
-  //       message: podcastRestrictionMessage,
-  //       icon: Icons.mic,
-  //     ),
-  //   );
-  // }
+  void showPostRestriction() {
+    if (Get.isSnackbarOpen) {
+      Get.closeCurrentSnackbar();
+    }
+    Get.snackbar(
+      "Add a Pet",
+      postRestrictionMessage,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 4),
+      backgroundColor: const Color(0xFFE3F2FD),
+      colorText: const Color(0xFF0D47A1),
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      mainButton: TextButton(
+        onPressed: () {
+          Get.closeCurrentSnackbar();
+          _navigateToAddPet();
+        },
+        child: const Text(
+          "Add Pet",
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+
+  void showPodcastRestriction() {
+    if (Get.isSnackbarOpen) {
+      Get.closeCurrentSnackbar();
+    }
+    Get.snackbar(
+      "Add a Pet",
+      podcastRestrictionMessage,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 4),
+      backgroundColor: const Color(0xFFE3F2FD),
+      colorText: const Color(0xFF0D47A1),
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      mainButton: TextButton(
+        onPressed: () {
+          Get.closeCurrentSnackbar();
+          _navigateToAddPet();
+        },
+        child: const Text(
+          "Add Pet",
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+
+  void showStoriesRestriction() {
+    if (Get.isSnackbarOpen) {
+      Get.closeCurrentSnackbar();
+    }
+    Get.snackbar(
+      "Add a Pet",
+      storiesRestrictionMessage,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 4),
+      backgroundColor: const Color(0xFFE3F2FD),
+      colorText: const Color(0xFF0D47A1),
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      mainButton: TextButton(
+        onPressed: () {
+          Get.closeCurrentSnackbar();
+          _navigateToAddPet();
+        },
+        child: const Text(
+          "Add Pet",
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
 
   // Widget _buildRestrictionDialog({
   //   required String title,

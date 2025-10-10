@@ -8,7 +8,7 @@ import 'package:chys/app/data/models/podcast_model.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+ 
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -72,8 +72,7 @@ class PodcastView extends StatelessWidget {
                   color: AppColors.error.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child:
-                    Icon(Icons.exit_to_app, color: AppColors.error, size: 24),
+                child: Icon(Icons.exit_to_app, color: AppColors.error, size: 24),
               ),
               const SizedBox(width: 12),
               Text(
@@ -523,8 +522,7 @@ $podcastUrl
             child: Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
@@ -637,8 +635,7 @@ $podcastUrl
               ),
               const Spacer(),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF0095F6), Color(0xFF00C851)],
@@ -802,8 +799,7 @@ $podcastUrl
     );
   }
 
-  Widget _buildVideoTile(
-      int userId, bool speaking, bool isMuted, bool isVideoMuted,
+  Widget _buildVideoTile(int userId, bool speaking, bool isMuted, bool isVideoMuted,
       {required PodcastController controller,
       bool isLarge = false,
       VoidCallback? onTap}) {
@@ -970,8 +966,7 @@ $podcastUrl
                           child: Text(
                             isCurrentUser ? 'You' : 'User $userId',
                             style: GoogleFonts.inter(
-                              color:
-                                  isCurrentUser ? Colors.white : Colors.white,
+                              color: isCurrentUser ? Colors.white : Colors.white,
                               fontSize: isLarge ? 14 : 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -1206,8 +1201,7 @@ $podcastUrl
                           ),
                         ),
                         IconButton(
-                          icon:
-                              Icon(Icons.close, color: AppColors.textSecondary),
+                          icon: Icon(Icons.close, color: AppColors.textSecondary),
                           onPressed: () => Get.back(),
                         ),
                       ],
@@ -1286,8 +1280,7 @@ $podcastUrl
                                 child: ListTile(
                                   leading: Icon(Icons.favorite,
                                       color: const Color(0xFF0095F6)),
-                                  title: Text('Donated',
-                                      style: GoogleFonts.inter()),
+                                  title: Text('Donated', style: GoogleFonts.inter()),
                                   trailing: Text(
                                     '+\$${donation.amount}',
                                     style: GoogleFonts.inter(
@@ -1325,13 +1318,11 @@ $podcastUrl
                           selected: isSelected,
                           selectedColor: const Color(0xFF0095F6),
                           labelStyle: GoogleFonts.inter(
-                            color: isSelected
-                                ? Colors.white
-                                : const Color(0xFF0095F6),
+                            color:
+                                isSelected ? Colors.white : const Color(0xFF0095F6),
                             fontWeight: FontWeight.w600,
                           ),
-                          backgroundColor:
-                              const Color(0xFF0095F6).withOpacity(0.08),
+                          backgroundColor: const Color(0xFF0095F6).withOpacity(0.08),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),

@@ -5,6 +5,7 @@ import 'package:chys/app/data/models/own_profile.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
 import 'package:chys/app/modules/map/controllers/map_controller.dart';
 import 'package:chys/app/modules/profile/controllers/other_user_profile_controller.dart';
+import 'package:chys/app/modules/podcast/controllers/create_podcast_controller.dart';
 import 'package:chys/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -318,6 +319,7 @@ class OtherUserProfileView extends StatelessWidget {
   Widget _buildProfileHeader() {
     return Obx(() {
       final profileData = otherUserProfileController.profile.value;
+      final pets = otherUserProfileController.userPets;
       final userPet = otherUserProfileController.userPet.value;
       if (profileData == null) {
         return const SizedBox.shrink(); // Don't show anything while loading
@@ -325,62 +327,130 @@ class OtherUserProfileView extends StatelessWidget {
 
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Pet Profile Picture - Instagram Style
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey.shade300, width: 1),
-              ),
-              child: _buildPetProfileAvatar(userPet),
-            ),
-
-            const SizedBox(width: 24),
-
-            // Profile Info - Instagram Style
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              userPet?.name ?? profileData.name ?? "User Name",
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
+            if (pets.isNotEmpty) ...[
+              SizedBox(
+                height: 96,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: pets.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final pet = pets[index];
+                    final isSelected = pet.id == userPet?.id;
+                    return GestureDetector(
+                      onTap: () => otherUserProfileController.setSelectedTab(index),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected
+                                    ? AppColors.blue
+                                    : Colors.grey.shade300,
+                                width: isSelected ? 2.5 : 1,
                               ),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: AppColors.blue.withOpacity(0.2),
+                                        blurRadius: 8,
+                                        spreadRadius: 1,
+                                      ),
+                                    ]
+                                  : null,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "@${(userPet?.name ?? profileData.name ?? "username").toLowerCase().replaceAll(' ', '')}",
+                            child: _buildPetProfileAvatar(pet),
+                          ),
+                          const SizedBox(height: 6),
+                          SizedBox(
+                            width: 72,
+                            child: Text(
+                              pet.name ?? 'Pet',
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey.shade600,
+                                fontSize: 12,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: isSelected
+                                    ? Colors.black
+                                    : Colors.grey.shade600,
                               ),
                             ),
-                            const SizedBox(height: 4),
-
-                            const SizedBox(height: 4),
-                            // Gift Button below username
-                            _buildGiftButton(profileData.id ?? ''),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      // Action Buttons - Follow only
-                      _buildFollowButton(profileData.id ?? ''),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: pets.isNotEmpty ? Colors.transparent : Colors.grey.shade300,
+                      width: pets.isNotEmpty ? 0 : 1,
+                    ),
+                  ),
+                  child: pets.isNotEmpty
+                      ? _buildPetProfileAvatar(userPet)
+                      : _buildPetProfileAvatar(userPet),
+                ),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  userPet?.name ?? profileData.name ?? "User Name",
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "@${(userPet?.name ?? profileData.name ?? "username").toLowerCase().replaceAll(' ', '')}",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                _buildGiftButton(profileData.id ?? ''),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          _buildFollowButton(profileData.id ?? ''),
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
@@ -565,9 +635,14 @@ class OtherUserProfileView extends StatelessWidget {
             // Invite Podcast Button
             _buildActionButton(
               label: "Podcast",
-              onTap: () {
-                // Navigate directly to podcast screen - API calls will be made automatically
-                Get.toNamed(AppRoutes.invitePodcast);
+              onTap: () async {
+                // Call API directly to invite user to podcast
+                final currentUserId =
+                    otherUserProfileController.userCurrentId.value;
+                if (currentUserId.isNotEmpty &&
+                    !otherUserProfileController.isCurrentUser) {
+                  await _inviteUserToPodcast(profileData.id!);
+                }
               },
             ),
 
@@ -1604,6 +1679,188 @@ class OtherUserProfileView extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  // Method to invite user to podcast directly via API
+  Future<void> _inviteUserToPodcast(String userId) async {
+    try {
+      Get.find<LoadingController>().show();
+
+      final currentUserId = otherUserProfileController.userCurrentId.value;
+      final userPet = otherUserProfileController.userPet.value;
+
+      // Get the current user's existing podcast
+      String? podcastId;
+
+      try {
+        // Try to get existing podcast from CreatePodCastController
+        if (Get.isRegistered<CreatePodCastController>()) {
+          final podcastController = Get.find<CreatePodCastController>();
+          if (podcastController.podcasts.isNotEmpty) {
+            // Get the most recent podcast created by current user
+            final currentUserPodcasts = podcastController.podcasts
+                .where((podcast) => podcast.host.id == currentUserId)
+                .toList();
+
+            if (currentUserPodcasts.isNotEmpty) {
+              podcastId = currentUserPodcasts.first.id;
+              log("Found existing podcast ID: $podcastId");
+            }
+          }
+        }
+      } catch (e) {
+        log("Error getting existing podcast: $e");
+      }
+
+      // Update the podcast with the guest information using PUT
+      if (podcastId != null) {
+        final updateResponse = await customApiService.putRequest(
+          'podcast/$podcastId',
+          {
+            "guests": [userId],
+          },
+        );
+
+        log("Podcast update response: $updateResponse");
+
+        Get.snackbar(
+          "🎙️ Podcast Invitation Sent",
+          "Successfully invited user to podcast",
+          backgroundColor: const Color(0xFF0095F6),
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          duration: const Duration(seconds: 3),
+        );
+      } else {
+        // No existing podcast found, ask user to schedule one first
+        log("No existing podcast found, asking user to schedule one...");
+        Get.find<LoadingController>().hide();
+
+        _showSchedulePodcastDialog(userId);
+        return;
+      }
+    } catch (e) {
+      log("Error inviting user to podcast: $e");
+      ShortMessageUtils.showError("Failed to send podcast invitation");
+    } finally {
+      Get.find<LoadingController>().hide();
+    }
+  }
+
+  // Method to show dialog asking user to schedule a podcast first
+  void _showSchedulePodcastDialog(String userId) {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0095F6).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.mic,
+                color: Color(0xFF0095F6),
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                "Schedule Podcast First",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "You need to schedule a podcast before inviting guests.",
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.black87,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0095F6).withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: const Color(0xFF0095F6).withOpacity(0.2),
+                ),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: Color(0xFF0095F6),
+                    size: 20,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "Go to the podcast section to create and schedule your podcast, then come back to invite guests.",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF0095F6),
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              // Navigate to podcast creation/scheduling
+              Get.toNamed(AppRoutes.invitePodcast);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0095F6),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: const Text(
+              "Schedule Podcast",
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

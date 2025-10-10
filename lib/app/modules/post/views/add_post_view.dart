@@ -913,15 +913,15 @@ class AddPostView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Obx(() => _buildSideButton(
+          _buildSideButton(
             icon: Icons.photo_camera,
             label: 'Photo',
             onTap: () => controller.captureImage(),
             onLongPress: () => controller.startVideoRecording(),
             onLongPressEnd: (details) => controller.stopVideoRecording(),
             color: Colors.black87,
-            isRecording: controller.isRecording.value,
-          )),
+            isRecording: false,
+          ),
           const SizedBox(height: 20),
           _buildSideButton(
             icon: Icons.photo_library,
@@ -939,7 +939,7 @@ class AddPostView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Obx(() => _buildSideButton(
+          _buildSideButton(
             icon: Icons.videocam,
             label: 'Record',
             onTap: () => controller.toggleVideoRecording(),
@@ -947,7 +947,7 @@ class AddPostView extends StatelessWidget {
             onLongPressEnd: (details) => controller.stopVideoRecording(),
             color: Colors.red,
             isRecording: controller.isRecording.value,
-          )),
+          ),
           const SizedBox(height: 20),
           _buildSideButton(
             icon: Icons.flip_camera_ios,
@@ -1027,22 +1027,22 @@ class AddPostView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Obx(() => _buildActionButton(
+          _buildActionButton(
             icon: Icons.photo_camera,
             label: 'Photo',
             onTap: () => controller.captureImage(),
             onLongPress: () => controller.startVideoRecording(),
             onLongPressEnd: (details) => controller.stopVideoRecording(),
             color: Colors.black87,
-            isRecording: controller.isRecording.value,
-          )),
+            isRecording: false,
+          ),
           _buildActionButton(
             icon: Icons.photo_library,
             label: 'Gallery',
             onTap: () => controller.pickImages(),
             color: Colors.black87,
           ),
-          Obx(() => _buildActionButton(
+          _buildActionButton(
             icon: Icons.videocam,
             label: 'Record',
             onTap: () => controller.toggleVideoRecording(),
@@ -1050,7 +1050,7 @@ class AddPostView extends StatelessWidget {
             onLongPressEnd: (details) => controller.stopVideoRecording(),
             color: Colors.red,
             isRecording: controller.isRecording.value,
-          )),
+          ),
           _buildActionButton(
             icon: Icons.flip_camera_ios,
             label: 'Flip',
@@ -1241,5 +1241,4 @@ class AddPostView extends StatelessWidget {
       return null;
     }
   }
-
 }

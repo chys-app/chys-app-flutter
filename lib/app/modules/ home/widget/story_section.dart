@@ -11,8 +11,10 @@ import '../../../data/models/story.dart';
 import '../../../data/models/pet_profile.dart';
 import '../../../modules/profile/controllers/profile_controller.dart';
 import '../../../services/custom_Api.dart';
+import '../../../services/pet_ownership_service.dart';
 import '../../../widget/shimmer/story_shimmer.dart';
 import '../home_controller.dart';
+import '../home_view.dart';
 import '../story_view.dart';
 
 class StorySection extends StatefulWidget {
@@ -79,8 +81,8 @@ class _StorySectionState extends State<StorySection> {
             final currentUserStoriesData = snapshot.data![0]['stories'] ?? [];
             final publicStoriesData = snapshot.data![1]['data'] ?? [];
 
-            final List<Story> currentUserStories = currentUserStoriesData
-                .map<Story>((e) => Story.fromMap(e))
+            final List<StoryModel> currentUserStories = currentUserStoriesData
+                .map<StoryModel>((e) => StoryModel.fromMap(e))
                 .toList();
 
             final List<UserStory> userStories = publicStoriesData
@@ -109,11 +111,13 @@ class _StorySectionState extends State<StorySection> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: hasStories
-                                    ? LinearGradient(
+                                    ? const LinearGradient(
                                         colors: [
-                                          AppColors.blue,
-                                          AppColors.primary,
-                                          AppColors.accent,
+                                          Color(0xFF833AB4),
+                                          Color(0xFFE1306C),
+                                          Color(0xFFFD1D1D),
+                                          Color(0xFFF77737),
+                                          Color(0xFFFCAF45),
                                         ],
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
@@ -151,7 +155,7 @@ class _StorySectionState extends State<StorySection> {
                                             .toList();
                                         Get.to(() => StoryPreviewPage(
                                               mediaUrls: urls,
-                                              userName: 'You',
+                                              userName: firstStory?.userName ?? 'You',
                                               storyIds: storyIds,
                                               viewCounts: viewCounts,
                                             ));
@@ -230,11 +234,13 @@ class _StorySectionState extends State<StorySection> {
                             height: 66,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: LinearGradient(
+                              gradient: const LinearGradient(
                                 colors: [
-                                  AppColors.blue,
-                                  AppColors.primary,
-
+                                  Color(0xFF833AB4),
+                                  Color(0xFFE1306C),
+                                  Color(0xFFFD1D1D),
+                                  Color(0xFFF77737),
+                                  Color(0xFFFCAF45),
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -352,12 +358,13 @@ class _StorySectionState extends State<StorySection> {
     return petName[0].toUpperCase();
   }
 
-  void _startLiveVideo() {
-    // Start recording video for story
-    _refreshAfterPosting(() => contrroller.pickVideoForStory());
-  }
-
   void _showStoryCreationOptions() {
+    final petService = PetOwnershipService.instance;
+    if (!petService.hasPet) {
+      petService.showStoriesRestriction();
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -402,19 +409,6 @@ class _StorySectionState extends State<StorySection> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
-                  // Live Video option
-                  _buildStoryOption(
-                    icon: Icons.videocam,
-                    title: 'Record Video',
-                    subtitle: 'Record a video for your story',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _startLiveVideo();
-                    },
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
                   // Camera option
                   _buildStoryOption(
                     icon: Icons.camera_alt,

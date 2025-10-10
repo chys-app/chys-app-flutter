@@ -158,7 +158,7 @@ class CustomFloatingActionButton extends StatelessWidget {
                   if (petService.canCreatePosts) {
                     controller.selectFeature('add');
                   } else {
-                   // petService.showPostRestriction();
+                    petService.showPostRestriction();
                   }
                 },
               ),
@@ -171,7 +171,7 @@ class CustomFloatingActionButton extends StatelessWidget {
                   if (petService.canCreatePodcasts) {
                     controller.selectFeature('podcast');
                   } else {
-                   // petService.showPodcastRestriction();
+                   petService.showPodcastRestriction();
                   }
                 },
               ),
@@ -255,7 +255,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 if (petService.canCreatePosts) {
                   controller.selectFeature('add');
                 } else {
-                //  petService.showPostRestriction();
+                  petService.showPostRestriction();
                 }
               },
             ),

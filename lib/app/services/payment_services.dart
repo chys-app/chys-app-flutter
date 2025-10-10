@@ -23,7 +23,14 @@ class PaymentServices {
     try {
       Get.find<LoadingController>().show();
 
-      Stripe.publishableKey = AppSecrets.publishableKey;
+      final publishableKey = AppSecrets.publishableKey;
+      if (publishableKey.isEmpty) {
+        log('Stripe publishable key is missing');
+        CommonService.showError('Payment configuration error.');
+        return false;
+      }
+
+      Stripe.publishableKey = publishableKey;
       await Stripe.instance.applySettings();
 
       final price = (double.parse(amount) * 100).toInt();
@@ -86,10 +93,16 @@ class PaymentServices {
         "currency": "USD",
       };
 
+      final secretKey = AppSecrets.secretKey;
+      if (secretKey.isEmpty) {
+        log('Stripe secret key is missing');
+        return null;
+      }
+
       var response = await http.post(
         Uri.parse("https://api.stripe.com/v1/payment_intents"),
         headers: {
-          "Authorization": "Bearer ${AppSecrets.secretKey}",
+          "Authorization": "Bearer $secretKey",
           "Content-type": "application/x-www-form-urlencoded",
         },
         body: body,

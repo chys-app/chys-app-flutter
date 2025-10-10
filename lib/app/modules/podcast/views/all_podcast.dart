@@ -255,7 +255,7 @@ class AllPodcast extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF0095F6), Color(0xFF0066CC)],
+                    colors: [Color(0xFFff9a9e), Color(0xFFfad0c4)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
