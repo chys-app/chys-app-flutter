@@ -23,13 +23,17 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../../core/const/app_colors.dart';
 import '../../../core/controllers/loading_controller.dart';
+import '../../../data/controllers/location_controller.dart';
 import '../../../services/common_service.dart';
 import '../../../services/storage_service.dart';
 import '../../profile/controllers/profile_controller.dart';
 
 class SignupController extends GetxController {
   final _imagePicker = ImagePicker();
-  final _apiService = ApiService();
+  final ApiService _apiService;
+  final LocationController controller;
+  // TODO: CRITICAL Remove this before checking in
+  static const bool bypassEmailVerification = true;
   // Loading states
   final isLoading = false.obs;
   final isFormValid = false.obs;
@@ -50,6 +54,10 @@ class SignupController extends GetxController {
   final dobController = TextEditingController();
   final otpController = TextEditingController();
   RxString selectedHexColor = '#FF6B81'.obs; // default color (pink-ish)
+
+  SignupController({ApiService? apiService, LocationController? locationController})
+      : _apiService = apiService ?? ApiService(),
+        controller = locationController ?? Get.find<LocationController>();
 
   // OTP resend timer
   final RxInt otpSecondsRemaining = 60.obs;
@@ -127,6 +135,7 @@ class SignupController extends GetxController {
   final agreePolicy3 = false.obs;
   // Pet ownership step
   final hasPet = false.obs;
+  final isBusinessOwner = false.obs;
   final hasSelectedPetOwnership = false.obs;
   // Pet selection step
   final selectedPetType = ''.obs;
@@ -567,8 +576,22 @@ class SignupController extends GetxController {
   Future<void> selectPetOwnership(bool value) async {
     print('DEBUG: selectPetOwnership called with value: $value');
     hasPet.value = value;
+    isBusinessOwner.value = false;
     hasSelectedPetOwnership.value = true;
     print('DEBUG: Updated hasPet = ${hasPet.value}');
+    print(
+      'DEBUG: Updated hasSelectedPetOwnership = ${hasSelectedPetOwnership.value}',
+    );
+
+    isLoading.value = false;
+  }
+
+  Future<void> selectBusinessOwnership() async {
+    print('DEBUG: selectBusinessOwnership called');
+    isBusinessOwner.value = true;
+    hasPet.value = false;
+    hasSelectedPetOwnership.value = true;
+    print('DEBUG: Updated isBusinessOwner = ${isBusinessOwner.value}');
     print(
       'DEBUG: Updated hasSelectedPetOwnership = ${hasSelectedPetOwnership.value}',
     );
@@ -592,6 +615,17 @@ class SignupController extends GetxController {
     try {
       isLoading.value = true;
       loading.show();
+
+      if (isBusinessOwner.value) {
+        final upgradeResult = await _apiService.upgradeToBusinessUser();
+        if (upgradeResult['success'] != true) {
+          loading.hide();
+          isLoading.value = false;
+          ShortMessageUtils.showError(
+              upgradeResult['message'] ?? 'Failed to switch to business account');
+          return;
+        }
+      }
 
       await Future.delayed(const Duration(milliseconds: 300));
       loading.hide();
@@ -1270,9 +1304,15 @@ class SignupController extends GetxController {
         // sendOtp();
 
         await StorageService.saveToken(result['data']['token']);
+        log('SignupController saved token: ${StorageService.getToken()}');
         // Clear signup fields after successful account creation
         clearSignupFields();
-        Get.toNamed(AppRoutes.verifyEmailView, arguments: true);
+        if (bypassEmailVerification) {
+          await StorageService.setStepDone(StorageService.signupDone);
+          await Get.offAllNamed(AppRoutes.petOwnership);
+        } else {
+          Get.toNamed(AppRoutes.verifyEmailView, arguments: true);
+        }
         // Get.offAllNamed(AppRoutes.editProfile);
       } else {
         final errorMessage = result['message'] ?? 'Signup failed.';
