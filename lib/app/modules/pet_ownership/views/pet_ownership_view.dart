@@ -60,11 +60,15 @@ class PetOwnershipView extends GetView<SignupController> {
                               onPressed: () =>
                                   controller.selectPetOwnership(false),
                               backgroundColor: !controller.hasPet.value &&
-                                      controller.hasSelectedPetOwnership.value
+                                      !controller.isBusinessOwner.value &&
+                                      controller
+                                          .hasSelectedPetOwnership.value
                                   ? AppColors.blue
                                   : Colors.white,
                               textColor: !controller.hasPet.value &&
-                                      controller.hasSelectedPetOwnership.value
+                                      !controller.isBusinessOwner.value &&
+                                      controller
+                                          .hasSelectedPetOwnership.value
                                   ? Colors.white
                                   : Colors.black,
                               borderWidth: 0,
@@ -72,6 +76,19 @@ class PetOwnershipView extends GetView<SignupController> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+                  Obx(() => Appbutton(
+                        label: "I'm a business owner",
+                        onPressed: () =>
+                            controller.selectBusinessOwnership(),
+                        backgroundColor: controller.isBusinessOwner.value
+                            ? AppColors.blue
+                            : Colors.white,
+                        textColor: controller.isBusinessOwner.value
+                            ? Colors.white
+                            : Colors.black,
+                        borderWidth: 0,
+                      )),
                 ],
               ),
 
