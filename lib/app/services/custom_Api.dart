@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:chys/app/core/const/app_secrets.dart';
 import 'package:chys/app/services/storage_service.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -9,7 +10,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 
 class CustomApiService extends GetxService {
-  final String baseUrl = 'https://api.chys.app/api'; // Replace this
+  final String baseUrl = AppSecrets.apiBaseUrl;
 
   // You can store token here if using Auth
   String? token;
