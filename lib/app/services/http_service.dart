@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:chys/app/core/const/app_secrets.dart';
 import 'package:chys/app/services/storage_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -36,11 +37,11 @@ class ApiEndPoints {
 }
 
 class ApiClient {
-  static const String _defaultBaseUrl = "https://api.chys.app/api";
+  static final String _defaultBaseUrl = AppSecrets.apiBaseUrl;
   final String baseUrl;
   Map<String, String> get headers => _getHeaders();
 
-  ApiClient({this.baseUrl = _defaultBaseUrl});
+  ApiClient({String? baseUrl}) : baseUrl = baseUrl ?? _defaultBaseUrl;
 
   Map<String, String> _getHeaders() {
     final token = StorageService.getToken();

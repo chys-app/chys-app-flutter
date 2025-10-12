@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:chys/app/core/const/app_secrets.dart';
 import 'package:chys/app/services/storage_service.dart';
 import 'package:get/get.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -11,7 +12,7 @@ class SocketService extends GetxService {
     final token = StorageService.getToken();
     log("🔌 Initializing socket with token: ${token?.substring(0, 20)}...");
     
-    socket = IO.io('https://api.chys.app', <String, dynamic>{
+    socket = IO.io(AppSecrets.socketUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
       'auth': {

@@ -10,11 +10,16 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../data/controllers/location_controller.dart';
+import '../core/const/app_secrets.dart';
 import 'notification_service.dart';
 import 'storage_service.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://api.chys.app/api';
+  static final String baseUrl = AppSecrets.apiBaseUrl;
+  ApiService() {
+    log('ApiService baseUrl: $baseUrl');
+  }
+  
   final _client = http.Client();
   static const _maxRetries = 3;
   static const _retryDelay = Duration(seconds: 1);
