@@ -37,6 +37,23 @@ class ProductsController extends GetxController {
     await fetchProducts(forceRefresh: true);
   }
 
+  List<Products> productsForTab(int tabIndex) {
+    final List<Products> sorted = products.toList(growable: false);
+
+    switch (tabIndex) {
+      case 0:
+        sorted.sort((a, b) => b.salesCount.compareTo(a.salesCount));
+        break;
+      case 1:
+        sorted.sort((a, b) => b.viewCount.compareTo(a.viewCount));
+        break;
+      default:
+        break;
+    }
+
+    return sorted;
+  }
+
   List<Products> _parseProducts(dynamic response) {
     if (response == null) {
       return [];

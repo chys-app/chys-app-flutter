@@ -1,12 +1,11 @@
 import 'dart:developer';
+import 'package:chys/app/data/models/product.dart';
 import 'package:chys/app/modules/%20home/widget/custom_header.dart';
 import 'package:chys/app/modules/%20home/widget/floating_action_button.dart';
-import 'package:chys/app/modules/%20home/widget/story_section.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
-import 'package:chys/app/modules/products/controller/products_controller.dart';
-import 'package:chys/app/services/pet_ownership_service.dart';
-import 'package:chys/app/widget/common/custom_post_widget.dart';
 import 'package:chys/app/widget/common/post_grid_widget.dart';
+import 'package:chys/app/widget/common/custom_post_widget.dart';
+import 'package:chys/app/modules/products/controller/products_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -157,13 +156,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
     );
   }
 
-  Widget _buildStorySection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: _defaultPadding),
-      child: const StorySection(),
-    );
-  }
+  
 
   Widget _buildTabNavigation() {
     return Container(
@@ -401,7 +394,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
               return _buildProductsLoadingGrid();
             }
             if (productsController.products.isEmpty) {
-              return _buildProductsEmptyState();
+              return _buildEmptyState();
             } else {
               return _buildProductsGrid();
             }
@@ -540,55 +533,47 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
   }
 
   Widget _buildEmptyState() {
-    return Obx(() {
-      final isFriendsTab = contrroller.tabIndex.value == 1;
-      final petService = PetOwnershipService.instance;
-
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(_defaultPadding * 2),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isFriendsTab ? Icons.people_outline : Icons.photo_library_outlined,
-                  size: 48,
-                  color: _textSecondary,
-                ),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(_defaultPadding * 2),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(height: 24),
-              Text(
-                isFriendsTab ? 'No Friends Posts' : 'No Products Yet',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: _textPrimary,
-                ),
+              child: Icon(
+                Icons.photo_library_outlined,
+                size: 48,
+                color: _textSecondary,
               ),
-              const SizedBox(height: 12),
-              Text(
-                isFriendsTab
-                    ? 'Your friends haven\'t shared anything yet.\nFollow more friends to see their posts!'
-                    : "Let's create some products and services!",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: _textSecondary,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'No Products Yet',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: _textPrimary,
               ),
-              
-            ],
-          ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Let's create some products and services!",
+              style: TextStyle(
+                fontSize: 14,
+                color: _textSecondary,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-      );
-    });
+      ),
+    );
   }
 
   Widget _buildProductsLoadingGrid() {
@@ -653,38 +638,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
     });
   }
 
-  Widget _buildProductsEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.store_mall_directory_outlined,
-            size: 64,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No products available',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Create a new product to get started.',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
+  
 
   Future<void> _refreshProducts() async {
     try {

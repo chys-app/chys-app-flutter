@@ -59,6 +59,7 @@ class Products {
   final List<String> media;
   RxList<dynamic> likes;
   final int viewCount;
+  final int salesCount;
   final List<String> tags;
   final bool isActive;
   RxList<Map<String, dynamic>> comments;
@@ -78,6 +79,7 @@ class Products {
     required this.media,
     required List<dynamic> likes,
     required this.viewCount,
+    required this.salesCount,
     required this.tags,
     required this.isActive,
     required List<dynamic> comments,
@@ -114,6 +116,9 @@ class Products {
       viewCount: map["viewCount"] is int
           ? map["viewCount"]
           : int.tryParse(map["viewCount"]?.toString() ?? '') ?? 0,
+      salesCount: map["salesCount"] is int
+          ? map["salesCount"]
+          : int.tryParse(map["salesCount"]?.toString() ?? '') ?? 0,
       tags: _safeStringList(map["tags"]),
       isActive: map["isActive"] == true,
       comments: map["comments"] ?? [],
