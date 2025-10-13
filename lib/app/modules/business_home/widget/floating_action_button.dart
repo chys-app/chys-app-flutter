@@ -242,12 +242,6 @@ class BottomNavigationBarWidget extends StatelessWidget {
               selected: controller.selectedFeature.value == 'user',
               onTap: () => controller.selectFeature('user'),
             ),
-            if (controller.isBusinessUser.value)
-              SvgActionButton(
-                icon: AppImages.bankInfo,
-                selected: controller.selectedFeature.value == 'business',
-                onTap: () => controller.selectFeature('business'),
-              ),
             SvgActionButton(
               icon: AppImages.chat,
               selected: controller.selectedFeature.value == 'chat',

@@ -16,6 +16,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../routes/app_routes.dart';
+import '../../../services/storage_service.dart';
 import '../../profile/controllers/profile_controller.dart';
 
 class MapController extends GetxController {
@@ -28,6 +29,7 @@ class MapController extends GetxController {
   var isDataLoading = false.obs;
   var isPetLoading = false.obs;
   RxString selectedFeature = ''.obs;
+  final RxBool isBusinessUser = false.obs;
   RxInt currentIndex = 0.obs;
   Timer? autoSlideTimer;
   bool _isMapInitialized = false;
@@ -78,6 +80,7 @@ class MapController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _determineUserType();
     _getCurrentLocation();
   }
 
@@ -364,6 +367,9 @@ class MapController extends GetxController {
         break;
       case 'podcast':
         onPetsTap();
+        break;
+      case 'business':
+        onBusinessHomeTap();
         break;
     }
   }
@@ -678,6 +684,7 @@ class MapController extends GetxController {
   void onNotificationsTap() => Get.toNamed(AppRoutes.notifications);
   void onAddPetTap() => Get.toNamed(AppRoutes.map);
   void onProfileTap() => Get.toNamed(AppRoutes.home);
+  void onBusinessHomeTap() => Get.toNamed(AppRoutes.businessHome);
   void onPetsTap() {
     final petService = PetOwnershipService.instance;
     if (petService.canCreatePodcasts) {
@@ -697,6 +704,12 @@ class MapController extends GetxController {
   }
 
   void onChatTap() => Get.toNamed(AppRoutes.chat);
+
+  void _determineUserType() {
+    final user = StorageService.getUser();
+    final role = user != null ? user['role']?.toString().toLowerCase() : null;
+    isBusinessUser.value = role == 'biz-user';
+  }
 
   /// Refresh all pets data
   Future<void> refreshPets() async {
