@@ -1,12 +1,9 @@
 import 'dart:developer';
-import 'package:chys/app/core/widget/app_button.dart';
 import 'package:chys/app/modules/%20home/widget/custom_header.dart';
 import 'package:chys/app/modules/%20home/widget/floating_action_button.dart';
 import 'package:chys/app/modules/%20home/widget/story_section.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
-import 'package:chys/app/modules/podcast/controllers/create_podcast_controller.dart';
-import 'package:chys/app/modules/podcast/controllers/podcast_controller.dart';
-import 'package:chys/app/services/custom_Api.dart';
+import 'package:chys/app/modules/products/controller/products_controller.dart';
 import 'package:chys/app/services/pet_ownership_service.dart';
 import 'package:chys/app/widget/common/custom_post_widget.dart';
 import 'package:chys/app/widget/common/post_grid_widget.dart';
@@ -15,9 +12,7 @@ import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../../routes/app_routes.dart';
-import '../../services/common_service.dart';
-import '../../widget/common/PodcastGridWidget.dart';
-import '../../widget/shimmer/cat_quote_shimmer.dart';
+import '../../widget/common/product_grid_widget.dart';
 import '../map/controllers/map_controller.dart';
 
 class BusinessHomeView extends StatefulWidget {
@@ -30,10 +25,7 @@ class BusinessHomeView extends StatefulWidget {
 class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBindingObserver {
   late final AddoredPostsController contrroller;
   final mapController = Get.put(MapController());
-  final CustomApiService _apiService = Get.put(CustomApiService());
-  final CreatePodCastController podcastController =
-      Get.put(CreatePodCastController());
-  final PodcastController podCastCallController = Get.put(PodcastController());
+  late final ProductsController productsController;
 
   final RefreshController _refreshController = RefreshController();
   final ScrollController _scrollController = ScrollController();
@@ -56,6 +48,11 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
       contrroller = Get.find<AddoredPostsController>(tag: 'business_home');
     } else {
       contrroller = Get.put(AddoredPostsController(), tag: 'business_home');
+    }
+    if (Get.isRegistered<ProductsController>()) {
+      productsController = Get.find<ProductsController>();
+    } else {
+      productsController = Get.put(ProductsController());
     }
     log("Home view using controller with tag: 'business_home'");
     WidgetsBinding.instance.addObserver(this);
@@ -90,8 +87,9 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
       if (contrroller.posts.isEmpty && !contrroller.isLoading.value) {
         contrroller.fetchAdoredPosts();
       }
-      if (podcastController.podcasts.isEmpty) {
-        podcastController.getAllPodCast();
+      if (productsController.products.isEmpty &&
+          !productsController.isLoading.value) {
+        productsController.fetchProducts();
       }
     }
   }
@@ -297,7 +295,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
           await _refreshPosts();
           break;
         case 2:
-          await _refreshPodcasts();
+          await _refreshProducts();
           break;
       }
     } catch (e) {
@@ -324,7 +322,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
         case 1:
           return _buildPostsContent();
         case 2:
-          return _buildPodcastsContent();
+          return _buildProductsContent();
         default:
           return _buildPostsContent();
       }
@@ -382,7 +380,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
     );
   }
 
-  Widget _buildPodcastsContent() {
+  Widget _buildProductsContent() {
     return SmartRefresher(
       controller: _refreshController,
       enablePullDown: true,
@@ -398,16 +396,20 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
         children: [
           // Main content
           Obx(() {
-            if (podcastController.podcasts.isEmpty) {
-              return _buildPodcastEmptyState();
+            if (productsController.isLoading.value &&
+                productsController.products.isEmpty) {
+              return _buildProductsLoadingGrid();
+            }
+            if (productsController.products.isEmpty) {
+              return _buildProductsEmptyState();
             } else {
-              return _buildPodcastsGrid();
+              return _buildProductsGrid();
             }
           }),
 
           // Single loading overlay
           Obx(() {
-            if (podcastController.isPodcastLoading.value) {
+            if (productsController.isLoading.value) {
               return Container(
                 color: Colors.white.withOpacity(0.9),
                 child: const Center(
@@ -420,7 +422,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
                       ),
                       SizedBox(height: 16),
                       Text(
-                        "Loading podcasts...",
+                        "Loading products...",
                         style: TextStyle(
                           fontSize: 16,
                           color: Color(0xFF262626),
@@ -589,7 +591,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
     });
   }
 
-  Widget _buildPodcastLoadingGrid() {
+  Widget _buildProductsLoadingGrid() {
     final screenWidth = MediaQuery.of(Get.context!).size.width;
     final crossAxisCount = screenWidth > 900
         ? 4
@@ -600,13 +602,18 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
     return StaggeredGridView.countBuilder(
       controller: _scrollController,
       shrinkWrap: true,
-      physics: const ScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(),
       crossAxisCount: crossAxisCount,
       mainAxisSpacing: 16,
       crossAxisSpacing: 16,
       padding: const EdgeInsets.all(16),
       itemCount: 6,
-      itemBuilder: (context, index) => const CatQuoteCardShimmer(),
+      itemBuilder: (context, index) => Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
       staggeredTileBuilder: (index) {
         // Create different heights for loading items
         final heightRatio = 0.8 + (index % 4) * 0.4; // 0.8, 1.2, 1.6, 2.0
@@ -615,7 +622,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
     );
   }
 
-  Widget _buildPodcastsGrid() {
+  Widget _buildProductsGrid() {
     return Obx(() {
       final screenWidth = MediaQuery.of(Get.context!).size.width;
       final crossAxisCount = screenWidth > 900
@@ -632,43 +639,10 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
         padding: const EdgeInsets.all(16),
-        itemCount: podcastController.podcasts.length,
+        itemCount: productsController.products.length,
         itemBuilder: (context, index) {
-          final podcast = podcastController.podcasts[index];
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: PodcastGridWidget(
-                podcast: podcast,
-                onTap: () {
-                  final canJoin = CommonService.canJoinPodcast(
-                    hostId: podcast.host.id,
-                    status: podcast.status,
-                    scheduledAt: podcast.scheduledAt,
-                  );
-                  if (canJoin) {
-                    podCastCallController.podCastId = podcast.id;
-                    log("Pod cast id is ${podCastCallController.podCastId}");
-                    Get.toNamed(AppRoutes.podCastView, arguments: podcast);
-                  }
-                },
-                onUserProfileTap: () {
-                  // Navigate to user profile
-                },
-              ),
-            ),
-          );
+          final product = productsController.products[index];
+          return ProductGridWidget(product: product);
         },
         staggeredTileBuilder: (index) {
           // Create different heights for podcasts
@@ -679,19 +653,19 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
     });
   }
 
-  Widget _buildPodcastEmptyState() {
+  Widget _buildProductsEmptyState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.mic_off_outlined,
+            Icons.store_mall_directory_outlined,
             size: 64,
             color: Colors.grey.shade400,
           ),
           const SizedBox(height: 16),
           Text(
-            'No podcasts available',
+            'No products available',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -700,7 +674,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
           ),
           const SizedBox(height: 8),
           Text(
-            'Start a podcast or join an existing one!',
+            'Create a new product to get started.',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade600,
@@ -712,6 +686,14 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
     );
   }
 
+  Future<void> _refreshProducts() async {
+    try {
+      await productsController.refreshProducts();
+    } catch (e) {
+      log("Error refreshing products: $e");
+    }
+  }
+
   Future<void> _refreshPosts() async {
     try {
       await contrroller.fetchAdoredPosts(
@@ -720,14 +702,6 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
       );
     } catch (e) {
       log("Error refreshing posts: $e");
-    }
-  }
-
-  Future<void> _refreshPodcasts() async {
-    try {
-      await podcastController.getAllPodCast();
-    } catch (e) {
-      log("Error refreshing podcasts: $e");
     }
   }
 }
