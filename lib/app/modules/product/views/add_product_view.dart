@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:chys/app/modules/product/controllers/product_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -73,21 +74,32 @@ class _AddProductViewState extends State<AddProductView> {
       _isLoading = true;
     });
 
-    // TODO: Implement actual product creation logic
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Get or create the ProductController
+      final controller = Get.isRegistered<ProductController>()
+          ? Get.find<ProductController>()
+          : Get.put(ProductController());
 
-    setState(() {
-      _isLoading = false;
-    });
+      // Use the controller to create the product
+      await controller.createProductFromForm(
+        name: _nameController.text.trim(),
+        description: _descriptionController.text.trim(),
+        price: _priceController.text.trim(),
+        type: _selectedType.toLowerCase(),
+        imageFile: _selectedImage!,
+      );
 
-    Get.snackbar(
-      'Success',
-      '${_selectedType} created successfully!',
-      backgroundColor: Colors.green.shade100,
-      colorText: Colors.green.shade800,
-    );
+      setState(() {
+        _isLoading = false;
+      });
 
-    Get.back();
+      Get.back(result: true);
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      // Error is already handled by the controller
+    }
   }
 
   @override

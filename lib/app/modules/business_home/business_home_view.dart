@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:chys/app/data/models/product.dart';
 import 'package:chys/app/modules/%20home/widget/custom_header.dart';
 import 'package:chys/app/modules/%20home/widget/floating_action_button.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
@@ -84,11 +85,15 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
 
       // Only fetch if posts are empty AND we haven't loaded before
       if (contrroller.posts.isEmpty && !contrroller.isLoading.value) {
+        log('🏠 Fetching posts...');
         contrroller.fetchAdoredPosts();
       }
       if (productsController.products.isEmpty &&
           !productsController.isLoading.value) {
+        log('🏠 Fetching products...');
         productsController.fetchProducts();
+      } else {
+        log('🏠 Products already loaded: ${productsController.products.length} items');
       }
     }
   }
@@ -346,12 +351,13 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
     return Obx(() {
       switch (contrroller.tabIndex.value) {
         case 0:
+          return _buildProductsContent(sortBySales: true);
         case 1:
-          return _buildPostsContent();
+          return _buildProductsContent(sortByViews: true);
         case 2:
           return _buildProductsContent();
         default:
-          return _buildPostsContent();
+          return _buildProductsContent();
       }
     });
   }
@@ -407,7 +413,8 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
     );
   }
 
-  Widget _buildProductsContent() {
+  Widget _buildProductsContent({bool sortByViews = false, bool sortBySales = false}) {
+    log('🏠 Building products content. Products count: ${productsController.products.length}, Loading: ${productsController.isLoading.value}, SortByViews: $sortByViews, SortBySales: $sortBySales');
     return SmartRefresher(
       controller: _refreshController,
       enablePullDown: true,
@@ -423,14 +430,17 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
         children: [
           // Main content
           Obx(() {
+            log('🏠 Obx rebuild - Products: ${productsController.products.length}, Loading: ${productsController.isLoading.value}');
             if (productsController.isLoading.value &&
                 productsController.products.isEmpty) {
               return _buildProductsLoadingGrid();
             }
             if (productsController.products.isEmpty) {
+              log('🏠 Showing empty state');
               return _buildEmptyState();
             } else {
-              return _buildProductsGrid();
+              log('🏠 Showing products grid with ${productsController.products.length} items');
+              return _buildProductsGrid(sortByViews: sortByViews, sortBySales: sortBySales);
             }
           }),
 
@@ -641,7 +651,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
     );
   }
 
-  Widget _buildProductsGrid() {
+  Widget _buildProductsGrid({bool sortByViews = false, bool sortBySales = false}) {
     return Obx(() {
       final screenWidth = MediaQuery.of(Get.context!).size.width;
       final crossAxisCount = screenWidth > 900
@@ -649,6 +659,15 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
           : screenWidth > 600
               ? 3
               : 2;
+
+      // Get products and sort if needed
+      List<Products> products = productsController.products.toList();
+      
+      if (sortBySales) {
+        products.sort((a, b) => b.salesCount.compareTo(a.salesCount));
+      } else if (sortByViews) {
+        products.sort((a, b) => b.viewCount.compareTo(a.viewCount));
+      }
 
       return StaggeredGridView.countBuilder(
         controller: _scrollController,
@@ -658,15 +677,14 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
         padding: const EdgeInsets.all(16),
-        itemCount: productsController.products.length,
+        itemCount: products.length,
         itemBuilder: (context, index) {
-          final product = productsController.products[index];
+          final product = products[index];
           return ProductGridWidget(product: product);
         },
         staggeredTileBuilder: (index) {
-          // Create different heights for podcasts
-          final heightRatio = 1.0 + (index % 4) * 0.2; // 1.0, 1.2, 1.4, 1.6
-          return StaggeredTile.count(1, heightRatio);
+          // Fixed height ratio for all products to make them the same size
+          return const StaggeredTile.count(1, 1.2);
         },
       );
     });

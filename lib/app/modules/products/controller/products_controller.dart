@@ -17,17 +17,22 @@ class ProductsController extends GetxController {
 
   Future<void> fetchProducts({bool forceRefresh = false}) async {
     if (!forceRefresh && _isCacheValid && products.isNotEmpty) {
+      log('📦 Using cached products (${products.length} items)');
       return;
     }
 
     try {
       isLoading.value = true;
+      log('📦 Fetching products from API...');
       final response = await apiService.getRequest('products');
+      log('📦 API Response: $response');
       final parsedProducts = _parseProducts(response);
+      log('📦 Parsed ${parsedProducts.length} products');
       products.assignAll(parsedProducts);
       _lastFetch = DateTime.now();
+      log('📦 Products updated successfully: ${products.length} items');
     } catch (e) {
-      log('Error fetching products: $e');
+      log('❌ Error fetching products: $e');
     } finally {
       isLoading.value = false;
     }
@@ -56,11 +61,15 @@ class ProductsController extends GetxController {
 
   List<Products> _parseProducts(dynamic response) {
     if (response == null) {
+      log('⚠️ Response is null');
       return [];
     }
 
     try {
+      log('📦 Response type: ${response.runtimeType}');
+      
       if (response is List) {
+        log('📦 Response is a List with ${response.length} items');
         return response
             .whereType<Map<String, dynamic>>()
             .map(Products.fromMap)
@@ -68,7 +77,10 @@ class ProductsController extends GetxController {
       }
 
       if (response is Map<String, dynamic>) {
+        log('📦 Response is a Map with keys: ${response.keys.join(", ")}');
+        
         if (_looksLikePagination(response)) {
+          log('📦 Detected pagination structure');
           return PaginatedProducts.fromMap(response).posts;
         }
 
@@ -80,17 +92,21 @@ class ProductsController extends GetxController {
           (response['data'] as Map?)?['posts'],
         ];
 
-        for (final candidate in listCandidates) {
+        for (int i = 0; i < listCandidates.length; i++) {
+          final candidate = listCandidates[i];
           if (candidate is List) {
+            log('📦 Found products list at candidate index $i with ${candidate.length} items');
             return candidate
                 .whereType<Map<String, dynamic>>()
                 .map(Products.fromMap)
                 .toList();
           }
         }
+        
+        log('⚠️ No valid products list found in response');
       }
     } catch (e) {
-      log('Error parsing products response: $e');
+      log('❌ Error parsing products response: $e');
     }
 
     return [];

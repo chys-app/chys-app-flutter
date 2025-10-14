@@ -6,6 +6,7 @@ import 'package:camera/camera.dart';
 import 'package:chys/app/core/controllers/loading_controller.dart';
 import 'package:chys/app/data/models/product.dart';
 import 'package:chys/app/modules/map/controllers/map_controller.dart';
+import 'package:chys/app/modules/products/controller/products_controller.dart';
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:chys/app/services/custom_Api.dart';
 import 'package:chys/app/services/payment_services.dart';
@@ -1262,6 +1263,61 @@ class ProductController extends GetxController {
 
   void _navigateToNewProductPreview() {
     Get.toNamed('/new-post-preview');
+  }
+
+  /// Create a product/service from the simple form (name, description, price, image)
+  Future<void> createProductFromForm({
+    required String name,
+    required String description,
+    required String price,
+    required String type,
+    required File imageFile,
+  }) async {
+    try {
+      isLoading.value = true;
+      Get.find<LoadingController>().show();
+
+      final result = await _apiService.uploadImage(
+        endpoint: 'products',
+        imageFiles: [imageFile],
+        fields: {
+          'name': name,
+          'description': description,
+          'price': price,
+          'type': type,
+        },
+        imageField: 'media',
+        method: 'POST',
+      );
+
+      log("Product creation result: $result");
+      
+      Get.find<LoadingController>().hide();
+      
+      // Refresh the products list in ProductsController if it exists
+      if (Get.isRegistered<ProductsController>()) {
+        await Get.find<ProductsController>().refreshProducts();
+      }
+      
+      await ShortMessageUtils.showSuccess('${type.capitalize} created successfully!');
+    } catch (e) {
+      isLoading.value = false;
+      Get.find<LoadingController>().hide();
+      
+      log("Error creating product: $e");
+      
+      String errorMessage = 'Failed to create ${type.toLowerCase()}';
+      if (e.toString().contains('400')) {
+        errorMessage = 'Invalid product data. Please check your information.';
+      } else if (e.toString().contains('network') || e.toString().contains('connection')) {
+        errorMessage = 'Network error. Please check your connection.';
+      }
+      
+      await ShortMessageUtils.showError(errorMessage);
+      rethrow;
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   @override
