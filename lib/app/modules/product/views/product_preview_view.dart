@@ -1,0 +1,1000 @@
+import 'dart:async';
+
+import 'package:chys/app/core/const/app_image.dart';
+import 'package:chys/app/core/utils/app_size.dart';
+import 'package:chys/app/data/models/product.dart';
+import 'package:chys/app/modules/product/controllers/product_controller.dart';
+import 'package:chys/app/routes/app_routes.dart';
+import 'package:chys/app/widget/image/svg_extension.dart';
+import 'package:chys/app/widget/shimmer/post_preview_shimmer.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:readmore/readmore.dart';
+import 'package:video_player/video_player.dart';
+
+class ProductPreviewView extends StatefulWidget {
+  const ProductPreviewView({Key? key}) : super(key: key);
+
+  @override
+  State<ProductPreviewView> createState() => _ProductPreviewViewState();
+}
+
+class _ProductPreviewViewState extends State<ProductPreviewView>
+    with SingleTickerProviderStateMixin {
+  late PageController _pageController;
+  late AnimationController _heartAnimationController;
+  late Animation<double> _heartScaleAnimation;
+  bool _showHeart = false;
+  bool _showPlayPauseIcon = false;
+  Timer? _playPauseIconTimer;
+  
+  late ProductController controller;
+  late String postId;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    _heartAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _heartScaleAnimation = Tween<double>(begin: 0.7, end: 1.4).animate(
+      CurvedAnimation(
+          parent: _heartAnimationController, curve: Curves.elasticOut),
+    );
+
+    // Get arguments
+    final arguments = Get.arguments as Map<String, dynamic>;
+    controller = arguments['controller'] as ProductController;
+    postId = arguments['postId'] as String;
+
+    // Fetch single post
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchSingleProduct(postId);
+    });
+  }
+
+  @override
+  void dispose() {
+    final post = controller.singleProduct.value;
+    if (post != null) {
+      for (var url in post.media.where(_isVideo)) {
+        controller.disposeVideoController(url);
+      }
+    }
+    _playPauseIconTimer?.cancel();
+    _pageController.dispose();
+    _heartAnimationController.dispose();
+    super.dispose();
+  }
+
+  bool _isVideo(String url) {
+    final videoExtensions = ['.mp4', '.mov', '.webm', '.avi'];
+    return videoExtensions.any((ext) => url.toLowerCase().endsWith(ext));
+  }
+
+  void _onDoubleTapLike() {
+    final post = controller.singleProduct.value;
+    if (post == null) return;
+    setState(() {
+      _showHeart = true;
+    });
+    _heartAnimationController.forward(from: 0);
+    controller.likeSingleProduct();
+    Future.delayed(const Duration(milliseconds: 700), () {
+      if (mounted) {
+        setState(() {
+          _showHeart = false;
+        });
+      }
+    });
+  }
+
+  void _showPlayPause() {
+    setState(() {
+      _showPlayPauseIcon = true;
+    });
+    _playPauseIconTimer?.cancel();
+    _playPauseIconTimer = Timer(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() {
+          _showPlayPauseIcon = false;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (controller.isSingleProductLoading.value) {
+        return const PostPreviewShimmer();
+      }
+      final post = controller.singleProduct.value;
+
+      if (post == null) {
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  color: Colors.black,
+                  size: 64,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Failed to load post',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                GestureDetector(
+                  onTap: () => Get.back(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0095F6),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Go Back',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            // Full screen media content
+            Positioned.fill(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: post.media.length,
+                onPageChanged: (index) {
+                  controller.pauseAllVideos();
+                  controller.currentIndex.value = index;
+                },
+                physics: const BouncingScrollPhysics(),
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (context, index) {
+                  final mediaUrl = post.media[index];
+
+                  if (_isVideo(mediaUrl)) {
+                    controller.initializeVideoController(mediaUrl);
+                    return Obx(() {
+                      final isInitialized =
+                          controller.isVideoInitialized[mediaUrl] ?? false;
+                      final videoController =
+                          controller.videoControllers[mediaUrl];
+                      if (!isInitialized || videoController == null) {
+                        return Container(
+                          color: Colors.white,
+                          child: const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.play_circle_outline,
+                                  color: Colors.black,
+                                  size: 64,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  'Loading video...',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                      return ValueListenableBuilder<VideoPlayerValue>(
+                        valueListenable: videoController,
+                        builder: (context, value, child) {
+                          return Stack(
+                            fit: StackFit.expand,
+                            alignment: Alignment.center,
+                            children: [
+                              GestureDetector(
+                                onDoubleTap: _onDoubleTapLike,
+                                onTap: () {
+                                  if (value.isPlaying) {
+                                    videoController.pause();
+                                  } else {
+                                    controller.addProductView(post.id);
+                                    videoController.play();
+                                  }
+                                  _showPlayPause();
+                                },
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  child: FittedBox(
+                                    fit: BoxFit.cover,
+                                    child: SizedBox(
+                                      width: videoController.value.size.width,
+                                      height: videoController.value.size.height,
+                                      child: VideoPlayer(videoController),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (!value.isPlaying)
+                                IgnorePointer(
+                                  child: Center(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withAlpha(128),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      padding: const EdgeInsets.all(16),
+                                      child: const Icon(
+                                        Icons.play_circle_filled,
+                                        color: Colors.white,
+                                        size: 64,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              if (_showPlayPauseIcon)
+                                IgnorePointer(
+                                  child: Center(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withAlpha(128),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      padding: const EdgeInsets.all(16),
+                                      child: Icon(
+                                        value.isPlaying
+                                            ? Icons.pause_circle_filled
+                                            : Icons.play_circle_filled,
+                                        color: Colors.white,
+                                        size: 64,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              if (_showHeart)
+                                ScaleTransition(
+                                  scale: _heartScaleAnimation,
+                                  child: const Icon(Icons.favorite,
+                                      color: Colors.red, size: 100),
+                                ),
+                              // Description and stats overlay on video
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withAlpha(179),
+                                      ],
+                                    ),
+                                  ),
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Description
+                                      ReadMoreText(
+                                        post.description,
+                                        trimLines: 3,
+                                        colorClickableText: Colors.white,
+                                        trimMode: TrimMode.Line,
+                                        trimCollapsedText: ' Show more',
+                                        trimExpandedText: ' Show less',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          height: 1.4,
+                                          fontWeight: FontWeight.w400,
+                                          shadows: [
+                                            Shadow(
+                                              offset: Offset(0, 1),
+                                              blurRadius: 3,
+                                              color: Colors.black54,
+                                            ),
+                                          ],
+                                        ),
+                                        moreStyle: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          shadows: [
+                                            Shadow(
+                                              offset: Offset(0, 1),
+                                              blurRadius: 3,
+                                              color: Colors.black54,
+                                            ),
+                                          ],
+                                        ),
+                                        lessStyle: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          shadows: [
+                                            Shadow(
+                                              offset: Offset(0, 1),
+                                              blurRadius: 3,
+                                              color: Colors.black54,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // Stats
+                                      Obx(() => Row(
+                                            children: [
+                                              // Views
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.remove_red_eye,
+                                                    color: Colors.white70,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    '${post.viewCount} views',
+                                                    style: const TextStyle(
+                                                      color: Colors.white70,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      shadows: [
+                                                        Shadow(
+                                                          offset: Offset(0, 1),
+                                                          blurRadius: 2,
+                                                          color: Colors.black54,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(width: 20),
+                                              // Likes
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.favorite,
+                                                    color:
+                                                        post.isCurrentUserLiked
+                                                            ? Colors.red
+                                                            : Colors.white70,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    '${post.likes.length} likes',
+                                                    style: const TextStyle(
+                                                      color: Colors.white70,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      shadows: [
+                                                        Shadow(
+                                                          offset: Offset(0, 1),
+                                                          blurRadius: 2,
+                                                          color: Colors.black54,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(width: 20),
+                                              // Comments
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.comment,
+                                                    color: Colors.white70,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    '${post.comments.length} comments',
+                                                    style: const TextStyle(
+                                                      color: Colors.white70,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      shadows: [
+                                                        Shadow(
+                                                          offset: Offset(0, 1),
+                                                          blurRadius: 2,
+                                                          color: Colors.black54,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          )),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    });
+                  }
+
+                  // Image display
+                  return Stack(
+                    fit: StackFit.expand,
+                    alignment: Alignment.center,
+                    children: [
+                      GestureDetector(
+                        onDoubleTap: _onDoubleTapLike,
+                        child: Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          child: Image.network(
+                            mediaUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.white,
+                                child: const Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.image_not_supported,
+                                        color: Colors.black,
+                                        size: 64,
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'Failed to load image',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      if (_showHeart)
+                        ScaleTransition(
+                          scale: _heartScaleAnimation,
+                          child: const Icon(Icons.favorite,
+                              color: Colors.red, size: 100),
+                        ),
+                      // Description and stats overlay on media
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.7),
+                              ],
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Description
+                              ReadMoreText(
+                                post.description,
+                                trimLines: 3,
+                                colorClickableText: Colors.white,
+                                trimMode: TrimMode.Line,
+                                trimCollapsedText: ' Show more',
+                                trimExpandedText: ' Show less',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  height: 1.4,
+                                  fontWeight: FontWeight.w400,
+                                  shadows: [
+                                    Shadow(
+                                      offset: Offset(0, 1),
+                                      blurRadius: 3,
+                                      color: Colors.black54,
+                                    ),
+                                  ],
+                                ),
+                                moreStyle: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  shadows: [
+                                    Shadow(
+                                      offset: Offset(0, 1),
+                                      blurRadius: 3,
+                                      color: Colors.black54,
+                                    ),
+                                  ],
+                                ),
+                                lessStyle: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  shadows: [
+                                    Shadow(
+                                      offset: Offset(0, 1),
+                                      blurRadius: 3,
+                                      color: Colors.black54,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              // Stats
+                              Obx(() => Row(
+                                    children: [
+                                      // Views
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.remove_red_eye,
+                                            color: Colors.white70,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '${post.viewCount} views',
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              shadows: [
+                                                Shadow(
+                                                  offset: Offset(0, 1),
+                                                  blurRadius: 2,
+                                                  color: Colors.black54,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(width: 20),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.favorite,
+                                            color: post.isCurrentUserLiked
+                                                ? Colors.red
+                                                : Colors.white70,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '${post.likes.length} likes',
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              shadows: [
+                                                Shadow(
+                                                  offset: Offset(0, 1),
+                                                  blurRadius: 2,
+                                                  color: Colors.black54,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(width: 20),
+                                      // Comments
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.comment,
+                                            color: Colors.white70,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '${post.comments.length} comments',
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              shadows: [
+                                                Shadow(
+                                                  offset: Offset(0, 1),
+                                                  blurRadius: 2,
+                                                  color: Colors.black54,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  )),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+
+            // Header overlay
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top + 12,
+                  left: 16,
+                  right: 16,
+                  bottom: 12,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.6),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    // Back button
+                    GestureDetector(
+                      onTap: () {
+                        Get.back();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // User profile section
+                    Expanded(
+                      child: Row(
+                        children: [
+                          // Profile image with error handling
+                          Stack(
+                            children: [
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: ClipOval(
+                                  child: _buildProfileImage(
+                                      post.creator.profilePic, post),
+                                ),
+                              ),
+
+                              // Debug indicator for fallback image
+                              if (post.creator.profilePic
+                                  .contains('ui-avatars.com'))
+                                Positioned(
+                                  top: -2,
+                                  right: -2,
+                                  child: Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.black,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: const Center(
+                                      child: Text(
+                                        'F',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(width: 12),
+
+                          // User info
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  post.creator.name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                if (post.creator.bio.isNotEmpty)
+                                  Text(
+                                    post.creator.bio,
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.7),
+                                      fontSize: 12,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // View Profile button
+                    GestureDetector(
+                      onTap: () {
+                        Get.toNamed(AppRoutes.otherUserProfile,
+                            arguments: post.creator.id);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0095F6),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Text(
+                          'View Profile',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Action buttons on the right with improved design
+            Positioned(
+              right: 16,
+              bottom: 80,
+              child: Obx(() => Column(
+                    children: [
+                      // Fund button
+                      _buildActionButton(
+                        AppImages.gift,
+                        post.fundCount.value.toString(),
+                        () {
+                          if (post.isFunded.value) {
+                            return;
+                          } else {
+                            controller.fundProduct(post, context);
+                          }
+                        },
+                        isActive: post.isFunded.value,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Comment button
+                      _buildActionButton(
+                        AppImages.message,
+                        post.comments.length.toString(),
+                        () {
+                          controller.showCommentsBottomSheet(post);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Share button
+                      _buildActionButton(
+                        AppImages.share,
+                        '',
+                        () {
+                          controller.shareProduct(post);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Like button
+                      _buildActionButton(
+                        AppImages.love,
+                        post.likes.length.toString(),
+                        () {
+                          controller.likeSingleProduct();
+                        },
+                        isActive: post.isCurrentUserLiked,
+                      ),
+                    ],
+                  )),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildProfileImage(String? profilePic, Products post) {
+    if (profilePic == null || profilePic.isEmpty) {
+      return _buildFallbackProfileImage(post);
+    }
+
+    return Image.network(
+      profilePic,
+      fit: BoxFit.cover,
+      width: 32,
+      height: 32,
+      errorBuilder: (context, error, stackTrace) {
+        return _buildFallbackProfileImage(post);
+      },
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) {
+          return child;
+        }
+        return Container(
+          width: 32,
+          height: 32,
+          color: Colors.grey[800],
+          child: const Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFallbackProfileImage(Products post) {
+    final userName = post.creator.name;
+    final initials = getUserInitials(userName);
+    final color = getAvatarColor(initials);
+
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Text(
+          initials,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(
+    String icon,
+    String count,
+    VoidCallback? onTap, {
+    bool isActive = false,
+  }) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: isActive ? Colors.red : Colors.white.withOpacity(0.9),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: icon.toSvg(
+                color: isActive ? Colors.white : Colors.black,
+                width: 24,
+                height: 24,
+              ),
+            ),
+          ),
+        ),
+        if (count.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            count,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _circleIcon(
+    String icon,
+    VoidCallback? onTap, {
+    Color? bgColor,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+        ),
+        child: InkWell(
+            splashColor: Colors.transparent,
+            onTap: onTap,
+            child: icon.toSvg(color: bgColor)),
+      ),
+    );
+  }
+}

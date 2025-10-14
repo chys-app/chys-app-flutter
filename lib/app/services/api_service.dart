@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart'; // for MediaType
@@ -10,12 +11,19 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../data/controllers/location_controller.dart';
-import '../core/const/app_secrets.dart';
 import 'notification_service.dart';
 import 'storage_service.dart';
 
 class ApiService {
-  static final String baseUrl = AppSecrets.apiBaseUrl;
+  static const String _fallbackBaseUrl = 'https://api.chys.app/api';
+  static String get baseUrl {
+    final envUrl = dotenv.env['API_BASE_URL']?.trim();
+    if (envUrl != null && envUrl.isNotEmpty) {
+      return envUrl.endsWith('/') ? envUrl.substring(0, envUrl.length - 1) : envUrl;
+    }
+    return _fallbackBaseUrl;
+  }
+  
   ApiService() {
     log('ApiService baseUrl: $baseUrl');
   }
@@ -32,6 +40,103 @@ class ApiService {
     return {
       if (token != null) 'Authorization': 'Bearer $token',
     };
+  }
+
+  Future<Map<String, dynamic>> upgradeToBusinessUser() async {
+    try {
+      final response = await _client.post(
+        Uri.parse('$baseUrl/users/businessUser'),
+        headers: {
+          ..._headers,
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'role': 'biz-user'}),
+      );
+
+      final isSuccess = response.statusCode >= 200 && response.statusCode < 300;
+      final rawBody = response.body.trim();
+      final isHtml = rawBody.startsWith('<');
+      log('upgradeToBusinessUser status: ${response.statusCode}, body: $rawBody');
+      if (!isSuccess) {
+        log('upgradeToBusinessUser headers: ${response.headers}');
+      }
+
+      if (isSuccess) {
+        if (rawBody.isEmpty) {
+          return {'success': true};
+        }
+
+        try {
+          final decoded = jsonDecode(rawBody);
+          if (decoded is Map<String, dynamic>) {
+            if (decoded['user'] is Map<String, dynamic>) {
+              await StorageService.saveUser(
+                  decoded['user'] as Map<String, dynamic>);
+            }
+            final result = {
+              'success': true,
+              'data': decoded,
+              'message': decoded['message'] ?? 'Business profile updated.',
+            };
+            log('upgradeToBusinessUser parsed success: $result');
+            return result;
+          }
+        } catch (_) {
+          // fall through to treat as plain-text success
+        }
+
+        final result = {
+          'success': true,
+          'message':
+              isHtml ? 'Business profile updated.' : rawBody,
+        };
+        log('upgradeToBusinessUser raw success: $result');
+        return result;
+      }
+
+      if (rawBody.isEmpty) {
+        final result = {
+          'success': false,
+          'message': response.reasonPhrase ?? 'Request failed',
+        };
+        log('upgradeToBusinessUser empty error: $result');
+        return result;
+      }
+
+      try {
+        final decodedError = jsonDecode(rawBody);
+        if (decodedError is Map<String, dynamic>) {
+          final errorMessage = decodedError['message'] ??
+              decodedError['error'] ??
+              'Request failed';
+          final result = {
+            'success': false,
+            'message': errorMessage,
+            'data': decodedError,
+          };
+          log('upgradeToBusinessUser parsed error: $result');
+          return result;
+        }
+      } catch (_) {
+        // fall through to plain-text error handling
+      }
+
+      final result = {
+        'success': false,
+        'message': isHtml
+            ? 'Unexpected server response (status ${response.statusCode}).'
+            : rawBody,
+      };
+      log('upgradeToBusinessUser raw error: $result');
+      return result;
+    } catch (e) {
+      final result = {
+        'success': false,
+        'message': e.toString(),
+      };
+      log('upgradeToBusinessUser exception: $result');
+      return result;
+    }
   }
 
   // Helper function to compress image

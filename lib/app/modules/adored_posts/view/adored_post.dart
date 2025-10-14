@@ -11,11 +11,13 @@ class AdoredPost extends StatefulWidget {
 }
 
 class _AdoredPostState extends State<AdoredPost> {
-  final controller = Get.put(AddoredPostsController());
+  late final AddoredPostsController controller;
 
   @override
   void initState() {
     super.initState();
+    // Initialize controller in initState to avoid build-phase conflicts
+    controller = Get.put(AddoredPostsController());
     controller.fetchFavoritePosts();
   }
 

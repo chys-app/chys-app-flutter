@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:chys/app/core/const/app_secrets.dart';
 import 'package:chys/app/services/storage_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart';
@@ -37,11 +37,19 @@ class ApiEndPoints {
 }
 
 class ApiClient {
-  static final String _defaultBaseUrl = AppSecrets.apiBaseUrl;
+  static const String _fallbackBaseUrl = "https://api.chys.app/api";
   final String baseUrl;
   Map<String, String> get headers => _getHeaders();
 
-  ApiClient({String? baseUrl}) : baseUrl = baseUrl ?? _defaultBaseUrl;
+  ApiClient({String? baseUrl}) : baseUrl = baseUrl ?? _resolveBaseUrl();
+
+  static String _resolveBaseUrl() {
+    final envUrl = dotenv.env['API_BASE_URL']?.trim();
+    if (envUrl != null && envUrl.isNotEmpty) {
+      return envUrl.endsWith('/') ? envUrl.substring(0, envUrl.length - 1) : envUrl;
+    }
+    return _fallbackBaseUrl;
+  }
 
   Map<String, String> _getHeaders() {
     final token = StorageService.getToken();

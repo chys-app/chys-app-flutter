@@ -242,30 +242,23 @@ class BottomNavigationBarWidget extends StatelessWidget {
               selected: controller.selectedFeature.value == 'user',
               onTap: () => controller.selectFeature('user'),
             ),
-            if (controller.isBusinessUser.value)
-              SvgActionButton(
-                icon: AppImages.bankInfo,
-                selected: controller.selectedFeature.value == 'business',
-                onTap: () => controller.selectFeature('business'),
-              ),
             SvgActionButton(
               icon: AppImages.chat,
               selected: controller.selectedFeature.value == 'chat',
               onTap: () => controller.selectFeature('chat'),
             ),
-            if (!controller.isBusinessUser.value)
-              SvgActionButton(
-                icon: AppImages.add,
-                selected: controller.selectedFeature.value == 'add',
-                onTap: () {
-                  final petService = PetOwnershipService.instance;
-                  if (petService.canCreatePosts) {
-                    controller.selectFeature('add');
-                  } else {
-                    petService.showPostRestriction();
-                  }
-                },
-              ),
+            SvgActionButton(
+              icon: AppImages.add,
+              selected: controller.selectedFeature.value == 'add',
+              onTap: () {
+                final petService = PetOwnershipService.instance;
+                if (petService.canCreatePosts) {
+                  controller.selectFeature('add');
+                } else {
+                  petService.showPostRestriction();
+                }
+              },
+            ),
             SvgActionButton(
               icon: AppImages.map,
               selected: controller.selectedFeature.value == 'map',

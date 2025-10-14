@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:chys/app/data/models/post.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
 import 'package:chys/app/routes/app_routes.dart';
-import 'package:chys/app/widget/common/image_viewer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';

@@ -67,19 +67,29 @@ class CityView extends GetView<SignupController> {
               const Spacer(),
 
               // Add a Pet Button
-              Center(
-                child: Appbutton(
-                  width: Get.width * 0.7,
-                  borderColor: AppColors.blue,
-                  backgroundColor: AppColors.blue,
-                  borderWidth: 0,
-                  label: "Add a Pet",
-                  onPressed: () {
-                    Get.toNamed('/pet-selection', arguments: true);
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
+              Obx(() {
+                if (controller.isBusinessOwner.value) {
+                  return const SizedBox.shrink();
+                }
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Appbutton(
+                        width: Get.width * 0.7,
+                        borderColor: AppColors.blue,
+                        backgroundColor: AppColors.blue,
+                        borderWidth: 0,
+                        label: "Add a Pet",
+                        onPressed: () {
+                          Get.toNamed('/pet-selection', arguments: true);
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                );
+              }),
 
 
               // Let's Go Button

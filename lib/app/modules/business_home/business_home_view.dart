@@ -1,38 +1,31 @@
 import 'dart:developer';
+import 'package:chys/app/data/models/product.dart';
 import 'package:chys/app/modules/%20home/widget/custom_header.dart';
 import 'package:chys/app/modules/%20home/widget/floating_action_button.dart';
-import 'package:chys/app/modules/%20home/widget/story_section.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
-import 'package:chys/app/modules/podcast/controllers/create_podcast_controller.dart';
-import 'package:chys/app/modules/podcast/controllers/podcast_controller.dart';
-import 'package:chys/app/services/custom_Api.dart';
-import 'package:chys/app/services/pet_ownership_service.dart';
-import 'package:chys/app/widget/common/custom_post_widget.dart';
 import 'package:chys/app/widget/common/post_grid_widget.dart';
+import 'package:chys/app/widget/common/custom_post_widget.dart';
+import 'package:chys/app/modules/products/controller/products_controller.dart';
+import 'package:chys/app/modules/product/views/add_product_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../../routes/app_routes.dart';
-import '../../services/common_service.dart';
-import '../../widget/common/PodcastGridWidget.dart';
-import '../../widget/shimmer/cat_quote_shimmer.dart';
+import '../../widget/common/product_grid_widget.dart';
 import '../map/controllers/map_controller.dart';
 
-class HomeView extends StatefulWidget {
-  const HomeView({Key? key}) : super(key: key);
+class BusinessHomeView extends StatefulWidget {
+  const BusinessHomeView({Key? key}) : super(key: key);
 
   @override
-  State<HomeView> createState() => _HomeViewState();
+  State<BusinessHomeView> createState() => _BusinessHomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
+class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBindingObserver {
   late final AddoredPostsController contrroller;
   late final MapController mapController;
-  late final CustomApiService _apiService;
-  late final CreatePodCastController podcastController;
-  late final PodcastController podCastCallController;
+  late final ProductsController productsController;
 
   final RefreshController _refreshController = RefreshController();
   final ScrollController _scrollController = ScrollController();
@@ -50,20 +43,20 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    
     // Initialize controllers in initState to avoid build-phase conflicts
     mapController = Get.put(MapController());
-    _apiService = Get.put(CustomApiService());
-    podcastController = Get.put(CreatePodCastController());
-    podCastCallController = Get.put(PodcastController());
-    
     // Ensure we get the existing controller or create a new one
-    if (Get.isRegistered<AddoredPostsController>(tag: 'home')) {
-      contrroller = Get.find<AddoredPostsController>(tag: 'home');
+    if (Get.isRegistered<AddoredPostsController>(tag: 'business')) {
+      contrroller = Get.find<AddoredPostsController>(tag: 'business');
     } else {
-      contrroller = Get.put(AddoredPostsController(), tag: 'home');
+      contrroller = Get.put(AddoredPostsController(), tag: 'business');
     }
-    log("Home view using controller with tag: 'home'");
+    if (Get.isRegistered<ProductsController>()) {
+      productsController = Get.find<ProductsController>();
+    } else {
+      productsController = Get.put(ProductsController());
+    }
+    log("Home view using controller with tag: 'business_home'");
     WidgetsBinding.instance.addObserver(this);
     _initializeData();
   }
@@ -94,25 +87,27 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
       // Only fetch if posts are empty AND we haven't loaded before
       if (contrroller.posts.isEmpty && !contrroller.isLoading.value) {
+        log('🏠 Fetching posts...');
         contrroller.fetchAdoredPosts();
       }
-      if (podcastController.podcasts.isEmpty) {
-        podcastController.getAllPodCast();
+      if (productsController.products.isEmpty &&
+          !productsController.isLoading.value) {
+        log('🏠 Fetching products...');
+        productsController.fetchProducts();
+      } else {
+        log('🏠 Products already loaded: ${productsController.products.length} items');
       }
     }
   }
 
   void _resetPostFiltering() {
     try {
-      log("Resetting post filtering to show all posts in home view");
+      log("Resetting post filtering to show all posts in business home view");
       // Only reset the home controller, not profile controllers
-      if (Get.isRegistered<AddoredPostsController>(tag: 'home')) {
-        final homeController = Get.find<AddoredPostsController>(tag: 'home');
-        // Defer the update to after the current frame to avoid setState during build
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          homeController.clearUserFiltering();
-          log("Home view post filtering reset completed");
-        });
+      if (Get.isRegistered<AddoredPostsController>(tag: 'business_home')) {
+        final homeController = Get.find<AddoredPostsController>(tag: 'business_home');
+        homeController.clearUserFiltering();
+        log("Home view post filtering reset completed");
       }
     } catch (e) {
       log("Error resetting post filtering: $e");
@@ -139,77 +134,26 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // Single post frame callback to avoid multiple rebuilds
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_hasInitialized && Get.currentRoute == AppRoutes.home) {
+        _resetPostFiltering();
+      }
+    });
+
     return Scaffold(
       backgroundColor: _backgroundColor,
-      floatingActionButton: _buildFloatingActionButton(),
       body: SafeArea(
         child: Column(
           children: [
             _buildHeader(),
-            _buildStorySection(),
+            _buildAddButton(),
             _buildTabNavigation(),
             Expanded(child: _buildContentArea()),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBarWidget(controller: mapController),
-    );
-  }
-
-  Widget _buildFloatingActionButton() {
-    final petService = PetOwnershipService.instance;
-    final canCreate = petService.canCreatePodcasts;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20, right: 20),
-      decoration: BoxDecoration(
-        color: canCreate ? _primaryColor : Colors.grey.shade400,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: (canCreate ? _primaryColor : Colors.grey.shade400)
-                .withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(25),
-          onTap: () {
-            final petService = PetOwnershipService.instance;
-            if (canCreate) {
-              Get.toNamed(AppRoutes.inviteUserToPodCast);
-            } else {
-              petService.showPodcastRestriction();
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.mic,
-                  color: Colors.white,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  "Schedule Podcast",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -220,11 +164,38 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildStorySection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: _defaultPadding),
-      child: const StorySection(),
+  Widget _buildAddButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: _defaultPadding, vertical: 8),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: GestureDetector(
+          onTap: () {
+            // Navigate to create product screen
+            Get.to(() => AddProductView());
+          },
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: _primaryColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: _primaryColor.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.add,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -238,9 +209,9 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
       ),
       child: Obx(() => Row(
             children: [
-              _buildTabButton('Hot Picks', 0, Icons.local_fire_department),
-              _buildTabButton('Furriends', 1, Icons.people),
-              _buildTabButton('Podcasts', 2, Icons.mic),
+              _buildTabButton('Best Sellers', 0, Icons.local_fire_department),
+              _buildTabButton('Most Viewed', 1, Icons.people),
+              _buildTabButton('All', 2, Icons.list),
             ],
           )),
     );
@@ -358,7 +329,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
           await _refreshPosts();
           break;
         case 2:
-          await _refreshPodcasts();
+          await _refreshProducts();
           break;
       }
     } catch (e) {
@@ -382,12 +353,13 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
     return Obx(() {
       switch (contrroller.tabIndex.value) {
         case 0:
+          return _buildProductsContent(sortBySales: true);
         case 1:
-          return _buildPostsContent();
+          return _buildProductsContent(sortByViews: true);
         case 2:
-          return _buildPodcastsContent();
+          return _buildProductsContent();
         default:
-          return _buildPostsContent();
+          return _buildProductsContent();
       }
     });
   }
@@ -404,7 +376,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         await _handleRefresh();
         _refreshController.refreshCompleted();
       },
-      child: Obx(() => Stack(
+      child: Stack(
         children: [
           // Main content
           contrroller.posts.isEmpty
@@ -439,11 +411,12 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
               ),
             ),
         ],
-      )),
+      ),
     );
   }
 
-  Widget _buildPodcastsContent() {
+  Widget _buildProductsContent({bool sortByViews = false, bool sortBySales = false}) {
+    log('🏠 Building products content. Products count: ${productsController.products.length}, Loading: ${productsController.isLoading.value}, SortByViews: $sortByViews, SortBySales: $sortBySales');
     return SmartRefresher(
       controller: _refreshController,
       enablePullDown: true,
@@ -459,16 +432,23 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         children: [
           // Main content
           Obx(() {
-            if (podcastController.podcasts.isEmpty) {
-              return _buildPodcastEmptyState();
+            log('🏠 Obx rebuild - Products: ${productsController.products.length}, Loading: ${productsController.isLoading.value}');
+            if (productsController.isLoading.value &&
+                productsController.products.isEmpty) {
+              return _buildProductsLoadingGrid();
+            }
+            if (productsController.products.isEmpty) {
+              log('🏠 Showing empty state');
+              return _buildEmptyState();
             } else {
-              return _buildPodcastsGrid();
+              log('🏠 Showing products grid with ${productsController.products.length} items');
+              return _buildProductsGrid(sortByViews: sortByViews, sortBySales: sortBySales);
             }
           }),
 
           // Single loading overlay
           Obx(() {
-            if (podcastController.isPodcastLoading.value) {
+            if (productsController.isLoading.value) {
               return Container(
                 color: Colors.white.withOpacity(0.9),
                 child: const Center(
@@ -481,7 +461,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                       ),
                       SizedBox(height: 16),
                       Text(
-                        "Loading podcasts...",
+                        "Loading products...",
                         style: TextStyle(
                           fontSize: 16,
                           color: Color(0xFF262626),
@@ -599,116 +579,50 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   }
 
   Widget _buildEmptyState() {
-    return Obx(() {
-      final isFriendsTab = contrroller.tabIndex.value == 1;
-      final petService = PetOwnershipService.instance;
-
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(_defaultPadding * 2),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isFriendsTab ? Icons.people_outline : Icons.photo_library_outlined,
-                  size: 48,
-                  color: _textSecondary,
-                ),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(_defaultPadding * 2),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(height: 24),
-              Text(
-                isFriendsTab ? 'No Friends Posts' : 'No Posts Yet',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: _textPrimary,
-                ),
+              child: Icon(
+                Icons.photo_library_outlined,
+                size: 48,
+                color: _textSecondary,
               ),
-              const SizedBox(height: 12),
-              Text(
-                isFriendsTab
-                    ? 'Your friends haven\'t shared anything yet.\nFollow more friends to see their posts!'
-                    : 'Be the first to share something amazing\nwith your friends!',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: _textSecondary,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'No Products Yet',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: _textPrimary,
               ),
-              if (!isFriendsTab) ...[
-                const SizedBox(height: 32),
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: petService.canCreatePosts
-                        ? const LinearGradient(
-                            colors: [_primaryColor, Color(0xFF00C851)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                        : null,
-                    color: petService.canCreatePosts ? null : Colors.grey.shade400,
-                    borderRadius: BorderRadius.circular(25),
-                    boxShadow: petService.canCreatePosts
-                        ? [
-                            BoxShadow(
-                              color: _primaryColor.withOpacity(0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(25),
-                      onTap: petService.canCreatePosts
-                          ? () => Get.toNamed(AppRoutes.addPost)
-                          : null,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 16),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              petService.canCreatePosts
-                                  ? 'Create Post'
-                                  : 'Create Post (Restricted)',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Let's create some products and services!",
+              style: TextStyle(
+                fontSize: 14,
+                color: _textSecondary,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-      );
-    });
+      ),
+    );
   }
 
-  Widget _buildPodcastLoadingGrid() {
+  Widget _buildProductsLoadingGrid() {
     final screenWidth = MediaQuery.of(Get.context!).size.width;
     final crossAxisCount = screenWidth > 900
         ? 4
@@ -719,13 +633,18 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
     return StaggeredGridView.countBuilder(
       controller: _scrollController,
       shrinkWrap: true,
-      physics: const ScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(),
       crossAxisCount: crossAxisCount,
       mainAxisSpacing: 16,
       crossAxisSpacing: 16,
       padding: const EdgeInsets.all(16),
       itemCount: 6,
-      itemBuilder: (context, index) => const CatQuoteCardShimmer(),
+      itemBuilder: (context, index) => Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
       staggeredTileBuilder: (index) {
         // Create different heights for loading items
         final heightRatio = 0.8 + (index % 4) * 0.4; // 0.8, 1.2, 1.6, 2.0
@@ -734,7 +653,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildPodcastsGrid() {
+  Widget _buildProductsGrid({bool sortByViews = false, bool sortBySales = false}) {
     return Obx(() {
       final screenWidth = MediaQuery.of(Get.context!).size.width;
       final crossAxisCount = screenWidth > 900
@@ -742,6 +661,15 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
           : screenWidth > 600
               ? 3
               : 2;
+
+      // Get products and sort if needed
+      List<Products> products = productsController.products.toList();
+      
+      if (sortBySales) {
+        products.sort((a, b) => b.salesCount.compareTo(a.salesCount));
+      } else if (sortByViews) {
+        products.sort((a, b) => b.viewCount.compareTo(a.viewCount));
+      }
 
       return StaggeredGridView.countBuilder(
         controller: _scrollController,
@@ -751,84 +679,27 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
         padding: const EdgeInsets.all(16),
-        itemCount: podcastController.podcasts.length,
+        itemCount: products.length,
         itemBuilder: (context, index) {
-          final podcast = podcastController.podcasts[index];
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: PodcastGridWidget(
-                podcast: podcast,
-                onTap: () {
-                  final canJoin = CommonService.canJoinPodcast(
-                    hostId: podcast.host.id,
-                    status: podcast.status,
-                    scheduledAt: podcast.scheduledAt,
-                  );
-                  if (canJoin) {
-                    podCastCallController.podCastId = podcast.id;
-                    log("Pod cast id is ${podCastCallController.podCastId}");
-                    Get.toNamed(AppRoutes.podCastView, arguments: podcast);
-                  }
-                },
-                onUserProfileTap: () {
-                  // Navigate to user profile
-                },
-              ),
-            ),
-          );
+          final product = products[index];
+          return ProductGridWidget(product: product);
         },
         staggeredTileBuilder: (index) {
-          // Create different heights for podcasts
-          final heightRatio = 1.0 + (index % 4) * 0.2; // 1.0, 1.2, 1.4, 1.6
-          return StaggeredTile.count(1, heightRatio);
+          // Fixed height ratio for all products to make them the same size
+          return const StaggeredTile.count(1, 1.2);
         },
       );
     });
   }
 
-  Widget _buildPodcastEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.mic_off_outlined,
-            size: 64,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No podcasts available',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Start a podcast or join an existing one!',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
+  
+
+  Future<void> _refreshProducts() async {
+    try {
+      await productsController.refreshProducts();
+    } catch (e) {
+      log("Error refreshing products: $e");
+    }
   }
 
   Future<void> _refreshPosts() async {
@@ -839,14 +710,6 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
       );
     } catch (e) {
       log("Error refreshing posts: $e");
-    }
-  }
-
-  Future<void> _refreshPodcasts() async {
-    try {
-      await podcastController.getAllPodCast();
-    } catch (e) {
-      log("Error refreshing podcasts: $e");
     }
   }
 }

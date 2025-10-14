@@ -3,6 +3,7 @@ abstract class AppRoutes {
   static const login = '/login';
   static const signup = '/signup';
   static const home = '/home';
+  static const businessHome = '/business-home';
   static const map = '/map';
   static const addBankInfo = '/addBankInfo';
   static const withdraw = '/withdraw';
