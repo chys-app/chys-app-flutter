@@ -368,6 +368,22 @@ class _StorySectionState extends State<StorySection> {
 
   void _showStoryCreationOptions() {
     final petService = PetOwnershipService.instance;
+    
+    // Block business users from creating stories
+    if (petService.isBusinessUser) {
+      Get.snackbar(
+        "Restricted",
+        "Business accounts cannot create stories.",
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 3),
+        backgroundColor: const Color(0xFFFFEBEE),
+        colorText: const Color(0xFFB71C1C),
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+      );
+      return;
+    }
+    
     if (!petService.hasPet) {
       petService.showStoriesRestriction();
       return;

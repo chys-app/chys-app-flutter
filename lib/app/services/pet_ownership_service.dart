@@ -47,11 +47,36 @@ class PetOwnershipService {
     }
   }
 
+  /// Check if the current user is a business account
+  bool get isBusinessUser {
+    try {
+      // First try to get from ProfileController
+      if (Get.isRegistered<ProfileController>()) {
+        final profileController = Get.find<ProfileController>();
+        final userRole = profileController.profile.value?.role;
+        if (userRole != null && userRole.toLowerCase() == 'biz-user') {
+          return true;
+        }
+      }
+      
+      // Check storage for user role
+      final userData = StorageService.getUser();
+      if (userData != null && userData['role'] != null) {
+        return userData['role'].toString().toLowerCase() == 'biz-user';
+      }
+      
+      return false;
+    } catch (e) {
+      print('Error checking business user status: $e');
+      return false;
+    }
+  }
+
   /// Check if user can create posts
-  bool get canCreatePosts => hasPet;
+  bool get canCreatePosts => hasPet && !isBusinessUser;
 
   /// Check if user can create podcasts
-  bool get canCreatePodcasts => hasPet;
+  bool get canCreatePodcasts => hasPet && !isBusinessUser;
 
   /// Get restriction message for posts
   String get postRestrictionMessage =>
