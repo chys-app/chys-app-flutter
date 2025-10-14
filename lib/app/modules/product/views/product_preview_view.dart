@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:chys/app/core/const/app_image.dart';
 import 'package:chys/app/core/utils/app_size.dart';
-import 'package:chys/app/data/models/post.dart';
-import 'package:chys/app/modules/adored_posts/controller/controller.dart';
+import 'package:chys/app/data/models/product.dart';
+import 'package:chys/app/modules/product/controllers/product_controller.dart';
 import 'package:chys/app/routes/app_routes.dart';
 import 'package:chys/app/widget/image/svg_extension.dart';
 import 'package:chys/app/widget/shimmer/post_preview_shimmer.dart';
@@ -27,7 +27,8 @@ class _ProductPreviewViewState extends State<ProductPreviewView>
   bool _showHeart = false;
   bool _showPlayPauseIcon = false;
   Timer? _playPauseIconTimer;
-  late AddoredProductsController controller;
+  
+  late ProductController controller;
   late String postId;
 
   @override
@@ -45,11 +46,11 @@ class _ProductPreviewViewState extends State<ProductPreviewView>
 
     // Get arguments
     final arguments = Get.arguments as Map<String, dynamic>;
-    controller = arguments['controller'] as AddoredProductsController;
+    controller = arguments['controller'] as ProductController;
     postId = arguments['postId'] as String;
 
     // Fetch single post
-    WidgetsBinding.instance.addProductFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchSingleProduct(postId);
     });
   }
@@ -82,10 +83,11 @@ class _ProductPreviewViewState extends State<ProductPreviewView>
     _heartAnimationController.forward(from: 0);
     controller.likeSingleProduct();
     Future.delayed(const Duration(milliseconds: 700), () {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _showHeart = false;
         });
+      }
     });
   }
 
@@ -107,7 +109,7 @@ class _ProductPreviewViewState extends State<ProductPreviewView>
   Widget build(BuildContext context) {
     return Obx(() {
       if (controller.isSingleProductLoading.value) {
-        return const ProductPreviewShimmer();
+        return const PostPreviewShimmer();
       }
       final post = controller.singleProduct.value;
 
@@ -245,7 +247,7 @@ class _ProductPreviewViewState extends State<ProductPreviewView>
                                   child: Center(
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.5),
+                                        color: Colors.black.withAlpha(128),
                                         shape: BoxShape.circle,
                                       ),
                                       padding: const EdgeInsets.all(16),
@@ -262,7 +264,7 @@ class _ProductPreviewViewState extends State<ProductPreviewView>
                                   child: Center(
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.5),
+                                        color: Colors.black.withAlpha(128),
                                         shape: BoxShape.circle,
                                       ),
                                       padding: const EdgeInsets.all(16),
@@ -294,7 +296,7 @@ class _ProductPreviewViewState extends State<ProductPreviewView>
                                       end: Alignment.bottomCenter,
                                       colors: [
                                         Colors.transparent,
-                                        Colors.black.withOpacity(0.7),
+                                        Colors.black.withAlpha(179),
                                       ],
                                     ),
                                   ),
@@ -511,7 +513,7 @@ class _ProductPreviewViewState extends State<ProductPreviewView>
                               end: Alignment.bottomCenter,
                               colors: [
                                 Colors.transparent,
-                                Colors.black.withOpacity(0.7),
+                                Colors.black.withValues(alpha: 0.7),
                               ],
                             ),
                           ),
@@ -677,7 +679,7 @@ class _ProductPreviewViewState extends State<ProductPreviewView>
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.6),
+                      Colors.black.withValues(alpha: 0.6),
                       Colors.transparent,
                     ],
                   ),
@@ -692,7 +694,7 @@ class _ProductPreviewViewState extends State<ProductPreviewView>
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6),
+                          color: Colors.black.withValues(alpha: 0.6),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -773,12 +775,11 @@ class _ProductPreviewViewState extends State<ProductPreviewView>
                                     fontSize: 14,
                                   ),
                                 ),
-                                if (post.creator.bio != null &&
-                                    post.creator.bio!.isNotEmpty)
+                                if (post.creator.bio.isNotEmpty)
                                   Text(
-                                    post.creator.bio!,
+                                    post.creator.bio,
                                     style: TextStyle(
-                                      color: Colors.white.withOpacity(0.7),
+                                      color: Colors.white.withValues(alpha: 0.7),
                                       fontSize: 12,
                                     ),
                                     overflow: TextOverflow.ellipsis,

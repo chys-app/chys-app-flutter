@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:chys/app/data/models/product.dart';
 import 'package:chys/app/modules/%20home/widget/custom_header.dart';
 import 'package:chys/app/modules/%20home/widget/floating_action_button.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
@@ -140,6 +139,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
         child: Column(
           children: [
             _buildHeader(),
+            _buildAddButton(),
             _buildTabNavigation(),
             Expanded(child: _buildContentArea()),
           ],
@@ -156,7 +156,40 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
     );
   }
 
-  
+  Widget _buildAddButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: _defaultPadding, vertical: 8),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: GestureDetector(
+          onTap: () {
+            // Navigate to create product/post screen
+            Get.toNamed(AppRoutes.newPostPreview);
+          },
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: _primaryColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: _primaryColor.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.add,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildTabNavigation() {
     return Container(

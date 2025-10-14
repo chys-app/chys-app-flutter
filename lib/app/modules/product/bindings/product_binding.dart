@@ -3,7 +3,6 @@ import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:get/get.dart';
 
 import '../../../data/controllers/floating_button_controller.dart';
-import '../../adored_posts/controller/controller.dart';
 import '../controllers/product_controller.dart';
 
 class ProductBinding extends Bindings {
@@ -21,10 +20,6 @@ class ProductBinding extends Bindings {
     Get.lazyPut<FloatingButtonController>(
       () => FloatingButtonController(),
     );
-    // Add AddoredProductsController with home tag to match the home view
-    Get.lazyPut<AddoredProductsController>(
-      () => AddoredProductsController(),
-      tag: 'home',
-    );
+    
   }
 }

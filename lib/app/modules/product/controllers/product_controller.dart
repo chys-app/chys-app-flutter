@@ -4,20 +4,22 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:chys/app/core/controllers/loading_controller.dart';
+import 'package:chys/app/data/models/product.dart';
+import 'package:chys/app/modules/map/controllers/map_controller.dart';
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:chys/app/services/custom_Api.dart';
-import 'package:chys/app/services/http_service.dart';
-import 'package:chys/app/services/pet_ownership_service.dart';
+import 'package:chys/app/services/payment_services.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:http/http.dart' as http;
 import 'package:video_compress/video_compress.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart' as th;
 
 import '../../../services/short_message_utils.dart';
-import '../../adored_posts/controller/controller.dart';
 
 class ProductController extends GetxController {
   // Constants for better maintainability
@@ -41,6 +43,21 @@ class ProductController extends GetxController {
   Subscription? _compressionSubscription;
   Timer? _recordingTimer;
   RxInt recordingDuration = 0.obs;
+  final MapController mapController = Get.find<MapController>();
+
+  // Single product preview state
+  final Rxn<Products> singleProduct = Rxn<Products>();
+  final RxBool isSingleProductLoading = false.obs;
+  final RxInt currentIndex = 0.obs;
+  final RxMap<String, VideoPlayerController> videoControllers =
+      <String, VideoPlayerController>{}.obs;
+  final RxMap<String, bool> isVideoInitialized = <String, bool>{}.obs;
+
+  final TextEditingController commentController = TextEditingController();
+  final TextEditingController amountController = TextEditingController();
+  final Map<String, Products> _singleProductCache = {};
+  final Map<String, DateTime> _singleProductCacheTimestamps = {};
+  static const Duration _singleProductCacheDuration = Duration(minutes: 5);
   
   // Progress tracking variables
   RxDouble uploadProgress = 0.0.obs;
@@ -51,6 +68,373 @@ class ProductController extends GetxController {
 
   int get mediaCount => selectedMedia.length;
   bool get canAddMoreMedia => mediaCount < MAX_MEDIA_FILES;
+
+  bool _isSingleProductCacheValid(String key) {
+    if (!_singleProductCacheTimestamps.containsKey(key)) {
+      return false;
+    }
+    final timestamp = _singleProductCacheTimestamps[key]!;
+    return DateTime.now().difference(timestamp) < _singleProductCacheDuration;
+  }
+
+  Future<void> fetchSingleProduct(String productId, {bool forceRefresh = false}) async {
+    final cacheKey = 'single_product_$productId';
+
+    try {
+      if (!forceRefresh && _isSingleProductCacheValid(cacheKey)) {
+        final cached = _singleProductCache[cacheKey];
+        if (cached != null) {
+          singleProduct.value = cached;
+          return;
+        }
+      }
+
+      isSingleProductLoading.value = true;
+      final response = await _apiService.getRequest('products/$productId');
+      if (response == null) {
+        singleProduct.value = null;
+        return;
+      }
+
+      final product = Products.fromMap(response);
+      singleProduct.value = product;
+      _singleProductCache[cacheKey] = product;
+      _singleProductCacheTimestamps[cacheKey] = DateTime.now();
+    } catch (e) {
+      log('Error fetching product $productId: $e');
+      final cached = _singleProductCache[cacheKey];
+      if (cached != null) {
+        singleProduct.value = cached;
+      } else {
+        singleProduct.value = null;
+      }
+    } finally {
+      isSingleProductLoading.value = false;
+    }
+  }
+
+  Future<void> refreshSingleProduct(String productId) async {
+    await fetchSingleProduct(productId, forceRefresh: true);
+  }
+
+  Future<void> addProductView(String productId) async {
+    try {
+      await _apiService.postRequest('products/$productId/view', {});
+    } catch (e) {
+      log('Error adding product view: $e');
+    }
+  }
+
+  Future<void> likeSingleProduct() async {
+    final product = singleProduct.value;
+    if (product == null) return;
+
+    if (!Get.isRegistered<ProfileController>()) {
+      Get.put(ProfileController());
+    }
+
+    final profile = Get.find<ProfileController>().profile.value;
+    final userId = profile?.id;
+    if (userId == null) return;
+
+    final normalizedLikes = product.likes.map((like) {
+      if (like is Map && like.containsKey('_id')) {
+        return like['_id'];
+      }
+      return like;
+    }).toList();
+
+    product.likes.value = normalizedLikes;
+
+    final wasLiked = product.likes.contains(userId);
+    product.isCurrentUserLiked = !wasLiked;
+
+    if (wasLiked) {
+      product.likes.remove(userId);
+    } else {
+      product.likes.add(userId);
+    }
+
+    singleProduct.refresh();
+
+    try {
+      await _apiService.postRequest('products/${product.id}/like', {});
+    } catch (e) {
+      // revert
+      product.isCurrentUserLiked = wasLiked;
+      if (wasLiked) {
+        product.likes.add(userId);
+      } else {
+        product.likes.remove(userId);
+      }
+      singleProduct.refresh();
+      log('Error liking product: $e');
+    }
+  }
+
+  Future<void> shareProduct(Products product) async {
+    try {
+      final String description = product.description;
+      final mediaUrl = product.media.isNotEmpty ? product.media.first : null;
+
+      String content = description;
+      if (product.creator.name.isNotEmpty) {
+        content += '\n\nShared from ${product.creator.name} on CHYS';
+      }
+
+      XFile? previewFile;
+      if (mediaUrl != null) {
+        final response = await http.get(Uri.parse(mediaUrl));
+        final bytes = response.bodyBytes;
+        final tempDir = await getTemporaryDirectory();
+        final file = File('${tempDir.path}/product_preview_share.jpg');
+        await file.writeAsBytes(bytes);
+        previewFile = XFile(file.path);
+      }
+
+      await Share.shareXFiles(
+        previewFile != null ? [previewFile] : [],
+        text: content,
+      );
+    } catch (e) {
+      log('Error sharing product: $e');
+      ShortMessageUtils.showError('Failed to share product');
+    }
+  }
+
+  Future<void> fundProduct(Products product, BuildContext context) async {
+    final amountText = amountController.text.trim();
+    if (amountText.isEmpty) {
+      ShortMessageUtils.showError('Please enter an amount');
+      return;
+    }
+
+    final amount = double.tryParse(amountText);
+    if (amount == null || amount <= 0) {
+      ShortMessageUtils.showError('Enter a valid amount');
+      return;
+    }
+
+    try {
+      Get.find<LoadingController>().show();
+      await PaymentServices.stripePayment(amountText, 'product_${product.id}', context,
+          onSuccess: () async {
+        try {
+          await _apiService.postRequest('products/${product.id}/fund', {
+            'amount': amountText,
+          });
+          product.isFunded.value = true;
+          product.fundCount.value += amount.toInt();
+          singleProduct.refresh();
+          ShortMessageUtils.showSuccess('Thank you for funding!');
+        } catch (apiError) {
+          log('Error updating fund status: $apiError');
+          ShortMessageUtils.showError('Failed to complete funding.');
+        }
+      });
+    } catch (e) {
+      log('Error during funding: $e');
+      ShortMessageUtils.showError('Failed to process funding');
+    } finally {
+      Get.find<LoadingController>().hide();
+    }
+  }
+
+  void showCommentsBottomSheet(Products product) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        height: Get.height * 0.4,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 5,
+                margin: const EdgeInsets.only(top: 8, bottom: 8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Comments',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                InkWell(
+                  onTap: () => Get.back(),
+                  child: const Icon(Icons.cancel, color: Colors.red),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            const Divider(height: 1, thickness: 1),
+            const SizedBox(height: 4),
+            Expanded(
+              child: Obx(() {
+                if (product.comments.isEmpty) {
+                  return const Center(
+                    child: Text('No comments yet.'),
+                  );
+                }
+                return ListView.separated(
+                  itemCount: product.comments.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 4),
+                  itemBuilder: (_, index) {
+                    final comment = product.comments[index];
+                    final user = comment['user'] ?? {};
+                    final username = (user['name'] ?? 'User').toString();
+                    final message = (comment['message'] ?? '').toString();
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 16,
+                            child: Text(
+                              username.isNotEmpty ? username[0].toUpperCase() : '?',
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  username,
+                                  style: const TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(message),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              }),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: commentController,
+                      decoration: const InputDecoration(
+                        hintText: 'Add a comment...',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (v) {
+                        final text = v.trim();
+                        if (text.isEmpty) return;
+                        commentOnProduct(product, text);
+                        commentController.clear();
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    color: Colors.blue,
+                    onPressed: () {
+                      final text = commentController.text.trim();
+                      if (text.isEmpty) return;
+                      commentOnProduct(product, text);
+                      commentController.clear();
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+      enableDrag: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+
+  Future<void> commentOnProduct(Products product, String message) async {
+    if (message.trim().isEmpty) {
+      return;
+    }
+
+    if (!Get.isRegistered<ProfileController>()) {
+      Get.put(ProfileController());
+    }
+
+    final profile = Get.find<ProfileController>().profile.value;
+    final comment = {
+      'message': message,
+      'createdAt': DateTime.now().toIso8601String(),
+      'user': {
+        '_id': profile?.id ?? '',
+        'name': profile?.name ?? 'Unknown',
+        'profilePic': profile?.profilePic ?? '',
+      },
+      '_id': UniqueKey().toString(),
+    };
+
+    product.comments.add(comment);
+    singleProduct.refresh();
+
+    try {
+      await _apiService.postRequest('products/${product.id}/comment', {
+        'message': message,
+      });
+    } catch (e) {
+      log('Error adding comment: $e');
+      product.comments.remove(comment);
+      singleProduct.refresh();
+      ShortMessageUtils.showError('Failed to add comment');
+    }
+  }
+
+  Future<void> initializeVideoController(String url) async {
+    if (videoControllers.containsKey(url)) return;
+
+    final controller = VideoPlayerController.networkUrl(Uri.parse(url));
+    await controller.initialize();
+    videoControllers[url] = controller;
+    isVideoInitialized[url] = true;
+    controller.addListener(() {
+      isVideoInitialized[url] = controller.value.isInitialized;
+    });
+  }
+
+  void disposeVideoController(String url) {
+    videoControllers[url]?.dispose();
+    videoControllers.remove(url);
+    isVideoInitialized.remove(url);
+  }
+
+  void pauseAllVideos() {
+    for (final controller in videoControllers.values) {
+      if (controller.value.isPlaying) {
+        controller.pause();
+      }
+    }
+  }
 
   void setType(String type) {
     selectedType.value = type;
@@ -729,10 +1113,8 @@ class ProductController extends GetxController {
   Future<void> createProduct() async {
     log("Selected media is $selectedMedia");
     
-    // Check pet ownership first
-    final petService = PetOwnershipService.instance;
-    if (!petService.canCreateProducts) {
-      //petService.showProductRestriction();
+    final isBusiness = mapController.isBusinessUser.value;
+    if (!isBusiness) {
       return;
     }
     
@@ -796,22 +1178,6 @@ class ProductController extends GetxController {
       
       Get.back();
       
-      // Clear cache and refresh posts with proper error handling
-      try {
-        final postsController = Get.find<AddoredProductsController>(tag: 'home');
-        postsController.clearAllCache(); // Clear all cache
-        await postsController.fetchAdoredProducts(forceRefresh: true); // Force refresh
-      } catch (e) {
-        log("AddoredProductsController not found, skipping refresh: $e");
-        // Try without tag as fallback
-        try {
-          final postsController = Get.find<AddoredProductsController>();
-          postsController.clearAllCache(); // Clear all cache
-          await postsController.fetchAdoredProducts(forceRefresh: true); // Force refresh
-        } catch (e2) {
-          log("AddoredProductsController not found without tag either: $e2");
-        }
-      }
       
       await ShortMessageUtils.showSuccess("Product created successfully!");
     } catch (e) {
@@ -880,26 +1246,7 @@ class ProductController extends GetxController {
       videoThumbnails.clear();
       Get.back();
       
-      // Clear cache and refresh posts with proper error handling
-      try {
-        final postsController = Get.find<AddoredProductsController>(tag: 'home');
-        postsController.clearAllCache(); // Clear all cache
-        await postsController.fetchAdoredProducts(
-            userId: Get.find<ProfileController>().profile.value!.id,
-            forceRefresh: true); // Force refresh
-      } catch (e) {
-        log("AddoredProductsController not found, skipping refresh: $e");
-        // Try without tag as fallback
-        try {
-          final postsController = Get.find<AddoredProductsController>();
-          postsController.clearAllCache(); // Clear all cache
-          await postsController.fetchAdoredProducts(
-              userId: Get.find<ProfileController>().profile.value!.id,
-              forceRefresh: true); // Force refresh
-        } catch (e2) {
-          log("AddoredProductsController not found without tag either: $e2");
-        }
-      }
+      
       
       await ShortMessageUtils.showSuccess("Product updated successfully!");
     } catch (e) {
