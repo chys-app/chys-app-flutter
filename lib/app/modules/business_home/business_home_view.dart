@@ -682,7 +682,12 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
         itemCount: products.length,
         itemBuilder: (context, index) {
           final product = products[index];
-          return ProductGridWidget(product: product);
+          return ProductGridWidget(
+            product: product,
+            onTap: () {
+              Get.toNamed(AppRoutes.productDetail, arguments: product);
+            },
+          );
         },
         staggeredTileBuilder: (index) {
           // Fixed height ratio for all products to make them the same size
