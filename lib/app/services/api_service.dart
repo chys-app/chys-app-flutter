@@ -23,6 +23,11 @@ class ApiService {
     }
     return _fallbackBaseUrl;
   }
+  
+  ApiService() {
+    log('ApiService baseUrl: $baseUrl');
+  }
+  
   final _client = http.Client();
   static const _maxRetries = 3;
   static const _retryDelay = Duration(seconds: 1);
