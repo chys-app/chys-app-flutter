@@ -137,4 +137,7 @@ abstract class AppRoutes {
   static const forgetPassword = '/forget-password';
   static const otp = '/otp';
   static const resetPassword = '/reset-password';
+  
+  // Product routes
+  static const productDetail = '/product-detail';
 }

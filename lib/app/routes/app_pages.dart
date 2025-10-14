@@ -68,6 +68,8 @@ import '../modules/pet_edit/views/edit_selection_view.dart';
 import '../modules/user_management/bindings/user_management_binding.dart';
 import '../modules/user_management/views/blocked_users_view.dart';
 import '../modules/user_management/views/reported_users_view.dart';
+import '../modules/product/views/product_detail_view.dart';
+import '../data/models/product.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -442,6 +444,14 @@ class AppPages {
     GetPage(
       name: AppRoutes.petDetails,
       page: () => PetDetail(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.productDetail,
+      page: () {
+        final product = Get.arguments as Products;
+        return ProductDetailView(product: product);
+      },
       transition: Transition.cupertino,
     ),
   ];
