@@ -18,13 +18,15 @@ class LiveVideoView extends StatefulWidget {
 }
 
 class _LiveVideoViewState extends State<LiveVideoView> {
-  final LiveVideoController controller = Get.put(LiveVideoController());
+  late final LiveVideoController controller;
   Timer? _liveTimer;
   int _liveDuration = 0;
 
   @override
   void initState() {
     super.initState();
+    // Initialize controller in initState to avoid build-phase conflicts
+    controller = Get.put(LiveVideoController());
     _initializeLiveStream();
   }
 

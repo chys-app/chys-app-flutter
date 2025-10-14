@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:chys/app/core/widget/app_button.dart';
 import 'package:chys/app/modules/%20home/widget/custom_header.dart';
 import 'package:chys/app/modules/%20home/widget/floating_action_button.dart';
 import 'package:chys/app/modules/%20home/widget/story_section.dart';
@@ -11,6 +10,7 @@ import 'package:chys/app/services/pet_ownership_service.dart';
 import 'package:chys/app/widget/common/custom_post_widget.dart';
 import 'package:chys/app/widget/common/post_grid_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -29,11 +29,10 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   late final AddoredPostsController contrroller;
-  final mapController = Get.put(MapController());
-  final CustomApiService _apiService = Get.put(CustomApiService());
-  final CreatePodCastController podcastController =
-      Get.put(CreatePodCastController());
-  final PodcastController podCastCallController = Get.put(PodcastController());
+  late final MapController mapController;
+  late final CustomApiService _apiService;
+  late final CreatePodCastController podcastController;
+  late final PodcastController podCastCallController;
 
   final RefreshController _refreshController = RefreshController();
   final ScrollController _scrollController = ScrollController();
@@ -51,6 +50,13 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    
+    // Initialize controllers in initState to avoid build-phase conflicts
+    mapController = Get.put(MapController());
+    _apiService = Get.put(CustomApiService());
+    podcastController = Get.put(CreatePodCastController());
+    podCastCallController = Get.put(PodcastController());
+    
     // Ensure we get the existing controller or create a new one
     if (Get.isRegistered<AddoredPostsController>(tag: 'home')) {
       contrroller = Get.find<AddoredPostsController>(tag: 'home');
@@ -102,8 +108,11 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
       // Only reset the home controller, not profile controllers
       if (Get.isRegistered<AddoredPostsController>(tag: 'home')) {
         final homeController = Get.find<AddoredPostsController>(tag: 'home');
-        homeController.clearUserFiltering();
-        log("Home view post filtering reset completed");
+        // Defer the update to after the current frame to avoid setState during build
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          homeController.clearUserFiltering();
+          log("Home view post filtering reset completed");
+        });
       }
     } catch (e) {
       log("Error resetting post filtering: $e");
@@ -130,13 +139,6 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // Single post frame callback to avoid multiple rebuilds
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_hasInitialized && Get.currentRoute == AppRoutes.home) {
-        _resetPostFiltering();
-      }
-    });
-
     return Scaffold(
       backgroundColor: _backgroundColor,
       floatingActionButton: _buildFloatingActionButton(),
@@ -402,7 +404,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         await _handleRefresh();
         _refreshController.refreshCompleted();
       },
-      child: Stack(
+      child: Obx(() => Stack(
         children: [
           // Main content
           contrroller.posts.isEmpty
@@ -437,7 +439,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
               ),
             ),
         ],
-      ),
+      )),
     );
   }
 

@@ -26,11 +26,21 @@ class StorySection extends StatefulWidget {
 
 class _StorySectionState extends State<StorySection> {
   late Future<List<Map<String, dynamic>>> _storiesFuture;
-  final CustomApiService _apiService = Get.put(CustomApiService());
+  late final CustomApiService _apiService;
+  late final HomeController contrroller;
 
   @override
   void initState() {
     super.initState();
+    
+    // Initialize controllers in initState to avoid build-phase conflicts
+    _apiService = Get.put(CustomApiService());
+    if (Get.isRegistered<HomeController>(tag: 'home')) {
+      contrroller = Get.find<HomeController>(tag: 'home');
+    } else {
+      contrroller = Get.put(HomeController(), tag: 'home');
+    }
+    
     _loadStories();
   }
 
@@ -44,8 +54,6 @@ class _StorySectionState extends State<StorySection> {
           .then((res) => res as Map<String, dynamic>),
     ]);
   }
-
-  final contrroller = Get.put(HomeController(), tag: 'home');
 
   void _refreshAfterPosting(Future Function() action) async {
     await action(); // Wait for story upload or editor to complete

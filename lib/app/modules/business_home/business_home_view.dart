@@ -24,7 +24,7 @@ class BusinessHomeView extends StatefulWidget {
 
 class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBindingObserver {
   late final AddoredPostsController contrroller;
-  final mapController = Get.put(MapController());
+  late final MapController mapController;
   late final ProductsController productsController;
 
   final RefreshController _refreshController = RefreshController();
@@ -43,11 +43,13 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
   @override
   void initState() {
     super.initState();
+    // Initialize controllers in initState to avoid build-phase conflicts
+    mapController = Get.put(MapController());
     // Ensure we get the existing controller or create a new one
-    if (Get.isRegistered<AddoredPostsController>(tag: 'business_home')) {
-      contrroller = Get.find<AddoredPostsController>(tag: 'business_home');
+    if (Get.isRegistered<AddoredPostsController>(tag: 'business')) {
+      contrroller = Get.find<AddoredPostsController>(tag: 'business');
     } else {
-      contrroller = Get.put(AddoredPostsController(), tag: 'business_home');
+      contrroller = Get.put(AddoredPostsController(), tag: 'business');
     }
     if (Get.isRegistered<ProductsController>()) {
       productsController = Get.find<ProductsController>();
