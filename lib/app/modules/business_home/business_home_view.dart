@@ -5,6 +5,7 @@ import 'package:chys/app/modules/adored_posts/controller/controller.dart';
 import 'package:chys/app/widget/common/post_grid_widget.dart';
 import 'package:chys/app/widget/common/custom_post_widget.dart';
 import 'package:chys/app/modules/products/controller/products_controller.dart';
+import 'package:chys/app/modules/product/views/add_product_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -163,8 +164,8 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
         alignment: Alignment.centerLeft,
         child: GestureDetector(
           onTap: () {
-            // Navigate to create product/post screen
-            Get.toNamed(AppRoutes.newPostPreview);
+            // Navigate to create product screen
+            Get.to(() => AddProductView());
           },
           child: Container(
             width: 56,
