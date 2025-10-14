@@ -158,6 +158,12 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   Widget _buildFloatingActionButton() {
     final petService = PetOwnershipService.instance;
+    
+    // Hide button completely for business users
+    if (petService.isBusinessUser) {
+      return const SizedBox.shrink();
+    }
+    
     final canCreate = petService.canCreatePodcasts;
 
     return Container(
@@ -642,7 +648,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                 ),
                 textAlign: TextAlign.center,
               ),
-              if (!isFriendsTab) ...[
+              // Hide Create Post button for business users
+              if (!isFriendsTab && !petService.isBusinessUser) ...[
                 const SizedBox(height: 32),
                 Container(
                   decoration: BoxDecoration(
@@ -684,10 +691,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                               size: 20,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              petService.canCreatePosts
-                                  ? 'Create Post'
-                                  : 'Create Post (Restricted)',
+                            const Text('Create Post',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
