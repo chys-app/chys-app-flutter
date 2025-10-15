@@ -104,7 +104,7 @@ class LoginController extends GetxController {
     passwordController.clear();
     userEmail = "";
     userPassword = "";
-    showPassword.value = false;
+    Future.microtask(() => showPassword.value = false);
   }
 
   bool _validateForm() {
@@ -115,7 +115,7 @@ class LoginController extends GetxController {
     }
     if (passwordText.isEmpty) {
       Get.snackbar('Error', 'Please enter your password',
-          backgroundColor: Colors.red, colorText: Colors.white);
+          backgroundColor: Colo˝rs.red, colorText: Colors.white);
       return false;
     }
     return true;
