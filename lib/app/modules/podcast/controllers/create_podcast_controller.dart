@@ -113,7 +113,7 @@ class CreatePodCastController extends GetxController {
 
         // Force a frame to be rendered
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          boundary!.markNeedsPaint();
+          boundary.markNeedsPaint();
         });
 
         return await saveWidgetAsImage(retryCount + 1);
@@ -416,7 +416,7 @@ class CreatePodCastController extends GetxController {
       try {
         log("🔄 Trying to get current user profile...");
         final profileResponse = await ApiClient().get("users/profile");
-        log("📋 Profile response: ${profileResponse}");
+        log("📋 Profile response: $profileResponse");
         
         if (profileResponse != null && profileResponse['user'] != null) {
           final userData = profileResponse['user'];
@@ -476,7 +476,7 @@ class CreatePodCastController extends GetxController {
       try {
         log("🔄 Trying allUsers endpoint...");
         final response = await ApiClient().get(ApiEndPoints.allUsers);
-        log("📋 AllUsers response: ${response}");
+        log("📋 AllUsers response: $response");
         
         if (response != null) {
           List<dynamic>? rawUsers;
@@ -622,7 +622,7 @@ class CreatePodCastController extends GetxController {
       log("🔄 Loading users from current user's network...");
       
       final profileResponse = await ApiClient().get("users/profile");
-      log("📋 Profile response: ${profileResponse}");
+      log("📋 Profile response: $profileResponse");
       
       if (profileResponse != null && profileResponse['user'] != null) {
         final userData = profileResponse['user'];

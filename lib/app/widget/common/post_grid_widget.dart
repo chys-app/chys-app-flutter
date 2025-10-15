@@ -208,7 +208,7 @@ class _PostGridWidgetState extends State<PostGridWidget> {
       child: Container(
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.transparent,
         ),
         child: ClipRRect(

@@ -18,7 +18,7 @@ class NotificationsView extends GetView<NotificationsController> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Get.back(),
         ),
-        title: AppText(
+        title: const AppText(
           text: 'Notifications',
           fontSize: 20,
           fontWeight: FontWeight.w600,

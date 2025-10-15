@@ -1,11 +1,8 @@
 import 'dart:async';
-import 'dart:developer';
-import 'dart:io';
 
 import 'package:camera/camera.dart';
 import '../../../core/const/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../controllers/live_video_controller.dart';
@@ -486,9 +483,9 @@ class _LiveVideoViewState extends State<LiveVideoView> {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.primary,
-                borderRadius: const BorderRadius.only(
+                borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(12),
                   topRight: Radius.circular(12),
                 ),
@@ -709,10 +706,10 @@ class _LiveVideoViewState extends State<LiveVideoView> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.warning_amber, color: AppColors.accent, size: 24),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(
               'End Live Stream',
               style: TextStyle(
@@ -722,7 +719,7 @@ class _LiveVideoViewState extends State<LiveVideoView> {
             ),
           ],
         ),
-        content: Text(
+        content: const Text(
           'Are you sure you want to end this live stream? This action cannot be undone.',
           style: TextStyle(
             color: AppColors.textSecondary,

@@ -8,6 +8,8 @@ import '../../signup/widgets/primary_button.dart';
 import '../controllers/reset_password_controller.dart';
 
 class OtpView extends StatefulWidget {
+  const OtpView({super.key});
+
   @override
   State<OtpView> createState() => _OtpViewState();
 }

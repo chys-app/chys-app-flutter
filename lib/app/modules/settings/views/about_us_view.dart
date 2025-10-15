@@ -1,6 +1,4 @@
-import 'package:chys/app/core/const/app_colors.dart';
 import 'package:chys/app/core/const/app_image.dart';
-import 'package:chys/app/core/const/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -247,9 +245,9 @@ class AboutUsView extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             description,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 15,
-              color: const Color(0xFF718096),
+              color: Color(0xFF718096),
               height: 1.5,
             ),
           ),
@@ -379,9 +377,9 @@ class AboutUsView extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
-                    color: const Color(0xFF718096),
+                    color: Color(0xFF718096),
                     height: 1.4,
                   ),
                 ),

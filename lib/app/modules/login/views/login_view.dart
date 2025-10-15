@@ -11,7 +11,7 @@ import '../controllers/login_controller.dart';
 import '../widgets/login_text_field.dart';
 
 class LoginView extends StatefulWidget {
-  LoginView({super.key});
+  const LoginView({super.key});
 
   @override
   State<LoginView> createState() => _LoginViewState();

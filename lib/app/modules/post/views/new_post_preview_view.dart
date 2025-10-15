@@ -1,8 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:chys/app/core/const/app_colors.dart';
-import 'package:chys/app/core/utils/app_size.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
@@ -476,13 +474,13 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.error_outline,
                 color: Colors.red,
                 size: 60,
               ),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 'Error loading video',
                 style: TextStyle(
                   color: Colors.red,

@@ -34,9 +34,9 @@ class PodcastView extends StatelessWidget {
     final profileController = Get.find<ProfileController>();
 
     final isHost = argument.host.id == profileController.profile.value?.id;
-    final scheduledAt = argument.scheduledAt?.toUtc();
+    final scheduledAt = argument.scheduledAt.toUtc();
     final isScheduledInFuture =
-        scheduledAt != null && scheduledAt.isAfter(DateTime.now().toUtc());
+        scheduledAt.isAfter(DateTime.now().toUtc());
 
     // Add RxnInt for selected large view user
     controller.selectedLargeViewUserId ??= RxnInt();
@@ -52,7 +52,7 @@ class PodcastView extends StatelessWidget {
       }
     });
 
-    void _showExitDialog() {
+    void showExitDialog() {
       final isAdmin = controller.isAdmin;
       final joined = controller.joined.value;
       if (!joined) {
@@ -72,7 +72,7 @@ class PodcastView extends StatelessWidget {
                   color: AppColors.error.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.exit_to_app, color: AppColors.error, size: 24),
+                child: const Icon(Icons.exit_to_app, color: AppColors.error, size: 24),
               ),
               const SizedBox(width: 12),
               Text(
@@ -120,7 +120,7 @@ class PodcastView extends StatelessWidget {
       return base64Str;
     }
 
-    void _sharePodcast(Podcast podcast) async {
+    void sharePodcast(Podcast podcast) async {
       try {
         Get.find<LoadingController>().show();
 
@@ -198,15 +198,15 @@ $podcastUrl
       canPop: false,
       onPopInvokedWithResult: (canPop, result) {
         if (controller.joined.value) {
-          _showExitDialog();
+          showExitDialog();
         } else {
           Get.back();
         }
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: _buildAppBar(controller, _showExitDialog, () {
-          _sharePodcast(argument);
+        appBar: _buildAppBar(controller, showExitDialog, () {
+          sharePodcast(argument);
         }),
         body: Obx(() {
           if (!controller.joined.value) {
@@ -328,7 +328,7 @@ $podcastUrl
   Widget _buildJoinScreen(
       PodcastController controller, bool isHost, DateTime? scheduledAt) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -852,8 +852,8 @@ $podcastUrl
                     children: [
                       Container(
                         padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
                             colors: [Color(0xFF0095F6), Color(0xFF00C851)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -1138,8 +1138,8 @@ $podcastUrl
               foregroundColor: const Color(0xFF0095F6),
               elevation: 8,
               onPressed: controller.switchCamera,
-              child: const Icon(Icons.cameraswitch, size: 20),
               tooltip: 'Switch Camera',
+              child: const Icon(Icons.cameraswitch, size: 20),
             ),
           ),
           // Toggle video button
@@ -1151,15 +1151,15 @@ $podcastUrl
             foregroundColor: Colors.white,
             elevation: 8,
             onPressed: controller.toggleLocalVideo,
+            tooltip: controller.localVideoEnabled.value
+                ? 'Turn Off Video'
+                : 'Turn On Video',
             child: Icon(
               controller.localVideoEnabled.value
                   ? Icons.videocam
                   : Icons.videocam_off,
               size: 24,
             ),
-            tooltip: controller.localVideoEnabled.value
-                ? 'Turn Off Video'
-                : 'Turn On Video',
           ),
         ],
       );
@@ -1201,7 +1201,7 @@ $podcastUrl
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.close, color: AppColors.textSecondary),
+                          icon: const Icon(Icons.close, color: AppColors.textSecondary),
                           onPressed: () => Get.back(),
                         ),
                       ],
@@ -1278,8 +1278,8 @@ $podcastUrl
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: ListTile(
-                                  leading: Icon(Icons.favorite,
-                                      color: const Color(0xFF0095F6)),
+                                  leading: const Icon(Icons.favorite,
+                                      color: Color(0xFF0095F6)),
                                   title: Text('Donated', style: GoogleFonts.inter()),
                                   trailing: Text(
                                     '+\$${donation.amount}',

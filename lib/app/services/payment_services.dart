@@ -124,7 +124,7 @@ class PaymentServices {
     try {
       final response = await ApiClient().post(ApiEndPoints.updateDonation,
           {"amount": int.tryParse(amount), "donationId": donationId});
-      log("Response of the donation update id ${response}");
+      log("Response of the donation update id $response");
     } catch (e) {
       log("The error during updating donation is $e");
     }

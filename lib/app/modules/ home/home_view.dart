@@ -194,7 +194,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Row(
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
@@ -202,7 +202,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                   color: Colors.white,
                   size: 18,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
                   "Schedule Podcast",
                   style: TextStyle(
@@ -423,7 +423,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
           if (contrroller.isLoading.value)
             Container(
               color: Colors.white.withOpacity(0.9),
-              child: Center(
+              child: const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -431,7 +431,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                       valueColor: AlwaysStoppedAnimation<Color>(_primaryColor),
                       strokeWidth: 3,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Text(
                       "Loading posts...",
                       style: TextStyle(
@@ -566,7 +566,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         staggeredTileBuilder: (index) {
           // Fixed height ratio for all posts to make them the same height
           const double heightRatio = 1.2;
-          return StaggeredTile.count(1, heightRatio);
+          return const StaggeredTile.count(1, heightRatio);
         },
       );
     });
@@ -630,7 +630,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
               const SizedBox(height: 24),
               Text(
                 isFriendsTab ? 'No Friends Posts' : 'No Posts Yet',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   color: _textPrimary,
@@ -641,7 +641,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                 isFriendsTab
                     ? 'Your friends haven\'t shared anything yet.\nFollow more friends to see their posts!'
                     : 'Be the first to share something amazing\nwith your friends!',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   color: _textSecondary,
                   height: 1.5,
@@ -682,7 +682,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 32, vertical: 16),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
@@ -690,9 +690,9 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                               color: Colors.white,
                               size: 20,
                             ),
-                            const SizedBox(width: 8),
-                            const Text('Create Post',
-                              style: const TextStyle(
+                            SizedBox(width: 8),
+                            Text('Create Post',
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,

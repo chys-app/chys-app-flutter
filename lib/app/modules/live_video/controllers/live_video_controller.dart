@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -291,6 +290,7 @@ class LiveVideoController extends GetxController {
     }
   }
 
+  @override
   void dispose() {
     _viewerCountTimer?.cancel();
     _commentTimer?.cancel();

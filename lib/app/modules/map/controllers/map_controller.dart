@@ -452,18 +452,18 @@ class MapController extends GetxController {
     final Paint paint = Paint();
 
     // Background circle with gradient
-    final Rect rect = Rect.fromLTWH(0, 0, markerSize, markerSize);
-    final Gradient gradient = LinearGradient(
+    const Rect rect = Rect.fromLTWH(0, 0, markerSize, markerSize);
+    const Gradient gradient = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [
-        const Color(0xFF0095F6),
-        const Color(0xFF00C851),
+        Color(0xFF0095F6),
+        Color(0xFF00C851),
       ],
     );
     
     paint.shader = gradient.createShader(rect);
-    canvas.drawCircle(Offset(markerSize/2, markerSize/2), markerSize/2, paint);
+    canvas.drawCircle(const Offset(markerSize/2, markerSize/2), markerSize/2, paint);
 
     // Profile image circle
     try {
@@ -477,11 +477,11 @@ class MapController extends GetxController {
       final Canvas profileCanvas = Canvas(profileRecorder);
       final Paint profilePaint = Paint();
       
-      final double profileRadius = 45;
-      final Rect profileRect = Rect.fromLTWH(0, 0, profileRadius * 2, profileRadius * 2);
+      const double profileRadius = 45;
+      const Rect profileRect = Rect.fromLTWH(0, 0, profileRadius * 2, profileRadius * 2);
       
       // Draw profile image in circle
-      profileCanvas.drawCircle(Offset(profileRadius, profileRadius), profileRadius, profilePaint);
+      profileCanvas.drawCircle(const Offset(profileRadius, profileRadius), profileRadius, profilePaint);
       profilePaint.blendMode = BlendMode.srcIn;
       profileCanvas.drawImageRect(
         profileImage,
@@ -498,7 +498,7 @@ class MapController extends GetxController {
       // Draw profile on main canvas
       canvas.drawImage(
         circularProfile, 
-        Offset((markerSize - profileRadius * 2) / 2, (markerSize - profileRadius * 2) / 2), 
+        const Offset((markerSize - profileRadius * 2) / 2, (markerSize - profileRadius * 2) / 2), 
         Paint()
       );
     } catch (e) {
@@ -512,20 +512,20 @@ class MapController extends GetxController {
       paint.color = const Color(0xFFFF6B35);
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 4;
-      canvas.drawCircle(Offset(markerSize/2, markerSize/2), markerSize/2 - 2, paint);
+      canvas.drawCircle(const Offset(markerSize/2, markerSize/2), markerSize/2 - 2, paint);
     }
 
     // Online status indicator
     if (isOnline) {
       paint.color = const Color(0xFF00C851);
       paint.style = PaintingStyle.fill;
-      canvas.drawCircle(Offset(markerSize - 15, 15), 8, paint);
+      canvas.drawCircle(const Offset(markerSize - 15, 15), 8, paint);
       
       // White border
       paint.color = Colors.white;
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 2;
-      canvas.drawCircle(Offset(markerSize - 15, 15), 8, paint);
+      canvas.drawCircle(const Offset(markerSize - 15, 15), 8, paint);
     }
 
     final ui.Image enhancedMarker = await recorder.endRecording().toImage(size, size);
@@ -742,12 +742,12 @@ class MapController extends GetxController {
             // Enhanced pet header
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    const Color(0xFFF8FAFC),
+                    Color(0xFFF8FAFC),
                     Colors.white,
                   ],
                 ),
@@ -924,7 +924,7 @@ class MapController extends GetxController {
             
             // Enhanced pet photos carousel
             if (pet.photos != null && pet.photos!.isNotEmpty) ...[
-              Container(
+              SizedBox(
                 height: 140,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,

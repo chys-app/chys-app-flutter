@@ -1,11 +1,8 @@
 import 'package:chys/app/modules/podcast/controllers/create_podcast_controller.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/const/app_text.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../signup/widgets/custom_text_field.dart';
 
 class StartPodcastScreen extends StatelessWidget {
@@ -428,13 +425,13 @@ class StartPodcastScreen extends StatelessWidget {
 
   Widget _buildBetterPlaceholder() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            const Color(0xFFF8FAFC),
-            const Color(0xFFF1F5F9),
+            Color(0xFFF8FAFC),
+            Color(0xFFF1F5F9),
           ],
         ),
       ),
@@ -476,13 +473,13 @@ class StartPodcastScreen extends StatelessWidget {
 
   Widget _buildPremiumPlaceholder() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            const Color(0xFFF8FAFC),
-            const Color(0xFFF1F5F9),
+            Color(0xFFF8FAFC),
+            Color(0xFFF1F5F9),
           ],
         ),
       ),
@@ -492,12 +489,12 @@ class StartPodcastScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  const Color(0xFF3B82F6),
-                  const Color(0xFF1D4ED8),
+                  Color(0xFF3B82F6),
+                  Color(0xFF1D4ED8),
                 ],
               ),
               shape: BoxShape.circle,

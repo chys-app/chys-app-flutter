@@ -34,7 +34,7 @@ class IdentificationView extends GetView<SignupController> {
                 const SizedBox(height: 24),
 
                 // Title
-                AppText(
+                const AppText(
                   text: 'Identification & Safety',
                   color: Colors.black,
                   fontWeight: FontWeight.w600,
@@ -43,7 +43,7 @@ class IdentificationView extends GetView<SignupController> {
                 const SizedBox(height: 32),
 
                 // Microchip Number
-                AppText(
+                const AppText(
                   text: 'Microchip Number',
                   color: AppColors.purple,
                   fontSize: 14,
@@ -57,7 +57,7 @@ class IdentificationView extends GetView<SignupController> {
                 const SizedBox(height: 24),
 
                 // Tag ID or CHYS ID
-                AppText(
+                const AppText(
                   text: 'Tag ID or CHYS ID',
                   color: AppColors.purple,
                   fontSize: 14,
@@ -94,7 +94,7 @@ class IdentificationView extends GetView<SignupController> {
                 // // Vaccination Status Dropdown
                 // const SizedBox(height: 24),
 
-                AppText(
+                const AppText(
                   text: 'Vaccination Status',
                   color: AppColors.purple,
                   fontSize: 14,
@@ -110,14 +110,15 @@ class IdentificationView extends GetView<SignupController> {
                       : null,
                   items: controller.vaccinationStatusOptions,
                   onDropdownChanged: (value) {
-                    if (value != null)
+                    if (value != null) {
                       controller.updateVaccinationStatus(value);
+                    }
                   },
                 ),
                 const SizedBox(height: 24),
 
                 // Vet Name
-                AppText(
+                const AppText(
                   text: 'Vet Name',
                   color: AppColors.purple,
                   fontSize: 14,
@@ -129,7 +130,7 @@ class IdentificationView extends GetView<SignupController> {
                   hint: "Vet Name",
                 ),
                 const SizedBox(height: 24),
-                AppText(
+                const AppText(
                   text: 'Vet Contact Number',
                   color: AppColors.purple,
                   fontSize: 14,

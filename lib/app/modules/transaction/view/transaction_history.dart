@@ -3,7 +3,6 @@ import 'package:chys/app/widget/shimmer/lottie_animation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/const/app_colors.dart';
 import '../controller/transaction_history_controller.dart';
 import '../model/transaction_model.dart';
 
@@ -439,7 +438,7 @@ class TransactionHistoryView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  (isWithdrawal ? '-' : '+') + '\$${tx.amount.toStringAsFixed(2)}',
+                  '${isWithdrawal ? '-' : '+'}\$${tx.amount.toStringAsFixed(2)}',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,

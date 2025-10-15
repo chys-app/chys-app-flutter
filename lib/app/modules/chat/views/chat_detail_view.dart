@@ -10,7 +10,7 @@ import '../../../core/theme/app_colors.dart';
 import '../controllers/chat_controller.dart';
 
 class ChatDetailView extends GetView<ChatController> {
-  ChatDetailView({super.key});
+  const ChatDetailView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +120,7 @@ class ChatDetailView extends GetView<ChatController> {
                             
                             final isMe = senderId == currentUserId;
                             log("✅ Is message from me: $isMe");
-                            log("✅ Direct comparison: '${senderId}' == '${currentUserId}' = ${senderId == currentUserId}");
+                            log("✅ Direct comparison: '$senderId' == '$currentUserId' = ${senderId == currentUserId}");
                             
                             // Get the appropriate user data for avatar
                             Map<String, dynamic>? messageUser;
@@ -536,7 +536,7 @@ class ChatDetailView extends GetView<ChatController> {
             color: Colors.grey[100],
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Row(
+          child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.attach_file, size: 20),

@@ -239,7 +239,7 @@ class AppearanceView extends GetView<SignupController> {
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                       )
-                    : SizedBox.shrink()),
+                    : const SizedBox.shrink()),
                 const SizedBox(height: 24),
                 // Distinguishing Marks
                 const AppText(

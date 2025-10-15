@@ -6,13 +6,9 @@ import 'package:chys/app/services/payment_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:screenshot/screenshot.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
-import '../../core/const/app_colors.dart';
 import '../../core/controllers/loading_controller.dart';
 import '../../services/custom_Api.dart';
 import '../../services/short_message_utils.dart';

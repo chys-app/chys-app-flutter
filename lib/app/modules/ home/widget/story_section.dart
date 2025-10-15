@@ -5,10 +5,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/const/app_colors.dart';
-import '../../../core/const/app_text.dart';
-import '../../../core/utils/app_size.dart';
 import '../../../data/models/story.dart';
-import '../../../data/models/pet_profile.dart';
 import '../../../modules/profile/controllers/profile_controller.dart';
 import '../../../services/custom_Api.dart';
 import '../../../services/pet_ownership_service.dart';
@@ -139,7 +136,7 @@ class _StorySectionState extends State<StorySection> {
                               ),
                               child: Container(
                                 margin: const EdgeInsets.all(2),
-                                decoration: BoxDecoration(
+                                decoration: const BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: Colors.white,
                                 ),
@@ -215,11 +212,11 @@ class _StorySectionState extends State<StorySection> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(
+                      const Text(
                         "Your Story",
                         style: TextStyle(
                           fontSize: 11,
-                          color: const Color(0xFF262626),
+                          color: Color(0xFF262626),
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -240,9 +237,9 @@ class _StorySectionState extends State<StorySection> {
                           Container(
                             width: 66,
                             height: 66,
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: const LinearGradient(
+                              gradient: LinearGradient(
                                 colors: [
                                   Color(0xFF833AB4),
                                   Color(0xFFE1306C),

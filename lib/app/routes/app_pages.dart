@@ -83,7 +83,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.login,
-      page: () => LoginView(),
+      page: () => const LoginView(),
       binding: LoginBinding(),
       preventDuplicates: true,
       transition: Transition.fadeIn,
@@ -192,7 +192,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.profile,
-      page: () => ProfileView(),
+      page: () => const ProfileView(),
       transition: Transition.cupertino,
     ),
     GetPage(
@@ -209,7 +209,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.chatDetail,
-      page: () => ChatDetailView(),
+      page: () => const ChatDetailView(),
       binding: ChatBinding(),
       transition: Transition.cupertino,
     ),
@@ -232,7 +232,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.invitePodcast,
-      page: () => InvitePodcastView(),
+      page: () => const InvitePodcastView(),
       binding: PodcastBinding(),
       transition: Transition.cupertino,
     ),
@@ -248,7 +248,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.inviteUserToPodCast,
-      page: () => InvitePodcastView(),
+      page: () => const InvitePodcastView(),
       binding: PodcastBinding(),
       transition: Transition.cupertino,
     ),
@@ -323,7 +323,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.home,
-      page: () => HomeView(),
+      page: () => const HomeView(),
       binding: PostBinding(),
       transition: Transition.cupertino,
     ),
@@ -335,7 +335,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.homeDetail,
-      page: () => PetDetail(),
+      page: () => const PetDetail(),
       transition: Transition.cupertino,
     ),
     GetPage(
@@ -361,7 +361,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.adoredPost,
-      page: () => AdoredPost(),
+      page: () => const AdoredPost(),
       transition: Transition.cupertino,
     ),
     GetPage(
@@ -391,17 +391,17 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.forgetPassword,
-      page: () => ForgetPasswordView(),
+      page: () => const ForgetPasswordView(),
       transition: Transition.fadeIn,
     ),
     GetPage(
       name: AppRoutes.otp,
-      page: () => OtpView(),
+      page: () => const OtpView(),
       transition: Transition.fadeIn,
     ),
     GetPage(
       name: AppRoutes.resetPassword,
-      page: () => ResetPasswordView(),
+      page: () => const ResetPasswordView(),
       transition: Transition.fadeIn,
     ),
 
@@ -443,7 +443,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.petDetails,
-      page: () => PetDetail(),
+      page: () => const PetDetail(),
       transition: Transition.cupertino,
     ),
     GetPage(

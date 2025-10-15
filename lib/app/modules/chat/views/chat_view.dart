@@ -63,19 +63,19 @@ class ChatView extends GetView<ChatController> {
       child: TextField(
         controller: controller.searchController,
         onChanged: controller.onSearchChanged,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           hintText: 'Search conversations...',
-          hintStyle: const TextStyle(
+          hintStyle: TextStyle(
             color: Color(0xFFA8A8A8), // Instagram's lighter secondary text color
             fontSize: 15,
           ),
-          prefixIcon: const Icon(
+          prefixIcon: Icon(
             Icons.search,
             color: Color(0xFFA8A8A8), // Instagram's lighter secondary text color
             size: 20,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         style: const TextStyle(
           fontSize: 15,
@@ -165,10 +165,10 @@ class ChatView extends GetView<ChatController> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             Icons.chat_bubble_outline,
             size: 64,
-            color: const Color(0xFF8E8E93), // Instagram's secondary text color
+            color: Color(0xFF8E8E93), // Instagram's secondary text color
           ),
           const SizedBox(height: 24),
           Text(

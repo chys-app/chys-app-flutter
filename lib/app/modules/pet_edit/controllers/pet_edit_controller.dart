@@ -179,7 +179,7 @@ class PetEditController extends GetxController {
       // Initialize lbs display
       if (pet.weight != null) {
         final lbs = (pet.weight!.toDouble() * 2.2046226218);
-        weightInLbs.value = lbs.toStringAsFixed(2) + ' lbs';
+        weightInLbs.value = '${lbs.toStringAsFixed(2)} lbs';
       } else {
         weightInLbs.value = '';
       }
@@ -278,7 +278,7 @@ class PetEditController extends GetxController {
       return;
     }
     final lbs = kg * 2.2046226218;
-    weightInLbs.value = lbs.toStringAsFixed(2) + ' lbs';
+    weightInLbs.value = '${lbs.toStringAsFixed(2)} lbs';
   }
 
   Future<void> pickPetPhoto() async {
@@ -350,7 +350,7 @@ class PetEditController extends GetxController {
     try {
       // Check current photo count
       final currentCount = getCurrentPhotoCount();
-      final maxPhotos = 5;
+      const maxPhotos = 5;
       final remainingSlots = maxPhotos - currentCount;
 
       if (remainingSlots <= 0) {
@@ -428,7 +428,7 @@ class PetEditController extends GetxController {
         final fileName = file.path.split('/').last;
 
         // Update status for current file
-        uploadStatus.value = 'Uploading ${fileName}...';
+        uploadStatus.value = 'Uploading $fileName...';
         uploadProgress.value = (i / photoFiles.length) * 100;
         uploadedFiles.value = i;
 

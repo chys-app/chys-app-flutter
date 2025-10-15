@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:chys/app/modules/splash/controller/splash_controller.dart';

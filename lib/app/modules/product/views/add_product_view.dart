@@ -307,7 +307,7 @@ class _AddProductViewState extends State<AddProductView> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _priceController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
                 ],
@@ -443,7 +443,7 @@ class _AddProductViewState extends State<AddProductView> {
                         ),
                       )
                     : Text(
-                        'Create ${_selectedType}',
+                        'Create $_selectedType',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

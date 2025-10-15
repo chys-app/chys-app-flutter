@@ -452,12 +452,6 @@ class PodcastController extends GetxController {
     }
   }
 
-  @override
-  void onInit() {
-    super.onInit();
-    // Don't initialize Agora immediately, wait for user to join channel
-    // This prevents permission requests on app start
-  }
 
   // Method to handle permission revocation during runtime
   Future<void> handlePermissionRevocation() async {

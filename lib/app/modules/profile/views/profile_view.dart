@@ -16,6 +16,8 @@ import '../../../widget/common/post_grid_widget.dart';
 import '../../../widget/shimmer/cat_quote_shimmer.dart';
 
 class ProfileView extends StatefulWidget {
+  const ProfileView({super.key});
+
   @override
   State<ProfileView> createState() => _ProfileViewState();
 }
@@ -556,7 +558,7 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
           profileData.bio!,
           style: const TextStyle(
             fontSize: 14,
-            color: const Color(0xFF262626),
+            color: Color(0xFF262626),
             height: 1.4,
           ),
         ),
@@ -775,7 +777,7 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
                 const Icon(
                   Icons.photo_library_outlined,
                   size: 48,
-                  color: const Color(0xFF0095F6), // App's primary blue color
+                  color: Color(0xFF0095F6), // App's primary blue color
                 ),
                 const AppText(
                   text: "No posts yet",

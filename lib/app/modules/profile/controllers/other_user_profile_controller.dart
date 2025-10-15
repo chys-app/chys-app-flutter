@@ -7,7 +7,6 @@ import 'package:chys/app/services/custom_Api.dart';
 import 'package:chys/app/services/storage_service.dart';
 import 'package:get/get.dart';
 
-import '../../adored_posts/controller/controller.dart';
 import '../controllers/profile_controller.dart';
 
 class OtherUserProfileController extends GetxController {
@@ -71,7 +70,7 @@ class OtherUserProfileController extends GetxController {
           final profileController = Get.find<ProfileController>();
           final profileData = profileController.profile.value;
           if (profileData?.id != null) {
-            userCurrentId.value = profileData!.id!;
+            userCurrentId.value = profileData!.id;
             log("Current user ID loaded from profile controller: ${userCurrentId.value}");
             return;
           }

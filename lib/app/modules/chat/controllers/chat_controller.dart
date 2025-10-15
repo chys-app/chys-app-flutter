@@ -157,7 +157,7 @@ class ChatController extends GetxController {
     _initializeProfileController();
     
     // Delay other initializations to ensure ProfileController is ready
-    Future.delayed(Duration(milliseconds: 100), () {
+    Future.delayed(const Duration(milliseconds: 100), () {
       ensureCurrentUserIdLoaded();
       _loadConversations();
     });
@@ -169,7 +169,7 @@ class ChatController extends GetxController {
       update();
     });
 
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () {
       log("🔍 Testing socket connection...");
       log("🔍 Socket connected: ${_socketService.socket.connected}");
       log("🔍 Socket ID: ${_socketService.socket.id}");
@@ -327,7 +327,7 @@ class ChatController extends GetxController {
         if (!_socketService.socket.connected) {
           log("⚠️ Socket not connected, attempting to reconnect...");
           await _socketService.initSocket();
-          await Future.delayed(Duration(seconds: 2));
+          await Future.delayed(const Duration(seconds: 2));
         }
 
 
@@ -798,7 +798,7 @@ class ChatController extends GetxController {
 
 
   void scrollToBottom() {
-    Future.delayed(Duration(milliseconds: 100), () {
+    Future.delayed(const Duration(milliseconds: 100), () {
       if (scrollController.hasClients) {
         scrollController.jumpTo(scrollController.position.maxScrollExtent);
       }

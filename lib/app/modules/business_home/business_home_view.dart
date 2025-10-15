@@ -172,7 +172,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
         child: GestureDetector(
           onTap: () {
             // Navigate to create product screen
-            Get.to(() => AddProductView());
+            Get.to(() => const AddProductView());
           },
           child: Container(
             width: 56,
@@ -389,7 +389,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
           if (contrroller.isLoading.value)
             Container(
               color: Colors.white.withOpacity(0.9),
-              child: Center(
+              child: const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -397,7 +397,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
                       valueColor: AlwaysStoppedAnimation<Color>(_primaryColor),
                       strokeWidth: 3,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Text(
                       "Loading posts...",
                       style: TextStyle(
@@ -540,7 +540,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
         staggeredTileBuilder: (index) {
           // Fixed height ratio for all posts to make them the same height
           const double heightRatio = 1.2;
-          return StaggeredTile.count(1, heightRatio);
+          return const StaggeredTile.count(1, heightRatio);
         },
       );
     });
@@ -591,14 +591,14 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
                 color: Colors.grey.shade100,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.photo_library_outlined,
                 size: 48,
                 color: _textSecondary,
               ),
             ),
             const SizedBox(height: 24),
-            Text(
+            const Text(
               'No Products Yet',
               style: TextStyle(
                 fontSize: 20,
@@ -607,7 +607,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
               ),
             ),
             const SizedBox(height: 12),
-            Text(
+            const Text(
               "Let's create some products and services!",
               style: TextStyle(
                 fontSize: 14,

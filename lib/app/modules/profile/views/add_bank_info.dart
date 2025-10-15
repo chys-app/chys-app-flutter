@@ -3,9 +3,6 @@ import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/const/app_text.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/widget/app_button.dart';
 import '../../signup/widgets/custom_text_field.dart';
 
 class AddBankInfoScreen extends StatelessWidget {

@@ -4,12 +4,13 @@ import 'package:get/get.dart';
 import '../../../core/const/app_text.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/validators/form_validators.dart';
-import '../../../routes/app_routes.dart';
 import '../../signup/widgets/custom_text_field.dart';
 import '../../signup/widgets/primary_button.dart';
 import '../controllers/reset_password_controller.dart';
 
 class ForgetPasswordView extends StatefulWidget {
+  const ForgetPasswordView({super.key});
+
   @override
   State<ForgetPasswordView> createState() => _ForgetPasswordViewState();
 }
@@ -27,7 +28,7 @@ class _ForgetPasswordViewState extends State<ForgetPasswordView> {
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        iconTheme: IconThemeData(color: AppColors.purple),
+        iconTheme: const IconThemeData(color: AppColors.purple),
       ),
       body: SafeArea(
         child: SingleChildScrollView(

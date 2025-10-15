@@ -1,19 +1,13 @@
 import 'dart:async';
 
-import 'package:chys/app/core/const/app_image.dart';
 import 'package:chys/app/core/const/app_colors.dart';
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
-import 'package:chys/app/modules/user_management/controllers/user_management_controller.dart';
-import 'package:chys/app/modules/map/controllers/map_controller.dart';
 import 'package:chys/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:developer';
 
-import '../../../core/const/app_text.dart';
 import '../../../services/storage_service.dart';
 import 'package:chys/app/modules/login/controllers/login_controller.dart';
 
@@ -29,7 +23,7 @@ class SettingsView extends StatelessWidget {
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -249,15 +243,15 @@ class SettingsView extends StatelessWidget {
         ),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Row(
+          child: const Row(
             children: [
               Icon(
                 Icons.logout_outlined,
                 size: 24,
                 color: AppColors.textPrimary,
               ),
-              const SizedBox(width: 16),
-              const Text(
+              SizedBox(width: 16),
+              Text(
                 'Log Out',
                 style: TextStyle(
                   fontSize: 16,
@@ -345,15 +339,15 @@ class SettingsView extends StatelessWidget {
         ),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Row(
+          child: const Row(
             children: [
               Icon(
                 Icons.delete_outline,
                 size: 24,
                 color: AppColors.error,
               ),
-              const SizedBox(width: 16),
-              const Text(
+              SizedBox(width: 16),
+              Text(
                 'Delete Account',
                 style: TextStyle(
                   fontSize: 16,
@@ -505,10 +499,10 @@ class _PasswordDialogState extends State<_PasswordDialog> {
               obscureText: true,
               decoration: InputDecoration(
                 labelText: 'Password',
-                labelStyle: TextStyle(color: AppColors.textSecondary),
+                labelStyle: const TextStyle(color: AppColors.textSecondary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: AppColors.border),
+                  borderSide: const BorderSide(color: AppColors.border),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),

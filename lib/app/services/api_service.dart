@@ -36,7 +36,7 @@ class ApiService {
   // Get auth headers with token
   Map<String, String> get _headers {
     final token = StorageService.getToken();
-    print('token here : ${token}');
+    print('token here : $token');
     return {
       if (token != null) 'Authorization': 'Bearer $token',
     };
@@ -239,7 +239,7 @@ class ApiService {
               'message': data['message'] ?? 'Request failed',
             };
           }
-        } on FormatException catch (e) {
+        } on FormatException {
           print('Response is not JSON: $responseBody');
           return {
             'success': false,
@@ -407,7 +407,7 @@ class ApiService {
       "lng": controller.longitude.value,
       "fcmToken": token
     };
-    log("Requested data is ${data}");
+    log("Requested data is $data");
     final result = await _handleRequest(() => _client.post(
           Uri.parse('$baseUrl/users/login'),
           headers: {
@@ -415,7 +415,7 @@ class ApiService {
           },
           body: jsonEncode(data),
         ));
-    log("Response is ${result}");
+    log("Response is $result");
 
     // Print token for debugging
     if (result['success']) {
@@ -454,7 +454,7 @@ class ApiService {
       'petType': petData['petType']?.toString() ?? '',
       'name': petData['name']?.toString() ?? '',
       'breed': petData['breed']?.toString() ?? '',
-      'sex': petData['sex']?.toString()?.toLowerCase() ?? '',
+      'sex': petData['sex']?.toString().toLowerCase() ?? '',
       'dateOfBirth': (() {
         final dobRaw = petData['dateOfBirth']?.toString().trim();
         if (dobRaw == null || dobRaw.isEmpty) return '';
@@ -511,8 +511,9 @@ class ApiService {
     // Helper: detect MIME type
     MediaType? getMimeType(String path) {
       final ext = path.toLowerCase();
-      if (ext.endsWith('.jpg') || ext.endsWith('.jpeg'))
+      if (ext.endsWith('.jpg') || ext.endsWith('.jpeg')) {
         return MediaType('image', 'jpeg');
+      }
       if (ext.endsWith('.png')) return MediaType('image', 'png');
       if (ext.endsWith('.mp4')) return MediaType('video', 'mp4');
       return null;
@@ -548,7 +549,7 @@ class ApiService {
     // Handle multiple photo uploads (for both new pets and edit mode)
     if (petData['photos'] != null && petData['photos'] is List) {
       const photosFieldName = 'photos';
-      print('🗂 Using field for additional photos: ' + photosFieldName);
+      print('🗂 Using field for additional photos: $photosFieldName');
       for (final photo in (petData['photos'] as List)) {
         if (photo == null || photo.toString().isEmpty) continue;
 
@@ -596,15 +597,16 @@ class ApiService {
       'PUT',
       Uri.parse('$baseUrl/pet-profile'),
     );
-    print('Request ${request}');
+    print('Request $request');
     // Add headers
     request.headers.addAll(_headers);
 
     // Helper: detect MIME type
     MediaType? getMimeType(String path) {
       final ext = path.toLowerCase();
-      if (ext.endsWith('.jpg') || ext.endsWith('.jpeg'))
+      if (ext.endsWith('.jpg') || ext.endsWith('.jpeg')) {
         return MediaType('image', 'jpeg');
+      }
       if (ext.endsWith('.png')) return MediaType('image', 'png');
       return null;
     }
@@ -619,7 +621,7 @@ class ApiService {
           compressedPath,
           contentType: mimeType,
         ));
-        print('Request ${request}');
+        print('Request $request');
         print('📸 Added profile image: ${imageFile.path}');
       } else {
         print('⚠️ Invalid image file type: ${imageFile.path}');
@@ -669,8 +671,9 @@ class ApiService {
     // Helper: detect MIME type
     MediaType? getMimeType(String path) {
       final ext = path.toLowerCase();
-      if (ext.endsWith('.jpg') || ext.endsWith('.jpeg'))
+      if (ext.endsWith('.jpg') || ext.endsWith('.jpeg')) {
         return MediaType('image', 'jpeg');
+      }
       if (ext.endsWith('.png')) return MediaType('image', 'png');
       return null;
     }

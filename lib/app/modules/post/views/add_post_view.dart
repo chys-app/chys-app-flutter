@@ -2,8 +2,6 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:camera/camera.dart' hide ImageFormat;
-import 'package:chys/app/core/const/app_colors.dart';
-import 'package:chys/app/core/utils/app_size.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -293,18 +291,18 @@ class AddPostView extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.play_arrow,
                     color: Colors.white,
                     size: 16,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   Text(
                     'VIDEO',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -332,18 +330,18 @@ class AddPostView extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.photo,
                     color: Colors.white,
                     size: 14,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   Text(
                     'IMAGE',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -1174,7 +1172,7 @@ class AddPostView extends StatelessWidget {
               config: Config(
                 checkPlatformCompatibility: true,
                 emojiTextStyle: const TextStyle(fontSize: 24),
-                emojiViewConfig: EmojiViewConfig(
+                emojiViewConfig: const EmojiViewConfig(
                   backgroundColor: Colors.transparent,
                 ),
                 categoryViewConfig: CategoryViewConfig(
@@ -1192,7 +1190,7 @@ class AddPostView extends StatelessWidget {
                   buttonColor: Colors.grey[200]!,
                   buttonIconColor: Colors.grey[700]!,
                 ),
-                searchViewConfig: SearchViewConfig(
+                searchViewConfig: const SearchViewConfig(
                   backgroundColor: Colors.transparent,
                 ),
               ),

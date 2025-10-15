@@ -166,8 +166,8 @@ class NotificationUtil {
       requestSoundPermission: true,
     );
 
-    final initializationSettings =
-        const InitializationSettings(android: androidInit, iOS: iosInit);
+    const initializationSettings =
+        InitializationSettings(android: androidInit, iOS: iosInit);
 
     await flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onDidReceiveNotificationResponse: (response) {

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static get main_black => Color(0xff22172A);
-  static get Gunmetal => Color(0xff22172A);
-  static get blue => Color(0xff4481EB);
-  static get Teal_Blue => Color(0xff006175);
-  static get Slate_Gray => Color(0xff6B737A);
-  static get Cultured => Color(0xffF2F2F2);
+  static get main_black => const Color(0xff22172A);
+  static get Gunmetal => const Color(0xff22172A);
+  static get blue => const Color(0xff4481EB);
+  static get Teal_Blue => const Color(0xff006175);
+  static get Slate_Gray => const Color(0xff6B737A);
+  static get Cultured => const Color(0xffF2F2F2);
   static const primary = Color(0xFF0057FF);
   static const secondary = Color(0xFFEDF1F7);
   static const background = Color(0xFFFFFFFF);

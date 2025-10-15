@@ -1,9 +1,5 @@
-import 'package:chys/app/core/const/app_colors.dart';
-import 'package:chys/app/core/const/app_image.dart';
-import 'package:chys/app/core/const/app_text.dart';
 import 'package:chys/app/modules/podcast/controllers/create_podcast_controller.dart';
 import 'package:chys/app/routes/app_routes.dart';
-import 'package:chys/app/widget/image/image_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -12,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../signup/widgets/custom_text_field.dart';
 
 class InvitePodcastView extends GetView<CreatePodCastController> {
-  InvitePodcastView({super.key});
+  const InvitePodcastView({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -526,7 +522,7 @@ class InvitePodcastView extends GetView<CreatePodCastController> {
        // Multiple words - return first character of first and last word
        final firstInitial = words[0].isNotEmpty ? words[0][0] : '';
        final lastInitial = words[words.length - 1].isNotEmpty ? words[words.length - 1][0] : '';
-       return '${firstInitial}${lastInitial}'.toUpperCase();
+       return '$firstInitial$lastInitial'.toUpperCase();
      }
    }
 
@@ -587,7 +583,7 @@ class InvitePodcastView extends GetView<CreatePodCastController> {
      }
      
      // DEBUG: Log user data for avatar
-     print("🖼️ AVATAR DEBUG for user: ${userName}");
+     print("🖼️ AVATAR DEBUG for user: $userName");
      print("   📋 Full user data: $user");
      print("   🖼️ User profilePic: '${user['profilePic']}'");
      print("   🖼️ User avatar: '${user['avatar']}'");

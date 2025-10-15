@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:chys/app/services/http_service.dart';
-import 'package:chys/app/services/date_time_service.dart';
 
 class NotificationsController extends GetxController {
   final isLoading = false.obs;

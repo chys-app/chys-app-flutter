@@ -23,7 +23,7 @@ class EditIdentificationView extends GetView<PetEditController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 24),
-                AppText(
+                const AppText(
                   text: 'Identification & Safety',
                   color: Colors.black,
                   fontWeight: FontWeight.w600,
@@ -31,7 +31,7 @@ class EditIdentificationView extends GetView<PetEditController> {
                 ),
                 const SizedBox(height: 32),
 
-                AppText(
+                const AppText(
                   text: 'Microchip Number',
                   color: AppColors.purple,
                   fontSize: 14,
@@ -44,7 +44,7 @@ class EditIdentificationView extends GetView<PetEditController> {
                 ),
                 const SizedBox(height: 24),
 
-                AppText(
+                const AppText(
                   text: 'Tag ID or CHYS ID',
                   color: AppColors.purple,
                   fontSize: 14,
@@ -58,7 +58,7 @@ class EditIdentificationView extends GetView<PetEditController> {
                 ),
                 const SizedBox(height: 24),
 
-                AppText(
+                const AppText(
                   text: 'Vaccination Status',
                   color: AppColors.purple,
                   fontSize: 14,
@@ -78,7 +78,7 @@ class EditIdentificationView extends GetView<PetEditController> {
                 ),
                 const SizedBox(height: 24),
 
-                AppText(
+                const AppText(
                   text: 'Vet Name',
                   color: AppColors.purple,
                   fontSize: 14,
@@ -91,7 +91,7 @@ class EditIdentificationView extends GetView<PetEditController> {
                 ),
                 const SizedBox(height: 24),
 
-                AppText(
+                const AppText(
                   text: 'Vet Contact Number',
                   color: AppColors.purple,
                   fontSize: 14,

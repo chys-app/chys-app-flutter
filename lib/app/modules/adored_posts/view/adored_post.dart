@@ -1,11 +1,12 @@
 import 'package:chys/app/core/const/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../controller/controller.dart';
 
 class AdoredPost extends StatefulWidget {
+  const AdoredPost({super.key});
+
   @override
   State<AdoredPost> createState() => _AdoredPostState();
 }

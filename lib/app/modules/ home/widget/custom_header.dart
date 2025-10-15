@@ -3,7 +3,6 @@ import 'package:chys/app/modules/map/controllers/map_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../../../routes/app_routes.dart';
 
 Widget buildCustomHeader() {

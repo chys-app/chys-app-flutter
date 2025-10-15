@@ -733,7 +733,7 @@ class SignupController extends GetxController {
         isLoading.value = false;
         await Get.offNamed(AppRoutes.appearance);
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       loading.hide();
       Get.snackbar('Error', 'Failed to save profile',
           backgroundColor: Colors.red, colorText: Colors.white);
@@ -1000,7 +1000,7 @@ class SignupController extends GetxController {
           colorText: Colors.white,
         );
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       log("Error is $e");
       loading.hide();
       Get.snackbar('Error', 'Failed to create pet profile',
@@ -1126,7 +1126,7 @@ class SignupController extends GetxController {
 
       // Navigate to behavioral page
       await Get.offNamed(AppRoutes.behavioral);
-    } catch (e, stackTrace) {
+    } catch (e) {
       loading.hide();
       Get.snackbar('Error', 'Failed to save information',
           backgroundColor: Colors.red, colorText: Colors.white);

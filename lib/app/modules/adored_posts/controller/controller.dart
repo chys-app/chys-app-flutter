@@ -135,7 +135,7 @@ class AddoredPostsController extends GetxController {
   Future<void> fetchAdoredPosts(
       {String userId = "", bool followingOnly = false, bool forceRefresh = false}) async {
     try {
-      final String cacheKey = "posts_${userId}_${followingOnly}";
+      final String cacheKey = "posts_${userId}_$followingOnly";
       
       // Check cache first (unless force refresh)
       if (!forceRefresh && _isCacheValid(cacheKey)) {
@@ -163,7 +163,7 @@ class AddoredPostsController extends GetxController {
     } catch (e) {
       log("❌ Error fetching adored posts: $e");
       // Try to use cached data if available
-      final cacheKey = "posts_${userId}_${followingOnly}";
+      final cacheKey = "posts_${userId}_$followingOnly";
       if (_cache.containsKey(cacheKey)) {
         posts.value = _cache[cacheKey];
       }
@@ -544,7 +544,7 @@ Shared via CHYS app
                     final processedComment = _processCommentData(comment);
                     final user = processedComment['user'] ?? {};
                     final username = user['name'] ?? 'User';
-                    final avatarUrl = user['profilePic'] ?? null;
+                    final avatarUrl = user['profilePic'];
                     final message = processedComment['message'] ?? '';
                     final createdAt = processedComment['createdAt'];
                     String timeString = '';
@@ -634,7 +634,7 @@ Shared via CHYS app
                     onTap: () => commentOnPost(post.id, post),
                     child: Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColors.primary,
                         shape: BoxShape.circle,
                       ),
@@ -1104,11 +1104,11 @@ class _FundBottomSheetState extends State<_FundBottomSheet> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Container(
+                child: SizedBox(
                   height: 56,
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppColors.border, width: 1.5),
+                      side: const BorderSide(color: AppColors.border, width: 1.5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),

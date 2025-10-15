@@ -82,10 +82,11 @@ class _PostPreviewViewState extends State<PostPreviewView>
     _heartAnimationController.forward(from: 0);
     controller.likeSinglePost();
     Future.delayed(const Duration(milliseconds: 700), () {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _showHeart = false;
         });
+      }
     });
   }
 
@@ -457,7 +458,7 @@ class _PostPreviewViewState extends State<PostPreviewView>
                     children: [
                       GestureDetector(
                         onDoubleTap: _onDoubleTapLike,
-                        child: Container(
+                        child: SizedBox(
                           width: double.infinity,
                           height: double.infinity,
                           child: Image.network(
@@ -773,10 +774,9 @@ class _PostPreviewViewState extends State<PostPreviewView>
                                     fontSize: 14,
                                   ),
                                 ),
-                                if (post.creator.bio != null &&
-                                    post.creator.bio!.isNotEmpty)
+                                if (post.creator.bio.isNotEmpty)
                                   Text(
-                                    post.creator.bio!,
+                                    post.creator.bio,
                                     style: TextStyle(
                                       color: Colors.white.withOpacity(0.7),
                                       fontSize: 12,

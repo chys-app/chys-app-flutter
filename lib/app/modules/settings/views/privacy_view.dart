@@ -1,5 +1,3 @@
-import 'package:chys/app/core/const/app_colors.dart';
-import 'package:chys/app/core/const/app_text.dart';
 import 'package:flutter/material.dart';
 
 class PrivacyView extends StatelessWidget {
@@ -295,9 +293,9 @@ class PrivacyView extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
-                        color: const Color(0xFF718096),
+                        color: Color(0xFF718096),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -325,9 +323,9 @@ class PrivacyView extends StatelessWidget {
                 Expanded(
                   child: Text(
                     point,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 15,
-                      color: const Color(0xFF718096),
+                      color: Color(0xFF718096),
                       height: 1.4,
                     ),
                   ),
@@ -396,20 +394,20 @@ class PrivacyView extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFFFECACA), width: 1),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.warning_amber,
                   color: Color(0xFFEF4444),
                   size: 20,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'For child safety concerns, contact: contact@gmail.com',
                     style: TextStyle(
                       fontSize: 14,
-                      color: const Color(0xFFEF4444),
+                      color: Color(0xFFEF4444),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -459,6 +457,5 @@ class PrivacyView extends StatelessWidget {
         ),
       ],
     );
-    ;
   }
 }

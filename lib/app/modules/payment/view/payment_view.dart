@@ -9,7 +9,7 @@ class PaymentView extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          Text("Payment View"),
+          const Text("Payment View"),
           CardFormField(
             dangerouslyGetFullCardDetails: true,
             dangerouslyUpdateFullCardDetails: true,

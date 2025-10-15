@@ -2,7 +2,6 @@ import 'package:chys/app/widget/image/svg_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/const/app_colors.dart';
 import '../../../core/const/app_image.dart';
 import '../../../core/utils/app_size.dart';
 import '../../../services/pet_ownership_service.dart';

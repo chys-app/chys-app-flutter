@@ -1,14 +1,8 @@
-import 'package:chys/app/core/const/app_image.dart';
-import 'package:chys/app/core/const/app_text.dart';
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:chys/app/modules/signup/widgets/custom_text_field.dart';
-import 'package:chys/app/widget/image/svg_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/const/app_colors.dart';
-import '../../../core/utils/app_size.dart';
-import '../../../core/widget/app_button.dart';
 
 class WithdrawView extends StatelessWidget {
   final controller = Get.find<ProfileController>();

@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../routes/app_routes.dart';
 import '../../login/controllers/login_controller.dart';
-import '../../map/controllers/map_controller.dart';
-import '../../profile/controllers/profile_controller.dart';
-import '../../adored_posts/controller/controller.dart';
 
 class SettingsController extends GetxController {
   final pushNotifications = true.obs;
@@ -24,15 +21,15 @@ class SettingsController extends GetxController {
   Future<void> handleLogout() async {
     final confirmed = await Get.dialog<bool>(
       AlertDialog(
-        title:Text('Logout'),
-        content:Text('Are you sure you want to logout? This will clear all your data and require you to login again.'),
+        title:const Text('Logout'),
+        content:const Text('Are you sure you want to logout? This will clear all your data and require you to login again.'),
         actions: [
           TextButton(
-            child:Text('Cancel'),
+            child:const Text('Cancel'),
             onPressed: () => Get.back(result: false),
           ),
           TextButton(
-            child:Text(
+            child:const Text(
               'Logout',
               style: TextStyle(color: Colors.red),
             ),

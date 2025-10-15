@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chys/app/core/const/app_colors.dart';
 
 class ImageViewerWidget extends StatelessWidget {
   final String imageUrl;
@@ -193,11 +192,11 @@ class ImageViewerWidget extends StatelessWidget {
             ),
             
             // Title
-            if (title != null && title!.isNotEmpty)
+            if (title != null && title.isNotEmpty)
               Container(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  title!,
+                  title,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,

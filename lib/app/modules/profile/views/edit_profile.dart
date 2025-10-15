@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:chys/app/core/const/app_colors.dart';
 import 'package:chys/app/core/const/app_image.dart';
 import 'package:chys/app/core/const/app_text.dart';
-import 'package:chys/app/core/utils/app_size.dart';
 import 'package:chys/app/core/widget/app_button.dart';
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:chys/app/modules/signup/widgets/custom_text_field.dart';

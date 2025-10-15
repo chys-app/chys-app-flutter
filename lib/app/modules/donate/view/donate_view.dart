@@ -39,7 +39,7 @@ class DonateView extends StatelessWidget {
           if (controller.isLoading.value) {
             return const CompainItemShimmer();
           } else if (controller.donations.isEmpty) {
-            return Center(
+            return const Center(
               child: CustomLottieAnimation(),
             );
           } else {

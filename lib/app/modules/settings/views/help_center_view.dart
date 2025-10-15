@@ -1,6 +1,4 @@
-import 'package:chys/app/core/const/app_colors.dart';
 import 'package:chys/app/core/const/app_image.dart';
-import 'package:chys/app/core/const/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -261,9 +259,9 @@ class HelpCenterView extends StatelessWidget {
                 Expanded(
                   child: Text(
                     item,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 15,
-                      color: const Color(0xFF718096),
+                      color: Color(0xFF718096),
                       height: 1.4,
                     ),
                   ),
@@ -401,9 +399,9 @@ class HelpCenterView extends StatelessWidget {
             padding: const EdgeInsets.only(left: 36),
             child: Text(
               answer,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
-                color: const Color(0xFF718096),
+                color: Color(0xFF718096),
                 height: 1.4,
               ),
             ),

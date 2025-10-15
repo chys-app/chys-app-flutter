@@ -1,12 +1,8 @@
 import 'dart:io';
-import 'dart:ui' as ui;
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:screenshot/screenshot.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 import '../../../core/const/app_colors.dart';
 
@@ -38,11 +34,11 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
   double _textSize = 24.0;
   Offset _textPosition = const Offset(0.5, 0.5);
   FontWeight _fontWeight = FontWeight.normal;
-  TextAlign _textAlign = TextAlign.center;
+  final TextAlign _textAlign = TextAlign.center;
   
   // UI state
-  bool _showColorPicker = false;
-  bool _showFontOptions = false;
+  final bool _showColorPicker = false;
+  final bool _showFontOptions = false;
   bool _showTextOptions = false;
   bool _showFitOptions = false;
   bool _showStickerOptions = false;
@@ -55,11 +51,11 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
   double _drawingStrokeWidth = 3.0;
   
   // Undo functionality
-  List<List<List<Offset>>> _drawingHistory = []; // For undo functionality - stores complete state
-  List<_DraggableSticker> _stickerHistory = []; // For sticker undo
+  final List<List<List<Offset>>> _drawingHistory = []; // For undo functionality - stores complete state
+  final List<_DraggableSticker> _stickerHistory = []; // For sticker undo
   
   // Sticker state
-  List<_DraggableSticker> _stickers = [];
+  final List<_DraggableSticker> _stickers = [];
   String? _selectedSticker;
   
   // Predefined stickers
@@ -88,7 +84,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
     'Poppins',
     'Inter',
   ];
-  String _selectedFont = 'Roboto';
+  final String _selectedFont = 'Roboto';
 
   @override
   void dispose() {
@@ -252,7 +248,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
           // Main image with text overlay
           Screenshot(
             controller: _screenshotController,
-            child: Container(
+            child: SizedBox(
               width: double.infinity,
               height: double.infinity,
               child: Stack(
@@ -354,18 +350,18 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                         onTap: widget.onCancel,
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.secondary,
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.close,
                             color: AppColors.textPrimary,
                             size: 24,
                           ),
                         ),
                       ),
-                      Text(
+                      const Text(
                         'New Story',
                         style: TextStyle(
                           color: AppColors.textPrimary,
@@ -377,11 +373,11 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                         onTap: _saveStory,
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.secondary,
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.check,
                             color: AppColors.textPrimary,
                             size: 24,
@@ -478,12 +474,12 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                       ),
                       child: TextField(
                         controller: _textController,
-                        style: TextStyle(fontSize: 16, color: AppColors.textPrimary),
-                        decoration: InputDecoration(
+                        style: const TextStyle(fontSize: 16, color: AppColors.textPrimary),
+                        decoration: const InputDecoration(
                           hintText: 'Type something...',
                           hintStyle: TextStyle(color: AppColors.textSecondary),
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
+                          contentPadding: EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 15,
                           ),
@@ -556,7 +552,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                     // Font size slider
                     Row(
                       children: [
-                        Text(
+                        const Text(
                           'Size',
                           style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
                         ),
@@ -607,7 +603,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                 ),
                 child: Column(
                   children: [
-                    Text(
+                    const Text(
                       'Image Fit',
                       style: TextStyle(
                         color: AppColors.textPrimary,
@@ -676,7 +672,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                 ),
                 child: Column(
                   children: [
-                    Text(
+                    const Text(
                       'Choose Sticker',
                       style: TextStyle(
                         color: AppColors.textPrimary,
@@ -700,7 +696,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                               color: _stickers.isNotEmpty ? AppColors.blue : Colors.grey,
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
@@ -708,7 +704,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                                   color: Colors.white,
                                   size: 16,
                                 ),
-                                const SizedBox(width: 4),
+                                SizedBox(width: 4),
                                 Text(
                                   'Undo',
                                   style: TextStyle(
@@ -729,7 +725,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                               color: _stickerHistory.isNotEmpty ? Colors.green : Colors.grey,
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
@@ -737,7 +733,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                                   color: Colors.white,
                                   size: 16,
                                 ),
-                                const SizedBox(width: 4),
+                                SizedBox(width: 4),
                                 Text(
                                   'Redo',
                                   style: TextStyle(
@@ -763,7 +759,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                               color: _stickers.isNotEmpty ? Colors.red : Colors.grey,
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
@@ -771,7 +767,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                                   color: Colors.white,
                                   size: 16,
                                 ),
-                                const SizedBox(width: 4),
+                                SizedBox(width: 4),
                                 Text(
                                   'Clear',
                                   style: TextStyle(
@@ -840,7 +836,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                 ),
                 child: Column(
                   children: [
-                    Text(
+                    const Text(
                       'Drawing Tools',
                       style: TextStyle(
                         color: AppColors.textPrimary,
@@ -869,7 +865,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                     // Stroke width slider
                     Row(
                       children: [
-                        Text(
+                        const Text(
                           'Size',
                           style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
                         ),
@@ -905,7 +901,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                               color: _drawingHistory.isNotEmpty ? AppColors.blue : Colors.grey,
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
@@ -913,7 +909,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                                   color: Colors.white,
                                   size: 16,
                                 ),
-                                const SizedBox(width: 4),
+                                SizedBox(width: 4),
                                 Text(
                                   'Undo',
                                   style: TextStyle(
@@ -940,7 +936,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                               color: _drawingStrokes.isNotEmpty ? Colors.red : Colors.grey,
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
@@ -948,7 +944,7 @@ class _InstagramStoryEditorState extends State<InstagramStoryEditor> {
                                   color: Colors.white,
                                   size: 16,
                                 ),
-                                const SizedBox(width: 4),
+                                SizedBox(width: 4),
                                 Text(
                                   'Clear',
                                   style: TextStyle(

@@ -31,10 +31,10 @@ class AllPodcast extends StatelessWidget {
     final storyController = Get.put(HomeController());
     final podCastController = Get.find<CreatePodCastController>();
     final podCastCallController = Get.find<PodcastController>();
-    final CustomApiService _apiService = Get.put(CustomApiService());
+    final CustomApiService apiService = Get.put(CustomApiService());
     final mapController = Get.find<MapController>();
 
-    Future<void> _onRefresh() async {
+    Future<void> onRefresh() async {
       await podCastController.getAllPodCast();
     }
 
@@ -50,7 +50,7 @@ class AllPodcast extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(14.0),
                   child: RefreshIndicator(
-                    onRefresh: _onRefresh,
+                    onRefresh: onRefresh,
                     child: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,7 +63,7 @@ class AllPodcast extends StatelessWidget {
                           SizedBox(
                             height: AppSize.getHeight(10),
                             child: FutureBuilder<Map<String, dynamic>>(
-                              future: _apiService
+                              future: apiService
                                   .getRequest('story/public')
                                   .then((res) => res as Map<String, dynamic>),
                               builder: (context, snapshot) {
@@ -310,7 +310,7 @@ class CatQuoteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      child: Container(
+      child: SizedBox(
         height: Get.height * 0.69,
         child: Stack(
           children: [

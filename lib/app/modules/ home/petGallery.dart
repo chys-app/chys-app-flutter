@@ -61,9 +61,9 @@ class PetGalleryScreen extends StatelessWidget {
                   Image.asset(AppImages.paw, height: 40),
                   Row(
                     children: [
-                      IconButton(icon: Icon(Icons.settings), onPressed: () {}),
+                      IconButton(icon: const Icon(Icons.settings), onPressed: () {}),
                       IconButton(
-                          icon: Icon(Icons.notifications_none),
+                          icon: const Icon(Icons.notifications_none),
                           onPressed: () {}),
                     ],
                   ),

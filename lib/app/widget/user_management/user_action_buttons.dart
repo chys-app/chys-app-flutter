@@ -74,9 +74,9 @@ class UserActionButtons extends StatelessWidget {
         // Report button
         if (showReportButton) {
           items.add(
-            PopupMenuItem<String>(
+            const PopupMenuItem<String>(
               value: 'report',
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(
                     Icons.report,

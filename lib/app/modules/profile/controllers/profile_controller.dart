@@ -8,7 +8,6 @@ import 'package:chys/app/data/models/pet_profile.dart';
 import 'package:chys/app/services/custom_Api.dart';
 import 'package:chys/app/services/http_service.dart';
 import 'package:chys/app/services/short_message_utils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_places_autocomplete_widgets/model/place.dart';
@@ -212,10 +211,6 @@ class ProfileController extends GetxController {
     refreshProfileData();
   }
 
-  @override
-  void onClose() {
-    super.onClose();
-  }
 
   // Method to handle when returning to profile page
   void onReturnToProfile() {
@@ -334,7 +329,7 @@ class ProfileController extends GetxController {
         duration: const Duration(seconds: 4),
         margin: const EdgeInsets.all(16),
         borderRadius: 12,
-        icon:  Icon(
+        icon:  const Icon(
           Icons.error_outline,
           color: Colors.white,
           size: 24,
@@ -424,11 +419,9 @@ class ProfileController extends GetxController {
       if (isFromUserProfile) {
         final postController = Get.put(AddoredPostsController());
         final targetUserId = userId ?? profile.value!.id;
-        if (targetUserId != null) {
-          postController.fetchAdoredPosts(userId: targetUserId);
-          checkIsCurrentUser(targetUserId);
-        }
-      }
+        postController.fetchAdoredPosts(userId: targetUserId);
+        checkIsCurrentUser(targetUserId);
+            }
       final petProfiles = response["petProfiles"];
       if (petProfiles is List && petProfiles.isNotEmpty) {
         final pets = petProfiles
@@ -558,7 +551,7 @@ class ProfileController extends GetxController {
       );
       
     } catch (e) {
-      log("The error is ${e}");
+      log("The error is $e");
       
       // Show error message
       Get.snackbar(
@@ -657,20 +650,20 @@ class ProfileController extends GetxController {
         final locationData = locationController.locationData.value;
         if (locationData != null) {
           // Use the street address from location data
-          if (locationData.street != null && locationData.street!.isNotEmpty) {
-            streetController.text = locationData.street!;
+          if (locationData.street.isNotEmpty) {
+            streetController.text = locationData.street;
           }
-          if (locationData.city != null && locationData.city!.isNotEmpty) {
-            cityController.text = locationData.city!;
+          if (locationData.city.isNotEmpty) {
+            cityController.text = locationData.city;
           }
-          if (locationData.state != null && locationData.state!.isNotEmpty) {
-            stateController.text = locationData.state!;
+          if (locationData.state.isNotEmpty) {
+            stateController.text = locationData.state;
           }
-          if (locationData.zipCode != null && locationData.zipCode!.isNotEmpty) {
-            zipController.text = locationData.zipCode!;
+          if (locationData.zipCode.isNotEmpty) {
+            zipController.text = locationData.zipCode;
           }
-          if (locationData.country != null && locationData.country!.isNotEmpty) {
-            countryController.text = locationData.country!;
+          if (locationData.country.isNotEmpty) {
+            countryController.text = locationData.country;
           }
         }
       } catch (e) {

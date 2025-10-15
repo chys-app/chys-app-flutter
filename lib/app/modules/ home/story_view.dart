@@ -10,7 +10,7 @@ class StoryPreviewPage extends StatefulWidget {
   final List<String>? storyIds; // Optional story IDs for tracking views
   final List<int>? viewCounts; // Optional view counts for each story
 
-  StoryPreviewPage({
+  const StoryPreviewPage({
     Key? key,
     required this.mediaUrls,
     required this.userName,
@@ -26,7 +26,7 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
   final StoryController _storyController = StoryController();
   final CustomApiService _apiService = Get.put(CustomApiService());
   int _currentIndex = 0;
-  Set<String> _viewedStoryIds = {}; // Track which stories have been viewed
+  final Set<String> _viewedStoryIds = {}; // Track which stories have been viewed
 
   @override
   void initState() {
@@ -80,7 +80,7 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
   @override
   Widget build(BuildContext context) {
     if (widget.mediaUrls.isEmpty) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: Colors.white,
         body: Center(
           child: Text(
@@ -131,7 +131,7 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
                               height: double.infinity,
                               placeholder: (context, url) => Container(
                                 color: Colors.white,
-                                child: Center(
+                                child: const Center(
                                   child: CircularProgressIndicator(
                                     color: Colors.black,
                                   ),
@@ -139,7 +139,7 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
                               ),
                               errorWidget: (context, url, error) => Container(
                                 color: Colors.white,
-                                child: Center(
+                                child: const Center(
                                   child: Icon(
                                     Icons.error,
                                     color: Colors.black,
@@ -163,7 +163,7 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
                   return Expanded(
                     child: Container(
                       height: 3,
-                      margin: EdgeInsets.symmetric(horizontal: 2),
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
                       decoration: BoxDecoration(
                         color: index <= _currentIndex 
                             ? Colors.black 
@@ -273,7 +273,7 @@ class _StoryPreviewPageState extends State<StoryPreviewPage> {
 class VideoPlayerWidget extends StatelessWidget {
   final String url;
   
-  VideoPlayerWidget({Key? key, required this.url}) : super(key: key);
+  const VideoPlayerWidget({Key? key, required this.url}) : super(key: key);
   
   @override
   Widget build(BuildContext context) {
@@ -285,13 +285,13 @@ class VideoPlayerWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.play_circle_outline,
               color: Colors.black,
               size: 80,
             ),
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               'Video Story',
               style: TextStyle(
                 color: Colors.black,
@@ -299,7 +299,7 @@ class VideoPlayerWidget extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'Tap to play video',
               style: TextStyle(

@@ -121,604 +121,581 @@ class _PetDetailState extends State<PetDetail> {
               ],
             ),
           );
-        } else if (controller.petList[0] == null) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.pets_outlined,
-                  size: 64,
-                  color: Color(0xFF8E8E93),
+        } else        final data = controller.petList[0];
+        log("Pet data loaded: ${data.name}, Photos: ${data.photos?.length ?? 0}");
+        log("🔍 Pet details - Sex: '${data.sex}', Photos: ${data.photos}, ProfilePic: ${data.profilePic}");
+        log("🔍 Pet details - Weight: ${data.weight}, Size: ${data.size}, Color: ${data.color}");
+        log("🔍 Pet details - Bio: ${data.bio}, PetType: ${data.petType}");
+        log("Owner contact: ${data.ownerContactNumber}");
+        log("Vet name: ${data.vetName}, Vet contact: ${data.vetContactNumber}");
+        log("User model: ${data.userModel?.name}, ${data.userModel?.email}");
+        log("Address data: ${data.address}");
+        if (data.address != null) {
+          log("City: ${data.address!.city}");
+          log("State: ${data.address!.state}");
+          log("Country: ${data.address!.country}");
+        }
+        log("User location: ${data.userModel?.location}");
+        if (data.userModel?.location?.coordinates != null) {
+          log("Coordinates: ${data.userModel!.location!.coordinates}");
+          // Get address from coordinates if available
+          if (data.userModel!.location!.coordinates!.length >= 2) {
+            double lat = data.userModel!.location!.coordinates![1];
+            double lng = data.userModel!.location!.coordinates![0];
+            _getAddressFromCoordinates(lat, lng);
+          }
+        }
+
+        // Process photos - include profile pic if available and photos are empty
+        List<String> validPhotos = (data.photos ?? [])
+            .where((url) => url.isNotEmpty)
+            .map((url) => url)
+            .toList();
+        
+        // If no photos but profile pic exists, use profile pic
+        if (validPhotos.isEmpty && data.profilePic != null && data.profilePic!.isNotEmpty) {
+          validPhotos = [data.profilePic!];
+        }
+        
+        // Limit to 5 photos
+        validPhotos = validPhotos.take(5).toList();
+        
+        log("📸 Valid photos count: ${validPhotos.length}");
+        log("📸 Photos: $validPhotos");
+
+        // Only start auto slide if there are multiple photos
+        if (validPhotos.length > 1) {
+          controller.startAutoSlide(validPhotos.length);
+        }
+
+        return CustomScrollView(
+          slivers: [
+            // App Bar with Pet Images
+            SliverAppBar(
+              expandedHeight: 400,
+              floating: false,
+              pinned: true,
+              backgroundColor: const Color(0xFF0095F6),
+              leading: Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                SizedBox(height: 16),
-                Text(
-                  "Pet data is null",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF8E8E93),
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => _handleBackNavigation(),
                 ),
-              ],
-            ),
-          );
-        } else {
-          final data = controller.petList[0];
-          log("Pet data loaded: ${data.name}, Photos: ${data.photos?.length ?? 0}");
-          log("🔍 Pet details - Sex: '${data.sex}', Photos: ${data.photos}, ProfilePic: ${data.profilePic}");
-          log("🔍 Pet details - Weight: ${data.weight}, Size: ${data.size}, Color: ${data.color}");
-          log("🔍 Pet details - Bio: ${data.bio}, PetType: ${data.petType}");
-          log("Owner contact: ${data.ownerContactNumber}");
-          log("Vet name: ${data.vetName}, Vet contact: ${data.vetContactNumber}");
-          log("User model: ${data.userModel?.name}, ${data.userModel?.email}");
-          log("Address data: ${data.address}");
-          if (data.address != null) {
-            log("City: ${data.address!.city}");
-            log("State: ${data.address!.state}");
-            log("Country: ${data.address!.country}");
-          }
-          log("User location: ${data.userModel?.location}");
-          if (data.userModel?.location?.coordinates != null) {
-            log("Coordinates: ${data.userModel!.location!.coordinates}");
-            // Get address from coordinates if available
-            if (data.userModel!.location!.coordinates!.length >= 2) {
-              double lat = data.userModel!.location!.coordinates![1];
-              double lng = data.userModel!.location!.coordinates![0];
-              _getAddressFromCoordinates(lat, lng);
-            }
-          }
-
-          // Process photos - include profile pic if available and photos are empty
-          List<String> validPhotos = (data.photos ?? [])
-              .where((url) => url.isNotEmpty)
-              .map((url) => url)
-              .toList();
-          
-          // If no photos but profile pic exists, use profile pic
-          if (validPhotos.isEmpty && data.profilePic != null && data.profilePic!.isNotEmpty) {
-            validPhotos = [data.profilePic!];
-          }
-          
-          // Limit to 5 photos
-          validPhotos = validPhotos.take(5).toList();
-          
-          log("📸 Valid photos count: ${validPhotos.length}");
-          log("📸 Photos: $validPhotos");
-
-          // Only start auto slide if there are multiple photos
-          if (validPhotos.length > 1) {
-            controller.startAutoSlide(validPhotos.length);
-          }
-
-          return CustomScrollView(
-            slivers: [
-              // App Bar with Pet Images
-              SliverAppBar(
-                expandedHeight: 400,
-                floating: false,
-                pinned: true,
-                backgroundColor: const Color(0xFF0095F6),
-                leading: Container(
+              ),
+              actions: [
+                Container(
                   margin: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => _handleBackNavigation(),
+                    icon: const Icon(Icons.share, color: Colors.white),
+                    onPressed: () {
+                      _sharePetProfile(data);
+                    },
                   ),
                 ),
-                actions: [
-                  Container(
-                    margin: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.share, color: Colors.white),
-                      onPressed: () {
-                        _sharePetProfile(data);
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                background: Stack(
+                  children: [
+                    // Image Carousel
+                    PageView.builder(
+                      itemCount:
+                          validPhotos.isNotEmpty ? validPhotos.length : 1,
+                      onPageChanged: controller.onPageChanged,
+                      controller: _pageController,
+                      itemBuilder: (context, index) {
+                        log("🖼️ Building image at index $index, total photos: ${validPhotos.length}");
+                        if (validPhotos.isNotEmpty && index < validPhotos.length) {
+                          log("🖼️ Loading image: ${validPhotos[index]}");
+                          return GestureDetector(
+                            onTap: () => _showImageInFullScreen(validPhotos[index], data.name ?? 'Pet Image'),
+                            child: Image.network(
+                              validPhotos[index],
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              errorBuilder: (context, error, stackTrace) {
+                                log("❌ Image error at index $index: $error");
+                                return Container(
+                                  color: const Color(0xFFE8E8E8),
+                                  child: const Icon(
+                                    Icons.pets,
+                                    size: 80,
+                                    color: Color(0xFF8E8E93),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        } else {
+                          log("🖼️ Using fallback image at index $index");
+                          return Container(
+                            color: const Color(0xFFE8E8E8),
+                            child: const Icon(
+                              Icons.pets,
+                              size: 80,
+                              color: Color(0xFF8E8E93),
+                            ),
+                          );
+                        }
                       },
                     ),
-                  ),
-                ],
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Stack(
-                    children: [
-                      // Image Carousel
-                      PageView.builder(
-                        itemCount:
-                            validPhotos.isNotEmpty ? validPhotos.length : 1,
-                        onPageChanged: controller.onPageChanged,
-                        controller: _pageController,
-                        itemBuilder: (context, index) {
-                          log("🖼️ Building image at index $index, total photos: ${validPhotos.length}");
-                          if (validPhotos.isNotEmpty && index < validPhotos.length) {
-                            log("🖼️ Loading image: ${validPhotos[index]}");
-                            return GestureDetector(
-                              onTap: () => _showImageInFullScreen(validPhotos[index], data.name ?? 'Pet Image'),
-                              child: Image.network(
-                                validPhotos[index],
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                errorBuilder: (context, error, stackTrace) {
-                                  log("❌ Image error at index $index: $error");
-                                  return Container(
-                                    color: const Color(0xFFE8E8E8),
-                                    child: const Icon(
-                                      Icons.pets,
-                                      size: 80,
-                                      color: Color(0xFF8E8E93),
-                                    ),
-                                  );
-                                },
-                              ),
-                            );
-                          } else {
-                            log("🖼️ Using fallback image at index $index");
-                            return Container(
-                              color: const Color(0xFFE8E8E8),
-                              child: const Icon(
-                                Icons.pets,
-                                size: 80,
-                                color: Color(0xFF8E8E93),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                      // Gradient overlay
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.3),
-                              ],
-                            ),
+                    // Gradient overlay
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.3),
+                            ],
                           ),
                         ),
                       ),
-                      // Pet name overlay
-                      Positioned(
-                        bottom: 20,
-                        left: 20,
-                        right: 20,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  data.name ?? "Unknown Pet",
-                                  style: const TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Icon(
-                                  _getGenderIcon(data.sex),
+                    ),
+                    // Pet name overlay
+                    Positioned(
+                      bottom: 20,
+                      left: 20,
+                      right: 20,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                data.name ?? "Unknown Pet",
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
                                   color: Colors.white,
-                                  size: 24,
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "${data.breed ?? "Unknown Breed"} • ${data.dateOfBirth != null ? DateTimeService.calculateAge(data.dateOfBirth!) : "Unknown Age"}",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white70,
-                                fontWeight: FontWeight.w500,
                               ),
+                              const SizedBox(width: 8),
+                              Icon(
+                                _getGenderIcon(data.sex),
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "${data.breed ?? "Unknown Breed"} • ${data.dateOfBirth != null ? DateTimeService.calculateAge(data.dateOfBirth!) : "Unknown Age"}",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w500,
                             ),
-                          ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Page indicators - only show if there are multiple photos
+                    if (validPhotos.length > 1)
+                      Positioned(
+                        bottom: 80,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children:
+                              List.generate(validPhotos.length, (index) {
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 4),
+                              height: 8,
+                              width: controller.currentIndex.value == index
+                                  ? 24
+                                  : 8,
+                              decoration: BoxDecoration(
+                                color: controller.currentIndex.value == index
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            );
+                          }),
                         ),
                       ),
-                      // Page indicators - only show if there are multiple photos
-                      if (validPhotos.length > 1)
-                        Positioned(
-                          bottom: 80,
-                          left: 0,
-                          right: 0,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children:
-                                List.generate(validPhotos.length, (index) {
-                              return AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 4),
-                                height: 8,
-                                width: controller.currentIndex.value == index
-                                    ? 24
-                                    : 8,
-                                decoration: BoxDecoration(
-                                  color: controller.currentIndex.value == index
-                                      ? Colors.white
-                                      : Colors.white.withOpacity(0.5),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
+            ),
 
-              // Pet Details Content
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Quick Stats Cards
+            // Pet Details Content
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Quick Stats Cards
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _buildStatCard(
+                              emoji: "⚖️",
+                              title: "Weight",
+                              value:
+                                  "${CommonService.kgToLbs(data.weight ?? 0)} lbs",
+                              subtitle: "(${data.weight ?? 0} kg)",
+                              color: const Color(0xFF4CAF50),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildStatCard(
+                              emoji: "📏",
+                              title: "Size",
+                              value: data.size ?? "Unknown",
+                              subtitle: "",
+                              color: const Color(0xFF2196F3),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildStatCard(
+                              emoji: "🎨",
+                              title: "Color",
+                              value: data.color ?? "Unknown",
+                              subtitle: "",
+                              color: const Color(0xFFFF9800),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // About Section
+                    if (data.bio != null && data.bio!.isNotEmpty)
+                      _buildInfoSection(
+                        emoji: "🐾",
+                        title: "About ${data.name}",
+                        content: data.bio!,
+                        color: const Color(0xFF9C27B0),
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    // Basic Information
+                    _buildInfoSection(
+                      emoji: "📋",
+                      title: "Basic Information",
+                      children: [
+                        _buildInfoRow(
+                            "🐕 Pet Type", data.petType ?? "Unknown"),
+                        _buildInfoRow("🏷️ Microchip",
+                            data.microchipNumber ?? "Not available"),
+                        _buildInfoRow(
+                            "🆔 Tag ID", data.tagId ?? "Not available"),
+                        _buildInfoRow(
+                            "🔍 Special Marks", data.marks ?? "None"),
+                        _buildInfoRow("💉 Vaccination",
+                            data.vaccinationStatus == true ? "Yes" : "No"),
+                        _buildInfoRow("🚨 Lost Status",
+                            data.lostStatus == true ? "Lost" : "Safe"),
+                      ],
+                      color: const Color(0xFF607D8B),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Personality Traits
+                    if (data.personalityTraits != null &&
+                        data.personalityTraits!.isNotEmpty)
+                      _buildInfoSection(
+                        emoji: "⭐",
+                        title: "Personality Traits",
+                        children: data.personalityTraits!
+                            .map(
+                              (trait) => Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    const Text("• ",
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            color: Color(0xFF0095F6))),
+                                    Expanded(
+                                      child: Text(
+                                        trait,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Color(0xFF424242),
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        color: const Color(0xFFFFC107),
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    // Allergies
+                    if (data.allergies != null && data.allergies!.isNotEmpty)
+                      _buildInfoSection(
+                        emoji: "⚠️",
+                        title: "Allergies",
+                        children: data.allergies!
+                            .map(
+                              (allergy) => Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    const Text("• ",
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            color: Color(0xFFFF5722))),
+                                    Expanded(
+                                      child: Text(
+                                        allergy,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Color(0xFF424242),
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        color: const Color(0xFFFF5722),
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    // Special Needs
+                    if (data.specialNeeds != null &&
+                        data.specialNeeds!.isNotEmpty)
+                      _buildInfoSection(
+                        emoji: "🩺",
+                        title: "Special Needs",
+                        content: data.specialNeeds!,
+                        color: const Color(0xFFE91E63),
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    // Feeding Instructions
+                    if (data.feedingInstructions != null &&
+                        data.feedingInstructions!.isNotEmpty)
+                      _buildInfoSection(
+                        emoji: "🍽️",
+                        title: "Feeding Instructions",
+                        content: data.feedingInstructions!,
+                        color: const Color(0xFF795548),
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    // Daily Routine
+                    if (data.dailyRoutine != null &&
+                        data.dailyRoutine!.isNotEmpty)
+                      _buildInfoSection(
+                        emoji: "📅",
+                        title: "Daily Routine",
+                        content: data.dailyRoutine!,
+                        color: const Color(0xFF3F51B5),
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    // Owner Contact Information
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      child: _buildContactSection(
+                        emoji: "👤",
+                        title: "Owner Contact",
+                        name: data.userModel?.name ?? "Unknown",
+                        phone: data.ownerContactNumber ?? "Not available",
+                        email: data.userModel?.email ?? "Not available",
+                        color: const Color(0xFF4CAF50),
+                        isOwner: true, // Flag to identify owner contact
+                        petData: data,
+                      ),
+                    ),
+
+                    // Veterinary Information
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      child: _buildContactSection(
+                        emoji: "🏥",
+                        title: "Veterinary Contact",
+                        name: data.vetName ?? "Not available",
+                        phone: data.vetContactNumber ?? "Not available",
+                        email: "Not available",
+                        color: const Color(0xFF00BCD4),
+                        petData: data,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Address Information
+                    _buildInfoSection(
+                      emoji: "📍",
+                      title: "Location",
+                      children: [
+                        // Show address if available
+                        if (data.address?.city != null &&
+                            data.address!.city!.isNotEmpty)
+                          _buildInfoRow("🏙️ City", data.address!.city!),
+                        if (data.address?.state != null &&
+                            data.address!.state!.isNotEmpty)
+                          _buildInfoRow("🏛️ State", data.address!.state!),
+                        if (data.address?.country != null &&
+                            data.address!.country!.isNotEmpty)
+                          _buildInfoRow("🌍 Country", data.address!.country!),
+
+                        // Show resolved address if address is not available but coordinates exist
+                        if ((data.address?.city == null ||
+                                data.address!.city!.isEmpty) &&
+                            (data.address?.state == null ||
+                                data.address!.state!.isEmpty) &&
+                            (data.address?.country == null ||
+                                data.address!.country!.isEmpty) &&
+                            data.userModel?.location?.coordinates != null &&
+                            data.userModel!.location!.coordinates!.length >=
+                                2)
+                          Obx(() => _buildInfoRow(
+                              "📍 Location",
+                              resolvedAddress.value.isNotEmpty
+                                  ? resolvedAddress.value
+                                  : "Getting location...")),
+
+                        // Show "Not available" if neither address nor coordinates exist
+                        if ((data.address?.city == null ||
+                                data.address!.city!.isEmpty) &&
+                            (data.address?.state == null ||
+                                data.address!.state!.isEmpty) &&
+                            (data.address?.country == null ||
+                                data.address!.country!.isEmpty) &&
+                            (data.userModel?.location?.coordinates == null ||
+                                data.userModel!.location!.coordinates!
+                                        .length <
+                                    2))
+                          _buildInfoRow("📍 Location", "Not available"),
+                      ],
+                      color: const Color(0xFF673AB7),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Pet Status Information
+                    _buildInfoSection(
+                      emoji: "📊",
+                      title: "Pet Status",
+                      children: [
+                        _buildInfoRow(
+                            "📅 Created",
+                            data.createdAt != null
+                                ? "${data.createdAt!.day}/${data.createdAt!.month}/${data.createdAt!.year}"
+                                : "Unknown"),
+                        _buildInfoRow(
+                            "🔄 Updated",
+                            data.updatedAt != null
+                                ? "${data.updatedAt!.day}/${data.updatedAt!.month}/${data.updatedAt!.year}"
+                                : "Unknown"),
+                        _buildInfoRow("🆔 Pet ID", data.id ?? "Unknown"),
+                      ],
+                      color: const Color(0xFF9E9E9E),
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    // Contact Owner Button
+                    if (profileController.userCurrentId.value !=
+                        data.userModel?.id)
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0095F6), Color(0xFF00C851)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: const Color(0xFF0095F6).withOpacity(0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
                           ],
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _buildStatCard(
-                                emoji: "⚖️",
-                                title: "Weight",
-                                value:
-                                    "${CommonService.kgToLbs(data.weight ?? 0)} lbs",
-                                subtitle: "(${data.weight ?? 0} kg)",
-                                color: const Color(0xFF4CAF50),
+                        child: InkWell(
+                          onTap: () {
+                            final userData = data.userModel!;
+                            final ownerId = userData.id ?? "";
+                            final ownerName = userData.name ?? "Unknown";
+                            final ownerPhone = data.ownerContactNumber ?? "";
+                            _openAppChat(ownerId, ownerName, ownerPhone);
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.message,
+                                color: Colors.white,
+                                size: 20,
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildStatCard(
-                                emoji: "📏",
-                                title: "Size",
-                                value: data.size ?? "Unknown",
-                                subtitle: "",
-                                color: const Color(0xFF2196F3),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildStatCard(
-                                emoji: "🎨",
-                                title: "Color",
-                                value: data.color ?? "Unknown",
-                                subtitle: "",
-                                color: const Color(0xFFFF9800),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // About Section
-                      if (data.bio != null && data.bio!.isNotEmpty)
-                        _buildInfoSection(
-                          emoji: "🐾",
-                          title: "About ${data.name}",
-                          content: data.bio!,
-                          color: const Color(0xFF9C27B0),
-                        ),
-
-                      const SizedBox(height: 20),
-
-                      // Basic Information
-                      _buildInfoSection(
-                        emoji: "📋",
-                        title: "Basic Information",
-                        children: [
-                          _buildInfoRow(
-                              "🐕 Pet Type", data.petType ?? "Unknown"),
-                          _buildInfoRow("🏷️ Microchip",
-                              data.microchipNumber ?? "Not available"),
-                          _buildInfoRow(
-                              "🆔 Tag ID", data.tagId ?? "Not available"),
-                          _buildInfoRow(
-                              "🔍 Special Marks", data.marks ?? "None"),
-                          _buildInfoRow("💉 Vaccination",
-                              data.vaccinationStatus == true ? "Yes" : "No"),
-                          _buildInfoRow("🚨 Lost Status",
-                              data.lostStatus == true ? "Lost" : "Safe"),
-                        ],
-                        color: const Color(0xFF607D8B),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Personality Traits
-                      if (data.personalityTraits != null &&
-                          data.personalityTraits!.isNotEmpty)
-                        _buildInfoSection(
-                          emoji: "⭐",
-                          title: "Personality Traits",
-                          children: data.personalityTraits!
-                              .map(
-                                (trait) => Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 4),
-                                  child: Row(
-                                    children: [
-                                      const Text("• ",
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              color: Color(0xFF0095F6))),
-                                      Expanded(
-                                        child: Text(
-                                          trait,
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            color: Color(0xFF424242),
-                                            height: 1.4,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                              SizedBox(width: 8),
+                              Text(
+                                "Contact Owner",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                              )
-                              .toList(),
-                          color: const Color(0xFFFFC107),
-                        ),
-
-                      const SizedBox(height: 20),
-
-                      // Allergies
-                      if (data.allergies != null && data.allergies!.isNotEmpty)
-                        _buildInfoSection(
-                          emoji: "⚠️",
-                          title: "Allergies",
-                          children: data.allergies!
-                              .map(
-                                (allergy) => Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 4),
-                                  child: Row(
-                                    children: [
-                                      const Text("• ",
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              color: Color(0xFFFF5722))),
-                                      Expanded(
-                                        child: Text(
-                                          allergy,
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            color: Color(0xFF424242),
-                                            height: 1.4,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                          color: const Color(0xFFFF5722),
-                        ),
-
-                      const SizedBox(height: 20),
-
-                      // Special Needs
-                      if (data.specialNeeds != null &&
-                          data.specialNeeds!.isNotEmpty)
-                        _buildInfoSection(
-                          emoji: "🩺",
-                          title: "Special Needs",
-                          content: data.specialNeeds!,
-                          color: const Color(0xFFE91E63),
-                        ),
-
-                      const SizedBox(height: 20),
-
-                      // Feeding Instructions
-                      if (data.feedingInstructions != null &&
-                          data.feedingInstructions!.isNotEmpty)
-                        _buildInfoSection(
-                          emoji: "🍽️",
-                          title: "Feeding Instructions",
-                          content: data.feedingInstructions!,
-                          color: const Color(0xFF795548),
-                        ),
-
-                      const SizedBox(height: 20),
-
-                      // Daily Routine
-                      if (data.dailyRoutine != null &&
-                          data.dailyRoutine!.isNotEmpty)
-                        _buildInfoSection(
-                          emoji: "📅",
-                          title: "Daily Routine",
-                          content: data.dailyRoutine!,
-                          color: const Color(0xFF3F51B5),
-                        ),
-
-                      const SizedBox(height: 20),
-
-                      // Owner Contact Information
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 20),
-                        child: _buildContactSection(
-                          emoji: "👤",
-                          title: "Owner Contact",
-                          name: data.userModel?.name ?? "Unknown",
-                          phone: data.ownerContactNumber ?? "Not available",
-                          email: data.userModel?.email ?? "Not available",
-                          color: const Color(0xFF4CAF50),
-                          isOwner: true, // Flag to identify owner contact
-                          petData: data,
-                        ),
-                      ),
-
-                      // Veterinary Information
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 20),
-                        child: _buildContactSection(
-                          emoji: "🏥",
-                          title: "Veterinary Contact",
-                          name: data.vetName ?? "Not available",
-                          phone: data.vetContactNumber ?? "Not available",
-                          email: "Not available",
-                          color: const Color(0xFF00BCD4),
-                          petData: data,
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Address Information
-                      _buildInfoSection(
-                        emoji: "📍",
-                        title: "Location",
-                        children: [
-                          // Show address if available
-                          if (data.address?.city != null &&
-                              data.address!.city!.isNotEmpty)
-                            _buildInfoRow("🏙️ City", data.address!.city!),
-                          if (data.address?.state != null &&
-                              data.address!.state!.isNotEmpty)
-                            _buildInfoRow("🏛️ State", data.address!.state!),
-                          if (data.address?.country != null &&
-                              data.address!.country!.isNotEmpty)
-                            _buildInfoRow("🌍 Country", data.address!.country!),
-
-                          // Show resolved address if address is not available but coordinates exist
-                          if ((data.address?.city == null ||
-                                  data.address!.city!.isEmpty) &&
-                              (data.address?.state == null ||
-                                  data.address!.state!.isEmpty) &&
-                              (data.address?.country == null ||
-                                  data.address!.country!.isEmpty) &&
-                              data.userModel?.location?.coordinates != null &&
-                              data.userModel!.location!.coordinates!.length >=
-                                  2)
-                            Obx(() => _buildInfoRow(
-                                "📍 Location",
-                                resolvedAddress.value.isNotEmpty
-                                    ? resolvedAddress.value
-                                    : "Getting location...")),
-
-                          // Show "Not available" if neither address nor coordinates exist
-                          if ((data.address?.city == null ||
-                                  data.address!.city!.isEmpty) &&
-                              (data.address?.state == null ||
-                                  data.address!.state!.isEmpty) &&
-                              (data.address?.country == null ||
-                                  data.address!.country!.isEmpty) &&
-                              (data.userModel?.location?.coordinates == null ||
-                                  data.userModel!.location!.coordinates!
-                                          .length <
-                                      2))
-                            _buildInfoRow("📍 Location", "Not available"),
-                        ],
-                        color: const Color(0xFF673AB7),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Pet Status Information
-                      _buildInfoSection(
-                        emoji: "📊",
-                        title: "Pet Status",
-                        children: [
-                          _buildInfoRow(
-                              "📅 Created",
-                              data.createdAt != null
-                                  ? "${data.createdAt!.day}/${data.createdAt!.month}/${data.createdAt!.year}"
-                                  : "Unknown"),
-                          _buildInfoRow(
-                              "🔄 Updated",
-                              data.updatedAt != null
-                                  ? "${data.updatedAt!.day}/${data.updatedAt!.month}/${data.updatedAt!.year}"
-                                  : "Unknown"),
-                          _buildInfoRow("🆔 Pet ID", data.id ?? "Unknown"),
-                        ],
-                        color: const Color(0xFF9E9E9E),
-                      ),
-
-                      const SizedBox(height: 40),
-
-                      // Contact Owner Button
-                      if (profileController.userCurrentId.value !=
-                          data.userModel?.id)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF0095F6), Color(0xFF00C851)],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF0095F6).withOpacity(0.3),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
                               ),
                             ],
                           ),
-                          child: InkWell(
-                            onTap: () {
-                              final userData = data.userModel!;
-                              final ownerId = userData.id ?? "";
-                              final ownerName = userData.name ?? "Unknown";
-                              final ownerPhone = data.ownerContactNumber ?? "";
-                              _openAppChat(ownerId, ownerName, ownerPhone);
-                            },
-                            borderRadius: BorderRadius.circular(16),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.message,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  "Contact Owner",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                         ),
+                      ),
 
-                      const SizedBox(height: 20),
-                    ],
-                  ),
+                    const SizedBox(height: 20),
+                  ],
                 ),
               ),
-            ],
-          );
-        }
+            ),
+          ],
+        );
+      
       }),
     );
   }
@@ -1071,18 +1048,18 @@ class _PetDetailState extends State<PetDetail> {
                       color: color,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.phone,
                           color: Colors.white,
                           size: 18,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Text(
                           "Call",
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,

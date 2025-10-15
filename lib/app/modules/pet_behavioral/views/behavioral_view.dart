@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widget/app_button.dart';
 import '../../signup/controller/signup_controller.dart';
-import '../../signup/widgets/primary_button.dart';
 
 class BehavioralView extends GetView<SignupController> {
   const BehavioralView({super.key});
@@ -26,10 +25,10 @@ class BehavioralView extends GetView<SignupController> {
                   onTap: () {
                     Get.back();
                   },
-                  child: Icon(Icons.arrow_back_rounded),
+                  child: const Icon(Icons.arrow_back_rounded),
                 ),
-                SizedBox(height: 40),
-                AppText(
+                const SizedBox(height: 40),
+                const AppText(
                   text: 'Wellness & Care',
                   color: Colors.black,
                   fontWeight: FontWeight.w600,

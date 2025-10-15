@@ -12,6 +12,8 @@ import '../widgets/primary_button.dart';
 class SignupView extends GetView<SignupController> {
   final formKey = GlobalKey<FormState>();
   final ValueNotifier<bool> isFormvalid = ValueNotifier(false);
+
+  SignupView({super.key});
   @override
   Widget build(BuildContext context) {
     return GestureDetector(

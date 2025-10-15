@@ -207,7 +207,7 @@ class ApiClient {
         }
       } else if (value is List<String>) {
         for (var id in value) {
-          final part = await http.MultipartFile.fromString(
+          final part = http.MultipartFile.fromString(
             key,
             id,
             filename: null,

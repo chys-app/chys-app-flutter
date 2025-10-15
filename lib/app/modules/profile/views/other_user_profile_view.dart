@@ -294,16 +294,16 @@ class OtherUserProfileView extends StatelessWidget {
     return Container(
       height: 200,
       padding: const EdgeInsets.all(20.0),
-      child: Column(
+      child: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Compact loading animation
-          const CircularProgressIndicator(
+          CircularProgressIndicator(
             color: Color(0xFF0095F6),
             strokeWidth: 3,
           ),
-          const SizedBox(height: 16),
-          const Text(
+          SizedBox(height: 16),
+          Text(
             "Loading Profile...",
             style: TextStyle(
               fontSize: 16,
@@ -641,7 +641,7 @@ class OtherUserProfileView extends StatelessWidget {
                     otherUserProfileController.userCurrentId.value;
                 if (currentUserId.isNotEmpty &&
                     !otherUserProfileController.isCurrentUser) {
-                  await _inviteUserToPodcast(profileData.id!);
+                  await _inviteUserToPodcast(profileData.id);
                 }
               },
             ),
@@ -866,7 +866,7 @@ class OtherUserProfileView extends StatelessWidget {
         staggeredTileBuilder: (index) {
           // Fixed height ratio for all posts to make them the same height
           const double heightRatio = 1.2;
-          return StaggeredTile.count(1, heightRatio);
+          return const StaggeredTile.count(1, heightRatio);
         },
       );
     });
@@ -1220,10 +1220,10 @@ class OtherUserProfileView extends StatelessWidget {
           try {
             Get.find<LoadingController>().show();
             await PaymentServices.stripePayment(
-                amount, "gift_${userId}", Get.context!, onSuccess: () async {
+                amount, "gift_$userId", Get.context!, onSuccess: () async {
               // Update UI state if needed
               final response = await customApiService.postRequest(
-                  'posts/fundRaise/user/${userId}',
+                  'posts/fundRaise/user/$userId',
                   {"amount": amount, "giftType": giftType});
 
               log("Gift response: $response");
@@ -1382,7 +1382,7 @@ class OtherUserProfileView extends StatelessWidget {
       _PetDonationBottomSheet(
         userPet: userPet,
         onConfirm: (amount, donationType) async {
-          final oldFundCount = 0; // We'll track this if needed
+          const oldFundCount = 0; // We'll track this if needed
           try {
             Get.find<LoadingController>().show();
             await PaymentServices.stripePayment(
@@ -1653,11 +1653,11 @@ class OtherUserProfileView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              const Row(
                 children: [
-                  const Icon(Icons.notifications, color: Colors.pink, size: 20),
-                  const SizedBox(width: 8),
-                  const Text(
+                  Icon(Icons.notifications, color: Colors.pink, size: 20),
+                  SizedBox(width: 8),
+                  Text(
                     "Birthday Notifications",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -2153,11 +2153,11 @@ class _PetDonationBottomSheetState extends State<_PetDonationBottomSheet> {
                     child: CircularProgressIndicator(
                         strokeWidth: 2, color: Colors.white),
                   )
-                : Row(
+                : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("🐾", style: TextStyle(fontSize: 18)),
-                      const SizedBox(width: 8),
+                      Text("🐾", style: TextStyle(fontSize: 18)),
+                      SizedBox(width: 8),
                       Text(
                         "Donate",
                         style: TextStyle(
@@ -2494,11 +2494,11 @@ class _GiftBottomSheetState extends State<_GiftBottomSheet> {
                     child: CircularProgressIndicator(
                         strokeWidth: 2, color: Colors.white),
                   )
-                : Row(
+                : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("🎁", style: TextStyle(fontSize: 18)),
-                      const SizedBox(width: 8),
+                      Text("🎁", style: TextStyle(fontSize: 18)),
+                      SizedBox(width: 8),
                       Text(
                         "Send Gift",
                         style: TextStyle(
@@ -2836,11 +2836,11 @@ class _BirthdayGiftBottomSheetState extends State<_BirthdayGiftBottomSheet> {
                     child: CircularProgressIndicator(
                         strokeWidth: 2, color: Colors.white),
                   )
-                : Row(
+                : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("🎁", style: TextStyle(fontSize: 18)),
-                      const SizedBox(width: 8),
+                      Text("🎁", style: TextStyle(fontSize: 18)),
+                      SizedBox(width: 8),
                       Text(
                         "Send Gift",
                         style: TextStyle(

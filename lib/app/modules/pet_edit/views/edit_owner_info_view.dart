@@ -7,7 +7,6 @@ import '../../../core/widget/app_button.dart';
 import '../../signup/widgets/custom_text_field.dart';
 import '../controllers/pet_edit_controller.dart';
 import 'package:google_maps_places_autocomplete_widgets/widgets/address_autocomplete_textfield.dart';
-import '../../profile/controllers/profile_controller.dart';
 
 class EditOwnerInfoView extends GetView<PetEditController> {
   const EditOwnerInfoView({super.key});
@@ -71,9 +70,9 @@ class EditOwnerInfoView extends GetView<PetEditController> {
                       ),
                       const SizedBox(height: 16),
 
-                      Row(
+                      const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
+                        children: [
                           AppText(
                             text: 'Address Details',
                             color: Colors.black,

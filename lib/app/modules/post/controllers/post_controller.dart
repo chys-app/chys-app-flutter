@@ -6,7 +6,6 @@ import 'package:camera/camera.dart';
 import 'package:chys/app/core/controllers/loading_controller.dart';
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:chys/app/services/custom_Api.dart';
-import 'package:chys/app/services/http_service.dart';
 import 'package:chys/app/services/pet_ownership_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -168,7 +167,7 @@ class PostController extends GetxController {
     } catch (e) {
       log("Error initializing camera: $e");
       isCameraInitialized.value = false;
-      throw e;
+      rethrow;
     }
   }
 
@@ -512,7 +511,7 @@ class PostController extends GetxController {
   Future<ImageSource?> _showMediaPickerOptions() async {
     return await Get.bottomSheet<ImageSource>(
       Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(20),
@@ -636,7 +635,7 @@ class PostController extends GetxController {
 
   Future<bool> _checkFileSize(File file) async {
     final fileSize = await file.length();
-    final maxSize = MAX_FILE_SIZE_MB * 1024 * 1024; // 100MB limit
+    const maxSize = MAX_FILE_SIZE_MB * 1024 * 1024; // 100MB limit
 
     if (fileSize > maxSize) {
       ShortMessageUtils.showError('File too large (max ${MAX_FILE_SIZE_MB}MB)');
@@ -655,10 +654,8 @@ class PostController extends GetxController {
       // Subscribe to progress stream
       _compressionSubscription =
           VideoCompress.compressProgress$.subscribe((progress) {
-        if (progress != null) {
-          Get.find<LoadingController>().show();
-        }
-      });
+        Get.find<LoadingController>().show();
+            });
 
       final MediaInfo? mediaInfo = await VideoCompress.compressVideo(
         videoFile.path,
@@ -680,9 +677,9 @@ class PostController extends GetxController {
         ((originalSize - compressedSize) / originalSize * 100)
             .toStringAsFixed(1);
 
-        log('Video compressed successfully. Original: ${(originalSize / 1024 / 1024).toStringAsFixed(1)}MB, Compressed: ${(compressedSize / 1024 / 1024).toStringAsFixed(1)}MB, Saved: ${compressionRatio}%');
+        log('Video compressed successfully. Original: ${(originalSize / 1024 / 1024).toStringAsFixed(1)}MB, Compressed: ${(compressedSize / 1024 / 1024).toStringAsFixed(1)}MB, Saved: $compressionRatio%');
         ShortMessageUtils.showSuccess(
-            "Video compressed (${compressionRatio}% smaller)");
+            "Video compressed ($compressionRatio% smaller)");
 
         return mediaInfo.file;
       } else {
@@ -858,7 +855,7 @@ class PostController extends GetxController {
       isLoading.value = true;
       Get.find<LoadingController>().show();
       
-      log("Selected media are ${selectedMedia}");
+      log("Selected media are $selectedMedia");
       for (var file in selectedMedia) {
         log("📁 Selected file: ${file.path}");
       }

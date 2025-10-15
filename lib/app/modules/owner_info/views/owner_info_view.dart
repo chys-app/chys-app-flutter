@@ -55,7 +55,7 @@ class OwnerInfoView extends GetView<SignupController> {
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        hint: "Owner\'s Contact Number",
+                        hint: "Owner's Contact Number",
                         controller: controller.ownerContactController,
                         keyboardType: TextInputType.phone,
                       ),

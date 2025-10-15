@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:chys/app/widget/image/svg_extension.dart';
-import 'package:chys/app/widget/common/image_viewer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -126,10 +125,11 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
     _heartAnimationController.forward(from: 0);
     widget.onTapLove?.call();
     Future.delayed(const Duration(milliseconds: 700), () {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _showHeart = false;
         });
+      }
     });
   }
 
@@ -255,7 +255,7 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
                                   decoration: BoxDecoration(
                                     color: Colors.black.withOpacity(0.4),
                                     borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
+                                    boxShadow: const [
                                       BoxShadow(
                                         color: Colors.black26,
                                         blurRadius: 4,
@@ -454,7 +454,7 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
                 right: 10,
                 top: 10,
                 child: IconButton(
-                  icon: Icon(Icons.edit, color: Colors.white, size: 28),
+                  icon: const Icon(Icons.edit, color: Colors.white, size: 28),
                   onPressed: () {
                     Get.toNamed(AppRoutes.addPost, arguments: widget.posts);
                   },
@@ -477,7 +477,7 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
     return GestureDetector(
       onTap: isLoading ? null : onTap,
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           // color: finalBgColor,
           shape: BoxShape.circle,
         ),
