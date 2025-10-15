@@ -267,6 +267,18 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 },
               ),
             SvgActionButton(
+              icon: AppImages.podcast,
+              selected: controller.selectedFeature.value == 'podcast',
+              onTap: () {
+                final petService = PetOwnershipService.instance;
+                if (petService.canCreatePodcasts) {
+                  controller.selectFeature('podcast');
+                } else {
+                  petService.showPodcastRestriction();
+                }
+              },
+            ),
+            SvgActionButton(
               icon: AppImages.map,
               selected: controller.selectedFeature.value == 'map',
               onTap: () => controller.selectFeature('map'),
