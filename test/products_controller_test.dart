@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  Products _product({
+  Products createProduct({
     required String id,
     required int sales,
     required int views,
@@ -42,10 +42,10 @@ void main() {
 
     setUp(() {
       controller = ProductsController();
-      controller.products.assignAll([
-        _product(id: 'a', sales: 5, views: 10),
-        _product(id: 'b', sales: 12, views: 8),
-        _product(id: 'c', sales: 7, views: 25),
+      controller.products.addAll([
+        createProduct(id: 'a', sales: 5, views: 10),
+        createProduct(id: 'b', sales: 12, views: 8),
+        createProduct(id: 'c', sales: 7, views: 25),
       ]);
     });
 

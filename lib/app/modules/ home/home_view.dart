@@ -6,7 +6,6 @@ import 'package:chys/app/modules/adored_posts/controller/controller.dart';
 import 'package:chys/app/modules/podcast/controllers/create_podcast_controller.dart';
 import 'package:chys/app/modules/podcast/controllers/podcast_controller.dart';
 import 'package:chys/app/services/custom_Api.dart';
-import 'package:chys/app/services/pet_ownership_service.dart';
 import 'package:chys/app/widget/common/custom_post_widget.dart';
 import 'package:chys/app/widget/common/post_grid_widget.dart';
 import 'package:flutter/material.dart';
@@ -141,7 +140,6 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _backgroundColor,
-      floatingActionButton: _buildFloatingActionButton(),
       body: SafeArea(
         child: Column(
           children: [
@@ -156,68 +154,6 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildFloatingActionButton() {
-    final petService = PetOwnershipService.instance;
-    
-    // Hide button completely for business users
-    if (petService.isBusinessUser) {
-      return const SizedBox.shrink();
-    }
-    
-    final canCreate = petService.canCreatePodcasts;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20, right: 20),
-      decoration: BoxDecoration(
-        color: canCreate ? _primaryColor : Colors.grey.shade400,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: (canCreate ? _primaryColor : Colors.grey.shade400)
-                .withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(25),
-          onTap: () {
-            final petService = PetOwnershipService.instance;
-            if (canCreate) {
-              Get.toNamed(AppRoutes.inviteUserToPodCast);
-            } else {
-              petService.showPodcastRestriction();
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.mic,
-                  color: Colors.white,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  "Schedule Podcast",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildHeader() {
     return Container(
@@ -607,7 +543,6 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   Widget _buildEmptyState() {
     return Obx(() {
       final isFriendsTab = contrroller.tabIndex.value == 1;
-      final petService = PetOwnershipService.instance;
 
       return Center(
         child: Padding(
@@ -648,63 +583,6 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                 ),
                 textAlign: TextAlign.center,
               ),
-              // Hide Create Post button for business users
-              if (!isFriendsTab && !petService.isBusinessUser) ...[
-                const SizedBox(height: 32),
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: petService.canCreatePosts
-                        ? const LinearGradient(
-                            colors: [_primaryColor, Color(0xFF00C851)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                        : null,
-                    color: petService.canCreatePosts ? null : Colors.grey.shade400,
-                    borderRadius: BorderRadius.circular(25),
-                    boxShadow: petService.canCreatePosts
-                        ? [
-                            BoxShadow(
-                              color: _primaryColor.withOpacity(0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(25),
-                      onTap: petService.canCreatePosts
-                          ? () => Get.toNamed(AppRoutes.addPost)
-                          : null,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 16),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            const Text('Create Post',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
         ),

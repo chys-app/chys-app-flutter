@@ -115,7 +115,7 @@ class LoginController extends GetxController {
     }
     if (passwordText.isEmpty) {
       Get.snackbar('Error', 'Please enter your password',
-          backgroundColor: Colo˝rs.red, colorText: Colors.white);
+          backgroundColor: Colors.red, colorText: Colors.white);
       return false;
     }
     return true;
