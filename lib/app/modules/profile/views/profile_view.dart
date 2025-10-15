@@ -420,27 +420,7 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
                 ),
               ),
               const SizedBox(height: 16),
-            ] else if (petCount == 1) ...[
-              Row(
-                children: [
-                  _buildAddPetCircle(),
-                ],
-              ),
-              const SizedBox(height: 16),
             ] else ...[
-              Row(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border:
-                          Border.all(color: Colors.grey.shade300, width: 1),
-                    ),
-                    child: _buildProfileAvatar(profileData),
-                  ),
-                  const SizedBox(width: 24),
-                ],
-              ),
               Row(
                 children: [
                   _buildAddPetCircle(),
