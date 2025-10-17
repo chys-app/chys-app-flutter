@@ -358,14 +358,9 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
                 height: 110,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemCount: pets.length + 1,
+                  itemCount: pets.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 12),
                   itemBuilder: (context, index) {
-                    final isAddItem = index == pets.length;
-                    if (isAddItem) {
-                      return _buildAddPetCircle();
-                    }
-
                     final pet = pets[index];
                     final isSelected = pet.id == userPet?.id;
                     return GestureDetector(
@@ -418,13 +413,6 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
                     );
                   },
                 ),
-              ),
-              const SizedBox(height: 16),
-            ] else ...[
-              Row(
-                children: [
-                  _buildAddPetCircle(),
-                ],
               ),
               const SizedBox(height: 16),
             ],
@@ -609,49 +597,6 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildAddPetCircle() {
-    return GestureDetector(
-      onTap: () => Get.toNamed(AppRoutes.petOwnership),
-      child: Column(
-        children: [
-          Container(
-            height: 70,
-            width: 70,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.blue.withValues(alpha: 0.08),
-              border: Border.all(
-                color: AppColors.blue,
-                width: 2,
-              ),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.add,
-                size: 28,
-                color: AppColors.blue,
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          SizedBox(
-            width: 72,
-            child: Text(
-              "Add Pet",
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.blue,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildActionButtons(String? argument) {
     // This view is only for current user's profile
