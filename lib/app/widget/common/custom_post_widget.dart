@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:chys/app/widget/image/svg_extension.dart';
 import 'package:chys/app/widget/common/image_viewer_widget.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -50,6 +51,7 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
   bool _showPlayPauseIcon = false;
   Timer? _playPauseIconTimer;
   final Map<String, String?> _videoThumbnails = {};
+  bool _isDescriptionExpanded = false;
 
   @override
   void initState() {
@@ -153,16 +155,22 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
     return InkWell(
       onTap: widget.onTapCard,
       child: Container(
-        margin: EdgeInsets.zero,
-        height: Get.height * 0.69,
+        margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(0),
         ),
-        child: Stack(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(0),
-              child: PageView.builder(
+            // Image/Video Section with Action Buttons
+            SizedBox(
+              height: Get.height * 0.5,
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(0),
+                    child: PageView.builder(
                 controller: _pageController,
                 itemCount: widget.posts.media.length,
                 onPageChanged: (index) {
@@ -318,150 +326,240 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
               ),
             ),
 
-            if (widget.posts.media.length > 1)
-              Positioned(
-                bottom: 20,
-                left: 0,
-                right: 0,
-                child: Obx(() => Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                          widget.posts.media.length,
-                          (index) => Container(
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 4),
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: widget.addoredPostsController
-                                              .currentIndex.value ==
-                                          index
-                                      ? Colors.black
-                                      : Colors.black.withOpacity(0.5),
-                                ),
-                              )),
-                    )),
-              ),
+                  // Page indicators for multiple media
+                  if (widget.posts.media.length > 1)
+                    Positioned(
+                      bottom: 12,
+                      left: 0,
+                      right: 0,
+                      child: Obx(() => Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                                widget.posts.media.length,
+                                (index) => Container(
+                                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: widget.addoredPostsController
+                                                    .currentIndex.value ==
+                                                index
+                                            ? Colors.white
+                                            : Colors.white.withOpacity(0.5),
+                                      ),
+                                    )),
+                          )),
+                    ),
 
-            // Post Description
-            Positioned(
-              left: 20,
-              right: 80,
-              bottom: 80,
-              child: Text(
-                widget.posts.description,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  height: 1.4,
-                  fontWeight: FontWeight.w600,
-                ),
+                  // Action Buttons (only on image)
+                  if (!widget.isCurrentUser)
+                    Positioned(
+                      right: 10,
+                      bottom: 10,
+                      child: Column(
+                        children: [
+                          Obx(() => _circleIcon(
+                                AppImages.gift,
+                                () {
+                                  if (widget.posts.isFunded.value) {
+                                    return;
+                                  } else {
+                                    widget.addoredPostsController
+                                        .fundPost(widget.posts, context);
+                                  }
+                                },
+                                bgColor: widget.posts.isFunded.value
+                                    ? Colors.red
+                                    : Colors.white,
+                              )),
+                          Obx(() => Text(
+                                widget.posts.fundCount.value.toString(),
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              )),
+                          const SizedBox(height: 12),
+                          _circleIcon(AppImages.message, widget.onTapMessage),
+                          Obx(() => Text(
+                                widget.posts.comments.length.toString(),
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              )),
+                          const SizedBox(height: 12),
+                          _circleIcon(AppImages.share, widget.onTapShare),
+                          const SizedBox(height: 12),
+                          _circleIcon(
+                            AppImages.love,
+                            widget.onTapLove,
+                            bgColor:
+                                widget.posts.isCurrentUserLiked ? Colors.red : null,
+                          ),
+                          Obx(() => Text(
+                                widget.posts.likes.length.toString(),
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              )),
+                        ],
+                      ),
+                    ),
+                  if (widget.isCurrentUser)
+                    Positioned(
+                      right: 10,
+                      top: 10,
+                      child: IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.white, size: 28),
+                        onPressed: () {
+                          Get.toNamed(AppRoutes.addPost, arguments: widget.posts);
+                        },
+                      ),
+                    ),
+                ],
               ),
             ),
 
-            // Creator Info
-            Positioned(
-              left: 20,
-              bottom: 20,
-              child: InkWell(
-                onTap: () {
+            // User Info Section (below image)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDescriptionText(),
+                  const SizedBox(height: 4),
+                  Text(
+                    _formatPostDate(widget.posts.updatedAt),
+                    style: const TextStyle(
+                      color: Color(0xFF8E8E8E),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatPostDate(String dateString) {
+    try {
+      final postDate = DateTime.parse(dateString);
+      final now = DateTime.now();
+      final difference = now.difference(postDate);
+
+      if (difference.inDays > 7) {
+        // Show date if more than a week old
+        final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return '${months[postDate.month - 1]} ${postDate.day}';
+      } else if (difference.inDays > 0) {
+        return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
+      } else if (difference.inHours > 0) {
+        return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
+      } else if (difference.inMinutes > 0) {
+        return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago';
+      } else {
+        return 'Just now';
+      }
+    } catch (e) {
+      return '';
+    }
+  }
+
+  Widget _buildDescriptionText() {
+    const int maxLength = 100; // Approximate character count for ~2 lines
+    final description = widget.posts.description;
+    final shouldTruncate = description.length > maxLength;
+
+    if (!shouldTruncate || _isDescriptionExpanded) {
+      // Show full text
+      return RichText(
+        text: TextSpan(
+          children: [
+            // Username in bold
+            TextSpan(
+              text: widget.posts.creator.name,
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
                   log("Id is ==>${widget.posts.creator.id}");
                   Get.toNamed(AppRoutes.otherUserProfile,
                       arguments: widget.posts.creator.id);
                 },
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundImage:
-                          NetworkImage(widget.posts.creator.profilePic),
-                      radius: 18,
-                    ),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.posts.creator.name,
-                          style: const TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          widget.posts.creator.bio,
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 12),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+            ),
+            // Space between username and description
+            const TextSpan(text: '  '),
+            // Full description
+            TextSpan(
+              text: description,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 14,
+                height: 1.4,
               ),
             ),
-
-            // Action Buttons
-            if (!widget.isCurrentUser)
-              Positioned(
-                right: 10,
-                bottom: 5,
-                child: Column(
-                  children: [
-                    Obx(() => _circleIcon(
-                          AppImages.gift,
-                          () {
-                            if (widget.posts.isFunded.value) {
-                              return;
-                            } else {
-                              widget.addoredPostsController
-                                  .fundPost(widget.posts, context);
-                            }
-                          },
-                          bgColor: widget.posts.isFunded.value
-                              ? Colors.red
-                              : Colors.white,
-                        )),
-                    Obx(() => Text(
-                          widget.posts.fundCount.value.toString(),
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 12),
-                        )),
-                    const SizedBox(height: 12),
-                    _circleIcon(AppImages.message, widget.onTapMessage),
-                    Obx(() => Text(
-                          widget.posts.comments.length.toString(),
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 12),
-                        )),
-                    const SizedBox(height: 12),
-                    _circleIcon(AppImages.share, widget.onTapShare),
-                    const SizedBox(height: 12),
-                    _circleIcon(
-                      AppImages.love,
-                      widget.onTapLove,
-                      bgColor:
-                          widget.posts.isCurrentUserLiked ? Colors.red : null,
-                    ),
-                    Obx(() => Text(
-                          widget.posts.likes.length.toString(),
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 12),
-                        )),
-                  ],
-                ),
-              ),
-            if (widget.isCurrentUser)
-              Positioned(
-                right: 10,
-                top: 10,
-                child: IconButton(
-                  icon: Icon(Icons.edit, color: Colors.white, size: 28),
-                  onPressed: () {
-                    Get.toNamed(AppRoutes.addPost, arguments: widget.posts);
-                  },
-                ),
-              ),
           ],
         ),
+      );
+    }
+
+    // Show truncated text with "more" link
+    final truncatedText = description.substring(0, maxLength);
+    return RichText(
+      text: TextSpan(
+        children: [
+          // Username in bold
+          TextSpan(
+            text: widget.posts.creator.name,
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                log("Id is ==>${widget.posts.creator.id}");
+                Get.toNamed(AppRoutes.otherUserProfile,
+                    arguments: widget.posts.creator.id);
+              },
+          ),
+          // Space between username and description
+          const TextSpan(text: '  '),
+          // Truncated description
+          TextSpan(
+            text: truncatedText,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+              height: 1.4,
+            ),
+          ),
+          // Ellipsis
+          const TextSpan(
+            text: '... ',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+            ),
+          ),
+          // "more" link
+          TextSpan(
+            text: 'more',
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                setState(() {
+                  _isDescriptionExpanded = true;
+                });
+              },
+          ),
+        ],
       ),
     );
   }
