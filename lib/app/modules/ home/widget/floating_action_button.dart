@@ -30,9 +30,9 @@ class SvgActionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 56,
-        width: 56,
-        padding: const EdgeInsets.all(12),
+        height: 48,
+        width: 48,
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: selected ? const Color(0xFF0095F6) : backgroundColor,
           shape: BoxShape.circle,
@@ -55,8 +55,8 @@ class SvgActionButton extends StatelessWidget {
         ),
         child: icon.toSvg(
           color: selected ? Colors.white : iconColor,
-          width: 24,
-          height: 24,
+          width: 22,
+          height: 22,
         ),
       ),
     );
@@ -222,7 +222,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       return Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),

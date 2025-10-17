@@ -43,8 +43,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   static const Color _backgroundColor = Color(0xFFFAFAFA);
   static const Color _textPrimary = Color(0xFF262626);
   static const Color _textSecondary = Color(0xFF8E8E8E);
-  static const double _defaultPadding = 16.0;
-  static const double _tabHeight = 40.0;
+  static const double _defaultPadding = 8.0;
+  static const double _tabHeight = 30.0;
 
   @override
   void initState() {
@@ -157,14 +157,14 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: _defaultPadding, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: _defaultPadding, vertical: 8),
       child: buildCustomHeader(),
     );
   }
 
   Widget _buildStorySection() {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.only(top: 0, bottom: 0),
       padding: const EdgeInsets.symmetric(horizontal: _defaultPadding),
       child: const StorySection(),
     );
@@ -172,7 +172,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   Widget _buildTabNavigation() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: _defaultPadding, vertical: 8),
+      margin: const EdgeInsets.only(left: _defaultPadding, right: _defaultPadding, top: 4, bottom: 4),
       height: _tabHeight,
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
