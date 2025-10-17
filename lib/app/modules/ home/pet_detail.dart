@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+// import 'package:firebase_dynamic_links/firebase_dynamic_links.dart'; // Removed - deprecated
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:geocoding/geocoding.dart';
@@ -1222,29 +1222,8 @@ class _PetDetailState extends State<PetDetail> {
     try {
       log("Pet id ${data.id}");
 
-      // STEP 1: Generate Firebase Dynamic Link
-      final DynamicLinkParameters parameters = DynamicLinkParameters(
-        uriPrefix: 'https://ocdcleaner.page.link', // your Firebase domain
-        link: Uri.parse('https://ocdcleaner.page.link/pet/${data.id}'),
-        androidParameters: const AndroidParameters(
-          packageName: 'com.example.chys',
-        ),
-        iosParameters: const IOSParameters(
-          bundleId: 'com.app.chys',
-        ),
-        socialMetaTagParameters: SocialMetaTagParameters(
-          title: 'Check out this pet on CHYS!',
-          description: data.bio ?? 'Amazing pet profile',
-          imageUrl: data.photos != null && data.photos!.isNotEmpty
-              ? Uri.parse(data.photos!.first)
-              : null,
-        ),
-      );
-
-      final ShortDynamicLink shortLink =
-          await FirebaseDynamicLinks.instance.buildShortLink(parameters);
-
-      final String petUrl = shortLink.shortUrl.toString();
+      // STEP 1: Generate simple share URL (Firebase Dynamic Links removed)
+      final String petUrl = 'https://chys.app/pet/${data.id}';
       log("Pet url is $petUrl");
 
       // STEP 2: Combine description + link

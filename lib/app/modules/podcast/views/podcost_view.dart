@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:chys/app/core/controllers/loading_controller.dart';
 import 'package:chys/app/data/models/podcast_model.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+// import 'package:firebase_dynamic_links/firebase_dynamic_links.dart'; // Removed - deprecated
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
  
@@ -131,27 +131,8 @@ class PodcastView extends StatelessWidget {
         // 🔐 Encode the podcast
         final String encodedPodcast = encodePodcast(podcast);
 
-        // 🔗 Generate Firebase Dynamic Link
-        final DynamicLinkParameters parameters = DynamicLinkParameters(
-          uriPrefix: 'https://ocdcleaner.page.link',
-          link: Uri.parse(
-              'https://ocdcleaner.page.link/podcast?data=$encodedPodcast'),
-          androidParameters: const AndroidParameters(
-            packageName: 'com.example.chys',
-          ),
-          iosParameters: const IOSParameters(
-            bundleId: 'com.app.chys',
-          ),
-          socialMetaTagParameters: SocialMetaTagParameters(
-            title: title,
-            description: description,
-            imageUrl: banner.isNotEmpty ? Uri.parse(banner) : null,
-          ),
-        );
-
-        final ShortDynamicLink shortLink =
-            await FirebaseDynamicLinks.instance.buildShortLink(parameters);
-        final String podcastUrl = shortLink.shortUrl.toString();
+        // 🔗 Generate simple share URL (Firebase Dynamic Links removed)
+        final String podcastUrl = 'https://chys.app/podcast?data=$encodedPodcast';
 
         // 📦 Create share text
         final String shareText = '''

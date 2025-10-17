@@ -1,6 +1,8 @@
 platform :ios, '14.0'
 
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+# Speed up pod install
+install! 'cocoapods', :deterministic_uuids => false, :disable_input_output_paths => true
 
 project 'Runner', {
   'Debug' => :debug,
@@ -45,6 +47,13 @@ post_install do |installer|
 
     # ✅ Add permission_handler preprocessor definitions
     target.build_configurations.each do |config|
+      # Fix deployment target warnings - use iOS 14.0 to match platform requirement
+      # This ensures compatibility with Stripe and other modern SDKs
+      deployment_target = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+      if deployment_target.to_f < 14.0
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      end
+      
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_CAMERA=1'
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_MICROPHONE=1'

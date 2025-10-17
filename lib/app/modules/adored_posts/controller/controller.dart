@@ -7,7 +7,7 @@ import 'package:chys/app/data/models/post.dart';
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:chys/app/services/custom_Api.dart';
 import 'package:chys/app/services/short_message_utils.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+// import 'package:firebase_dynamic_links/firebase_dynamic_links.dart'; // Removed - deprecated
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -61,7 +61,7 @@ class AddoredPostsController extends GetxController {
   final RxInt tabIndex = 0.obs;
 
   // View mode toggle (list vs grid)
-  final RxBool isGridView = true.obs;
+  final RxBool isGridView = false.obs;
 
   void clearUserFiltering() {
     log("Clearing user filtering to show all posts");
@@ -155,6 +155,18 @@ class AddoredPostsController extends GetxController {
 
       final List<dynamic> postsData = response["posts"];
       final List<Posts> newPosts = postsData.map((e) => Posts.fromMap(e)).toList();
+
+      // Log media URLs for debugging
+      log("📸 Loaded ${newPosts.length} posts");
+      for (var i = 0; i < newPosts.length; i++) {
+        final post = newPosts[i];
+        log("📝 Post ${i + 1} (ID: ${post.id}):");
+        log("   - Description: ${post.description.length > 50 ? post.description.substring(0, 50) + '...' : post.description}");
+        log("   - Media count: ${post.media.length}");
+        for (var j = 0; j < post.media.length; j++) {
+          log("   - Media ${j + 1}: ${post.media[j]}");
+        }
+      }
 
       // Update posts and cache
       posts.value = newPosts;
@@ -418,27 +430,8 @@ class AddoredPostsController extends GetxController {
   void sharePost(Posts post) async {
     try {
       log("Post id ${post.id}");
-      // STEP 1: Generate Firebase Dynamic Link
-      final DynamicLinkParameters parameters = DynamicLinkParameters(
-        uriPrefix: 'https://ocdcleaner.page.link', // your Firebase domain
-        link: Uri.parse('https://ocdcleaner.page.link/post/${post.id}'),
-        androidParameters: const AndroidParameters(
-          packageName: 'com.example.chys',
-        ),
-        iosParameters: const IOSParameters(
-          bundleId: 'com.app.chys',
-        ),
-        socialMetaTagParameters: SocialMetaTagParameters(
-          title: 'Check out this post on CHYS!',
-          description: post.description ?? '',
-          imageUrl: post.media.isNotEmpty ? Uri.parse(post.media.first) : null,
-        ),
-      );
-
-      final ShortDynamicLink shortLink =
-          await FirebaseDynamicLinks.instance.buildShortLink(parameters);
-
-      final String postUrl = shortLink.shortUrl.toString();
+      // STEP 1: Generate simple share URL (Firebase Dynamic Links removed)
+      final String postUrl = 'https://chys.app/post/${post.id}';
       log("Post url is $postUrl");
       // STEP 2: Combine description + link
       final String contentToShare = '''
