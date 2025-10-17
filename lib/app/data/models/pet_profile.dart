@@ -14,7 +14,8 @@ class PetModel {
   final String? size;
   final num? weight;
   final String? marks;
-  final String? microchipNumber;
+  final String? microchipNumber; // Deprecated: kept for backward compatibility
+  final List<String>? microchipNumbers; // New: supports multiple microchip numbers
   final String? tagId;
   final bool? lostStatus;
   final bool? vaccinationStatus;
@@ -49,6 +50,7 @@ class PetModel {
     this.weight,
     this.marks,
     this.microchipNumber,
+    this.microchipNumbers,
     this.tagId,
     this.lostStatus,
     this.vaccinationStatus,
@@ -97,6 +99,7 @@ class PetModel {
       weight: json['weight'] as num?,
       marks: json['marks'] as String?,
       microchipNumber: json['microchipNumber'] as String?,
+      microchipNumbers: (json['microchipNumbers'] as List?)?.map((e) => e?.toString() ?? '').toList(),
       tagId: json['tagId'] as String?,
       lostStatus: json['lostStatus'] as bool?,
       vaccinationStatus: json['vaccinationStatus'] as bool?,
@@ -150,6 +153,7 @@ class PetModel {
       'weight': weight,
       'marks': marks,
       'microchipNumber': microchipNumber,
+      'microchipNumbers': microchipNumbers,
       'tagId': tagId,
       'lostStatus': lostStatus,
       'vaccinationStatus': vaccinationStatus,

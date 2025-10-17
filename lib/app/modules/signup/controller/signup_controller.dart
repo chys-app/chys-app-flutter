@@ -117,7 +117,8 @@ class SignupController extends GetxController {
   }
 
   var photos = <File>[].obs;
-  var microchipNumber = ''.obs;
+  var microchipNumber = ''.obs; // Deprecated: kept for backward compatibility
+  var microchipNumbers = <String>[].obs; // New: supports multiple microchip numbers
   var tagId = ''.obs;
   var lostStatus = 'Medium'.obs;
   var vaccinationStatus = 'Yes'.obs;
@@ -148,7 +149,8 @@ class SignupController extends GetxController {
   final marksController = TextEditingController();
   final petColor = TextEditingController();
   // Identification & Safety fields
-  final microchipController = TextEditingController();
+  final microchipController = TextEditingController(); // Deprecated: for single entry
+  final microchipControllers = <TextEditingController>[].obs; // New: for multiple entries
   final tagIdController = TextEditingController();
   final vetNameController = TextEditingController();
   final vetContactController = TextEditingController();
@@ -943,7 +945,8 @@ class SignupController extends GetxController {
           if (zipCodeController.text.trim().isNotEmpty) 'zipCode': zipCodeController.text.trim(),
           if (streetController.text.trim().isNotEmpty) 'street': streetController.text.trim(),
         },
-        'microchipNumber': microchipController.text,
+        'microchipNumber': microchipController.text, // Keep for backward compatibility
+        'microchipNumbers': microchipNumbers.toList(), // New: array of microchip numbers
         'tagId': tagIdController.text,
         'lostStatus': false,
         'vaccinationStatus': vaccinationStatus.value == 'Yes',
@@ -1105,14 +1108,42 @@ class SignupController extends GetxController {
   void updateLostStatus(String value) => lostStatus.value = value;
   void updateVaccinationStatus(String value) => vaccinationStatus.value = value;
 
+  // Methods for managing multiple microchip numbers
+  void addMicrochipField() {
+    microchipControllers.add(TextEditingController());
+  }
+
+  void removeMicrochipField(int index) {
+    if (microchipControllers.length > 1) {
+      microchipControllers[index].dispose();
+      microchipControllers.removeAt(index);
+    }
+  }
+
+  void initializeMicrochipFields() {
+    if (microchipControllers.isEmpty) {
+      microchipControllers.add(TextEditingController());
+    }
+  }
+
   Future<void> saveIdentification() async {
     final loading = Get.find<LoadingController>();
     try {
       saveDraft();
       isLoading.value = true;
       loading.show();
+      
+      // Collect all microchip numbers from controllers
+      microchipNumbers.clear();
+      for (var controller in microchipControllers) {
+        final value = controller.text.trim();
+        if (value.isNotEmpty) {
+          microchipNumbers.add(value);
+        }
+      }
+      
       // Save identification data
-      microchipNumber.value = microchipController.text;
+      microchipNumber.value = microchipController.text; // Keep for backward compatibility
       tagId.value = tagIdController.text;
       vetName.value = vetNameController.text;
       vetContactNumber.value = vetContactController.text;
