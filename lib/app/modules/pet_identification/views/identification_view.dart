@@ -13,6 +13,9 @@ class IdentificationView extends GetView<SignupController> {
   @override
   Widget build(BuildContext context) {
     final isBackButton = Get.arguments ?? false;
+    
+    // Initialize microchip fields if empty
+    controller.initializeMicrochipFields();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -42,18 +45,50 @@ class IdentificationView extends GetView<SignupController> {
                 ),
                 const SizedBox(height: 32),
 
-                // Microchip Number
+                // Microchip Numbers (Multiple)
                 AppText(
-                  text: 'Microchip Number',
+                  text: 'Microchip Numbers',
                   color: AppColors.purple,
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
                 ),
                 const SizedBox(height: 8),
-                CustomTextField(
-                  controller: controller.microchipController,
-                  hint: "Microchip Number",
-                ),
+                Obx(() => Column(
+                  children: [
+                    ...List.generate(
+                      controller.microchipControllers.length,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: CustomTextField(
+                                controller: controller.microchipControllers[index],
+                                hint: "Microchip Number ${index + 1}",
+                              ),
+                            ),
+                            if (controller.microchipControllers.length > 1)
+                              IconButton(
+                                icon: Icon(Icons.remove_circle, color: Colors.red),
+                                onPressed: () => controller.removeMicrochipField(index),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: controller.addMicrochipField,
+                        icon: Icon(Icons.add_circle, color: AppColors.blue),
+                        label: Text(
+                          'Add Another Microchip',
+                          style: TextStyle(color: AppColors.blue),
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
                 const SizedBox(height: 24),
 
                 // Tag ID or CHYS ID

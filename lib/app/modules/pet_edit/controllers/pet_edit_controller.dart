@@ -41,7 +41,8 @@ class PetEditController extends GetxController {
   final dobController = TextEditingController();
   final weightController = TextEditingController();
   final marksController = TextEditingController();
-  final microchipController = TextEditingController();
+  final microchipController = TextEditingController(); // Deprecated: for single entry
+  final microchipControllers = <TextEditingController>[].obs; // New: for multiple entries
   final tagIdController = TextEditingController();
   final vetNameController = TextEditingController();
   final vetContactController = TextEditingController();
@@ -190,6 +191,24 @@ class PetEditController extends GetxController {
 
       // Identification
       microchipController.text = pet.microchipNumber ?? '';
+      
+      // Initialize multiple microchip controllers
+      microchipControllers.clear();
+      if (pet.microchipNumbers != null && pet.microchipNumbers!.isNotEmpty) {
+        // Use new microchipNumbers array if available
+        for (var number in pet.microchipNumbers!) {
+          final controller = TextEditingController(text: number);
+          microchipControllers.add(controller);
+        }
+      } else if (pet.microchipNumber != null && pet.microchipNumber!.isNotEmpty) {
+        // Fallback to single microchipNumber for backward compatibility
+        final controller = TextEditingController(text: pet.microchipNumber);
+        microchipControllers.add(controller);
+      } else {
+        // No microchip data, add one empty field
+        microchipControllers.add(TextEditingController());
+      }
+      
       tagIdController.text = pet.tagId ?? '';
 
       // Veterinary info
@@ -679,12 +698,39 @@ class PetEditController extends GetxController {
     }
   }
 
+  // Methods for managing multiple microchip numbers
+  void addMicrochipField() {
+    microchipControllers.add(TextEditingController());
+  }
+
+  void removeMicrochipField(int index) {
+    if (microchipControllers.length > 1) {
+      microchipControllers[index].dispose();
+      microchipControllers.removeAt(index);
+    }
+  }
+
+  void initializeMicrochipFields() {
+    if (microchipControllers.isEmpty) {
+      microchipControllers.add(TextEditingController());
+    }
+  }
+
   Future<void> savePetProfile() async {
     if (!_validateForm()) return;
 
     try {
       isSaving.value = true;
       Get.find<LoadingController>().show();
+
+      // Collect all microchip numbers from controllers
+      final microchipNumbers = <String>[];
+      for (var controller in microchipControllers) {
+        final value = controller.text.trim();
+        if (value.isNotEmpty) {
+          microchipNumbers.add(value);
+        }
+      }
 
       final petData = <String, dynamic>{
         'isHavePet': hasPet.value,
@@ -698,7 +744,8 @@ class PetEditController extends GetxController {
         'size': selectedSize.value.toLowerCase(),
         'weight': double.tryParse(weightController.text.trim()) ?? 0.0,
         'marks': marksController.text.trim(),
-        'microchipNumber': microchipController.text.trim(),
+        'microchipNumber': microchipController.text.trim(), // Keep for backward compatibility
+        'microchipNumbers': microchipNumbers, // New: array of microchip numbers
         'tagId': tagIdController.text.trim(),
         'lostStatus': false,
         'vaccinationStatus': vaccinationStatus.value == 'Yes',
