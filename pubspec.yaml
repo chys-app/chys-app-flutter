@@ -88,7 +88,7 @@ dependencies:
   crypto: ^3.0.6
   readmore: ^2.2.0
   screenshot: ^3.0.0
-  firebase_dynamic_links: ^6.1.9
+  # firebase_dynamic_links: ^6.1.9  # Deprecated - using flutter_branch_sdk instead
   app_links: ^6.4.0
   flutter_branch_sdk: ^8.5.0
 

@@ -7,7 +7,7 @@ import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:chys/app/modules/signup/controller/signup_controller.dart';
 import 'package:chys/app/services/short_message_utils.dart';
 import 'package:chys/app/services/storage_service.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+// import 'package:firebase_dynamic_links/firebase_dynamic_links.dart'; // Removed - using flutter_branch_sdk instead
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
@@ -32,23 +32,12 @@ class FirebaseDynamicLinkService {
   }
 
   Future<void> initDynamicLinks() async {
-    final PendingDynamicLinkData? data =
-        await FirebaseDynamicLinks.instance.getInitialLink();
-
-    if (data?.link != null) {
-      _initialLink = data!.link;
-      print('[FirebaseDynamicLinkService] Initial link: $_initialLink');
-    }
-
-    FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
-      final uri = dynamicLinkData.link;
-      print('[FirebaseDynamicLinkService] Live link: $uri');
-      _handleIncomingLink(uri);
-    }).onError((error) {
-      print('[FirebaseDynamicLinkService] Error in stream: $error');
-    });
+    // TODO: Implement with flutter_branch_sdk or app_links
+    log('[FirebaseDynamicLinkService] Dynamic links disabled - migrate to flutter_branch_sdk');
   }
 
+  // Temporarily disabled - needs migration to flutter_branch_sdk
+  // ignore: unused_element
   void _handleIncomingLink(Uri uri) async {
     if (uri.path == '/api/users/verify-email' &&
         uri.queryParameters['token'] != null) {

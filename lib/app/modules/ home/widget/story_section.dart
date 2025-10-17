@@ -65,8 +65,8 @@ class _StorySectionState extends State<StorySection> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 110,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      height: 90,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
       child: FutureBuilder<List<Map<String, dynamic>>>(
           future: _storiesFuture,
           builder: (context, snapshot) {
@@ -114,8 +114,8 @@ class _StorySectionState extends State<StorySection> {
                           children: [
                             // Instagram-like story ring
                             Container(
-                              width: 66,
-                              height: 66,
+                              width: 56,
+                              height: 56,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: hasStories
@@ -171,7 +171,7 @@ class _StorySectionState extends State<StorySection> {
                                       // Don't handle tap here - let the + button handle story creation
                                     },
                                     child: CircleAvatar(
-                                      radius: 28,
+                                      radius: 24,
                                       backgroundColor: Colors.grey.shade200,
                                       backgroundImage: hasStories
                                           ? NetworkImage(firstStory!.mediaUrl)
@@ -238,8 +238,8 @@ class _StorySectionState extends State<StorySection> {
                         children: [
                           // Instagram-like story ring for other users
                           Container(
-                            width: 66,
-                            height: 66,
+                            width: 56,
+                            height: 56,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: const LinearGradient(
@@ -282,7 +282,7 @@ class _StorySectionState extends State<StorySection> {
                                         ));
                                   },
                                   child: CircleAvatar(
-                                    radius: 28,
+                                    radius: 24,
                                     backgroundColor: Colors.grey.shade200,
                                     backgroundImage: latestStory != null
                                         ? NetworkImage(latestStory.mediaUrl)
@@ -303,7 +303,7 @@ class _StorySectionState extends State<StorySection> {
                       ),
                       const SizedBox(height: 4),
                       SizedBox(
-                        width: 66,
+                        width: 56,
                         child: Text(
                           userStory.userName,
                           style: const TextStyle(
