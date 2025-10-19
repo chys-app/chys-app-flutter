@@ -297,6 +297,11 @@ class BottomNavigationBarWidget extends StatelessWidget {
               selected: controller.selectedFeature.value == 'user',
               onTap: () => controller.selectFeature('user'),
             ),
+            SvgActionButton(
+              icon: AppImages.map,
+              selected: controller.selectedFeature.value == 'map',
+              onTap: () => controller.selectFeature('map'),
+            ),
             if (controller.isBusinessUser.value)
               SvgActionButton(
                 icon: AppImages.bankInfo,
@@ -333,10 +338,10 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 }
               },
             ),
-            SvgActionButton(
-              icon: AppImages.map,
-              selected: controller.selectedFeature.value == 'map',
-              onTap: () => controller.selectFeature('map'),
+            IconActionButton(
+              icon: Icons.volunteer_activism_outlined,
+              selected: controller.selectedFeature.value == 'donate',
+              onTap: () => controller.selectFeature('donate'),
             ),
             IconActionButton(
               icon: Icons.shopping_bag_outlined,
