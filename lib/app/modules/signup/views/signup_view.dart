@@ -47,7 +47,7 @@ class SignupView extends GetView<SignupController> {
                       const SizedBox(height: 8),
                       const AppText(
                         text:
-                            "Enter your pet’s details and your email to create an account",
+                            "Enter your details to create an account.",
                         fontWeight: FontWeight.w400,
                         fontSize: 14,
                         color: AppColors.purple,
