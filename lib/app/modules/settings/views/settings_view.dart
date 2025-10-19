@@ -67,9 +67,6 @@ class SettingsView extends StatelessWidget {
           // Support Section
           _buildSectionTitle('Support'),
           _buildSection([
-            _buildInstagramTile('Donate', Icons.favorite_outline, onTap: () {
-              Get.toNamed(AppRoutes.donate);
-            }),
             _buildInstagramTile('Help Center', Icons.help_outline, onTap: () {
               Get.toNamed(AppRoutes.helpCenter);
             }),
