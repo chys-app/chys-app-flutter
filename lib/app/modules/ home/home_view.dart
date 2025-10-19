@@ -91,13 +91,16 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
       // Reset post filtering to show all posts
       _resetPostFiltering();
 
-      // Only fetch if posts are empty AND we haven't loaded before
-      if (contrroller.posts.isEmpty && !contrroller.isLoading.value) {
-        contrroller.fetchAdoredPosts();
-      }
-      if (podcastController.podcasts.isEmpty) {
-        podcastController.getAllPodCast();
-      }
+      // Defer fetching to after build phase to avoid setState during build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Only fetch if posts are empty AND we haven't loaded before
+        if (contrroller.posts.isEmpty && !contrroller.isLoading.value) {
+          contrroller.fetchAdoredPosts();
+        }
+        if (podcastController.podcasts.isEmpty) {
+          podcastController.getAllPodCast();
+        }
+      });
     }
   }
 
@@ -120,17 +123,20 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   void _checkAndRefreshData() {
     try {
-      // Check if data is stale and needs refresh
-      final cacheAge =
-          contrroller.getCacheAge("posts__false"); // Default cache key
+      // Defer to avoid setState during build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Check if data is stale and needs refresh
+        final cacheAge =
+            contrroller.getCacheAge("posts__false"); // Default cache key
 
-      if (cacheAge != null) {
-        if (cacheAge.inMinutes > 5) {
-          contrroller.fetchAdoredPosts(forceRefresh: true);
+        if (cacheAge != null) {
+          if (cacheAge.inMinutes > 5) {
+            contrroller.fetchAdoredPosts(forceRefresh: true);
+          }
+        } else {
+          contrroller.fetchAdoredPosts();
         }
-      } else {
-        contrroller.fetchAdoredPosts();
-      }
+      });
     } catch (e) {
       log("Error checking data freshness: $e");
     }

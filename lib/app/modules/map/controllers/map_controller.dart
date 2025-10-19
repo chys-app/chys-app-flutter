@@ -371,6 +371,9 @@ class MapController extends GetxController {
       case 'business':
         onBusinessHomeTap();
         break;
+      case 'marketplace':
+        onMarketplaceTap();
+        break;
     }
   }
 
@@ -704,6 +707,8 @@ class MapController extends GetxController {
   }
 
   void onChatTap() => Get.toNamed(AppRoutes.chat);
+
+  void onMarketplaceTap() => Get.toNamed(AppRoutes.marketplace);
 
   void _determineUserType() {
     final user = StorageService.getUser();

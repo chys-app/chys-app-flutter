@@ -4,6 +4,7 @@ abstract class AppRoutes {
   static const signup = '/signup';
   static const home = '/home';
   static const businessHome = '/business-home';
+  static const marketplace = '/marketplace';
   static const map = '/map';
   static const addBankInfo = '/addBankInfo';
   static const withdraw = '/withdraw';
