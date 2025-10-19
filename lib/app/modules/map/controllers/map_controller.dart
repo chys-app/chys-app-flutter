@@ -371,6 +371,9 @@ class MapController extends GetxController {
       case 'business':
         onBusinessHomeTap();
         break;
+      case 'donate':
+        onDonateTap();
+        break;
       case 'marketplace':
         onMarketplaceTap();
         break;
@@ -707,6 +710,8 @@ class MapController extends GetxController {
   }
 
   void onChatTap() => Get.toNamed(AppRoutes.chat);
+
+  void onDonateTap() => Get.toNamed(AppRoutes.donate);
 
   void onMarketplaceTap() => Get.toNamed(AppRoutes.marketplace);
 
