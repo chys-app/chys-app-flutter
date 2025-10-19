@@ -8,6 +8,61 @@ import '../../../core/utils/app_size.dart';
 import '../../../services/pet_ownership_service.dart';
 import '../../map/controllers/map_controller.dart';
 
+// Enhanced reusable button for Material icons
+class IconActionButton extends StatelessWidget {
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+  final Color backgroundColor;
+  final Color iconColor;
+
+  const IconActionButton({
+    Key? key,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+    this.backgroundColor = Colors.white,
+    this.iconColor = const Color(0xff4B164C),
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 48,
+        width: 48,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFF0095F6) : backgroundColor,
+          shape: BoxShape.circle,
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF0095F6).withOpacity(0.4),
+                    blurRadius: 15,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 5),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+        ),
+        child: Icon(
+          icon,
+          color: selected ? Colors.white : iconColor,
+          size: 22,
+        ),
+      ),
+    );
+  }
+}
+
 // Enhanced reusable button
 class SvgActionButton extends StatelessWidget {
   final String icon;
@@ -282,6 +337,11 @@ class BottomNavigationBarWidget extends StatelessWidget {
               icon: AppImages.map,
               selected: controller.selectedFeature.value == 'map',
               onTap: () => controller.selectFeature('map'),
+            ),
+            IconActionButton(
+              icon: Icons.shopping_bag_outlined,
+              selected: controller.selectedFeature.value == 'marketplace',
+              onTap: () => controller.selectFeature('marketplace'),
             ),
           ],
         ),
