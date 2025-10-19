@@ -76,8 +76,8 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (productsController.products.isEmpty &&
             !productsController.isLoading.value) {
-          log('🛒 Fetching products for marketplace...');
-          productsController.fetchProducts();
+          log('🛒 Fetching all public products for marketplace...');
+          productsController.fetchProducts(publicOnly: true);
         } else {
           log('🛒 Products already loaded: ${productsController.products.length} items');
         }
@@ -91,7 +91,7 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // Refresh products if needed
         if (productsController.products.isEmpty) {
-          productsController.fetchProducts();
+          productsController.fetchProducts(publicOnly: true);
         }
       });
     } catch (e) {

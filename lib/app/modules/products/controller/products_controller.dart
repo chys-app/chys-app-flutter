@@ -15,7 +15,7 @@ class ProductsController extends GetxController {
   bool get _isCacheValid =>
       _lastFetch != null && DateTime.now().difference(_lastFetch!) < _cacheDuration;
 
-  Future<void> fetchProducts({bool forceRefresh = false}) async {
+  Future<void> fetchProducts({bool forceRefresh = false, bool publicOnly = false}) async {
     if (!forceRefresh && _isCacheValid && products.isNotEmpty) {
       log('📦 Using cached products (${products.length} items)');
       return;
@@ -23,8 +23,10 @@ class ProductsController extends GetxController {
 
     try {
       isLoading.value = true;
-      log('📦 Fetching products from API...');
-      final response = await apiService.getRequest('products');
+      // Use public endpoint for marketplace to get all products
+      final endpoint = publicOnly ? 'products/public' : 'products';
+      log('📦 Fetching products from API endpoint: $endpoint');
+      final response = await apiService.getRequest(endpoint);
       log('📦 API Response: $response');
       final parsedProducts = _parseProducts(response);
       log('📦 Parsed ${parsedProducts.length} products');
