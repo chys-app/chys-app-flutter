@@ -129,18 +129,55 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                   _toggleFavorite();
                 },
               ),
-              // Add to cart button
+              // Shopping cart button with badge
               IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0095F6).withOpacity(0.9),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 20),
+                icon: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0095F6).withOpacity(0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 20),
+                    ),
+                    // Cart item count badge
+                    Obx(() {
+                      final itemCount = _cartController.cartItemCount.value;
+                      if (itemCount > 0) {
+                        return Positioned(
+                          right: -4,
+                          top: -4,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE91E63),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 1.5),
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 18,
+                              minHeight: 18,
+                            ),
+                            child: Text(
+                              itemCount > 99 ? '99+' : itemCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+                  ],
                 ),
                 onPressed: () {
-                  _addToCart();
+                  Get.toNamed('/cart');
                 },
               ),
               const SizedBox(width: 8),
@@ -180,6 +217,75 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                         color: Color(0xFF262626),
                         height: 1.3,
                       ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Price and Add to Cart Button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        // Price
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0095F6).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFF0095F6).withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.attach_money,
+                                color: Color(0xFF0095F6),
+                                size: 28,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                widget.product.price.toStringAsFixed(2),
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF0095F6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Add to Cart Button
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _addToCart,
+                            icon: const Icon(Icons.shopping_cart, size: 20),
+                            label: const Text(
+                              'Add to Cart',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0095F6),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 

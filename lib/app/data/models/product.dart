@@ -60,6 +60,7 @@ class Products {
   RxList<dynamic> likes;
   final int viewCount;
   final int salesCount;
+  final double price;
   final List<String> tags;
   final bool isActive;
   RxList<Map<String, dynamic>> comments;
@@ -80,6 +81,7 @@ class Products {
     required List<dynamic> likes,
     required this.viewCount,
     required this.salesCount,
+    required this.price,
     required this.tags,
     required this.isActive,
     required List<dynamic> comments,
@@ -119,6 +121,9 @@ class Products {
       salesCount: map["salesCount"] is int
           ? map["salesCount"]
           : int.tryParse(map["salesCount"]?.toString() ?? '') ?? 0,
+      price: map["price"] is num
+          ? (map["price"] as num).toDouble()
+          : double.tryParse(map["price"]?.toString() ?? '') ?? 0.0,
       tags: _safeStringList(map["tags"]),
       isActive: map["isActive"] == true,
       comments: map["comments"] ?? [],

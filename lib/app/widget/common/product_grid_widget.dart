@@ -80,6 +80,25 @@ class ProductGridWidget extends StatelessWidget {
                           height: 1.3,
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      // Price
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.attach_money,
+                            color: Color(0xFFC8E6C9),
+                            size: 18,
+                          ),
+                          Text(
+                            product.price.toStringAsFixed(2),
+                            style: const TextStyle(
+                              color: Color(0xFFC8E6C9),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 12),
                       GestureDetector(
                         onTap: onCreatorTap,
