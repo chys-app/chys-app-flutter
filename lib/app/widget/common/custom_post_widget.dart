@@ -359,6 +359,40 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
                       bottom: 10,
                       child: Column(
                         children: [
+                          GestureDetector(
+                            onTap: widget.onTapLove,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: widget.posts.isFavorite 
+                                    ? Colors.red 
+                                    : Colors.white.withOpacity(0.6),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.favorite,
+                                color: widget.posts.isFavorite 
+                                    ? Colors.white 
+                                    : Colors.red,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                          Obx(() => Text(
+                                widget.posts.likes.length.toString(),
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              )),
+                          const SizedBox(height: 12),
+                          _circleIcon(AppImages.message, widget.onTapMessage),
+                          Obx(() => Text(
+                                widget.posts.comments.length.toString(),
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              )),
+                          const SizedBox(height: 12),
+                          _circleIcon(AppImages.share, widget.onTapShare),
+                          const SizedBox(height: 12),
                           Obx(() => _circleIcon(
                                 AppImages.gift,
                                 () {
@@ -375,27 +409,6 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
                               )),
                           Obx(() => Text(
                                 widget.posts.fundCount.value.toString(),
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 12),
-                              )),
-                          const SizedBox(height: 12),
-                          _circleIcon(AppImages.message, widget.onTapMessage),
-                          Obx(() => Text(
-                                widget.posts.comments.length.toString(),
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 12),
-                              )),
-                          const SizedBox(height: 12),
-                          _circleIcon(AppImages.share, widget.onTapShare),
-                          const SizedBox(height: 12),
-                          _circleIcon(
-                            AppImages.love,
-                            widget.onTapLove,
-                            bgColor:
-                                widget.posts.isCurrentUserLiked ? Colors.red : null,
-                          ),
-                          Obx(() => Text(
-                                widget.posts.likes.length.toString(),
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 12),
                               )),

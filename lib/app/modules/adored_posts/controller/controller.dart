@@ -26,6 +26,7 @@ class AddoredPostsController extends GetxController {
   final ScrollController homeScroll = ScrollController();
   final ScrollController profileScroll = ScrollController();
   final RxList<Posts> posts = <Posts>[].obs;
+  final RxList<Posts> favoritePosts = <Posts>[].obs;
   final RxList<Map<String, dynamic>> favoritePostsRaw =
       <Map<String, dynamic>>[].obs;
   final Rxn<Posts> singlePost = Rxn<Posts>();
@@ -75,11 +76,12 @@ class AddoredPostsController extends GetxController {
       // Hot picks - show all posts (clear user filtering)
       fetchAdoredPosts(userId: "", followingOnly: false, forceRefresh: false);
       print('Hot picks selected');
-    } else {
-      // My Friends - show following posts (clear user filtering)
-      fetchAdoredPosts(userId: "", followingOnly: true, forceRefresh: false);
-      print('My Friends selected');
+    } else if (index == 1) {
+      // Favorites - show favorited posts
+      fetchFavoritePosts();
+      print('Favorites selected');
     }
+    // index == 2 is Podcasts, handled separately in home view
   }
 
   void toggleViewMode() {
@@ -310,6 +312,41 @@ class AddoredPostsController extends GetxController {
       }
       posts.refresh();
       log("↩️ UI reverted. Current likes: ${post.likes}");
+    }
+  }
+
+  Future<void> toggleFavorite(String postId) async {
+    log("⭐ toggleFavorite triggered for postId: $postId");
+
+    final index = posts.indexWhere((p) => p.id == postId);
+    if (index == -1) {
+      log("⚠️ Post not found with postId: $postId");
+      return;
+    }
+
+    final post = posts[index];
+    final wasFavorited = post.isFavorite;
+
+    // Optimistically update UI
+    post.isFavorite = !wasFavorited;
+    posts.refresh();
+    log("🔄 UI updated. Favorite state: ${post.isFavorite}");
+
+    // Call API in background
+    try {
+      final response = await ApiClient().favoritePost(postId);
+      log("✅ Favorite API response: $response");
+      
+      // If we're on the Favorites tab and unfavoriting, refresh the list
+      if (tabIndex.value == 1 && !post.isFavorite) {
+        await fetchFavoritePosts();
+      }
+    } catch (e) {
+      // Revert state if API fails
+      log("❌ Error toggling favorite, reverting UI: $e");
+      post.isFavorite = wasFavorited;
+      posts.refresh();
+      log("↩️ UI reverted. Favorite state: ${post.isFavorite}");
     }
   }
 
@@ -679,10 +716,18 @@ Shared via CHYS app
   Future<void> fetchFavoritePosts() async {
     try {
       favoritePostsRaw.clear();
+      favoritePosts.clear();
       isLoading.value = true;
       var response = await customApiService.getRequest('posts/getFavorite');
       final List<dynamic> favData = response['favorites'] ?? [];
       favoritePostsRaw.value = favData.cast<Map<String, dynamic>>();
+      
+      // Convert raw favorite posts to Posts objects
+      favoritePosts.value = favoritePostsRaw
+          .map((postData) => Posts.fromMap(postData))
+          .toList();
+      
+      log('Fetched ${favoritePosts.length} favorite posts');
     } catch (e) {
       log('Error fetching favorite posts: $e');
     } finally {

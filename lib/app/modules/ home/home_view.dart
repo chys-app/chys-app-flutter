@@ -187,7 +187,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
       child: Obx(() => Row(
             children: [
               _buildTabButton('Hot Picks', 0, Icons.local_fire_department),
-              _buildTabButton('Furriends', 1, Icons.people),
+              _buildTabButton('Favorites', 1, Icons.favorite),
               _buildTabButton('Podcasts', 2, Icons.mic),
             ],
           )),
@@ -352,14 +352,20 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         await _handleRefresh();
         _refreshController.refreshCompleted();
       },
-      child: Obx(() => Stack(
-        children: [
-          // Main content
-          contrroller.posts.isEmpty
-              ? _buildEmptyState()
-              : contrroller.isGridView.value
-                  ? _buildPostsGrid()
-                  : _buildPostsList(),
+      child: Obx(() {
+        // Use favoritePosts for Favorites tab, posts for Hot Picks
+        final postsList = contrroller.tabIndex.value == 1 
+            ? contrroller.favoritePosts 
+            : contrroller.posts;
+        
+        return Stack(
+          children: [
+            // Main content
+            postsList.isEmpty
+                ? _buildEmptyState()
+                : contrroller.isGridView.value
+                    ? _buildPostsGrid()
+                    : _buildPostsList(),
 
           // Single loading overlay
           if (contrroller.isLoading.value)
@@ -386,8 +392,9 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                 ),
               ),
             ),
-        ],
-      )),
+          ],
+        );
+      }),
     );
   }
 
@@ -482,6 +489,11 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   Widget _buildPostsGrid() {
     return Obx(() {
+      // Use favoritePosts for Favorites tab, posts for Hot Picks
+      final postsList = contrroller.tabIndex.value == 1 
+          ? contrroller.favoritePosts 
+          : contrroller.posts;
+      
       final screenWidth = MediaQuery.of(Get.context!).size.width;
       final crossAxisCount = screenWidth > 900
           ? 4
@@ -496,9 +508,9 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         crossAxisCount: crossAxisCount,
         mainAxisSpacing: 0,
         crossAxisSpacing: 0,
-        itemCount: contrroller.posts.length,
+        itemCount: postsList.length,
         itemBuilder: (context, index) {
-          final post = contrroller.posts[index];
+          final post = postsList[index];
           return PostGridWidget(
             post: post,
             addoredPostsController: contrroller,
@@ -515,40 +527,47 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   }
 
   Widget _buildPostsList() {
-    return ListView.builder(
-      controller: _scrollController,
-      padding: EdgeInsets.zero,
-      itemCount: contrroller.posts.length,
-      itemBuilder: (context, index) {
-        final post = contrroller.posts[index];
-        return CustomPostWidget(
-          posts: post,
-          addoredPostsController: contrroller,
-          onTapCard: () {
-            Get.toNamed(AppRoutes.postPreview, arguments: {
-              'postId': post.id,
-              'controller': contrroller,
-            });
-          },
-          onTapPaw: () {},
-          onTapLove: () {
-            log("Like tap");
-            contrroller.likePost(post.id);
-          },
-          onTapShare: () {
-            contrroller.sharePost(post);
-          },
-          onTapMessage: () {
-            contrroller.showCommentsBottomSheet(post);
-          },
-        );
-      },
-    );
+    return Obx(() {
+      // Use favoritePosts for Favorites tab, posts for Hot Picks
+      final postsList = contrroller.tabIndex.value == 1 
+          ? contrroller.favoritePosts 
+          : contrroller.posts;
+      
+      return ListView.builder(
+        controller: _scrollController,
+        padding: EdgeInsets.zero,
+        itemCount: postsList.length,
+        itemBuilder: (context, index) {
+          final post = postsList[index];
+          return CustomPostWidget(
+            posts: post,
+            addoredPostsController: contrroller,
+            onTapCard: () {
+              Get.toNamed(AppRoutes.postPreview, arguments: {
+                'postId': post.id,
+                'controller': contrroller,
+              });
+            },
+            onTapPaw: () {},
+            onTapLove: () {
+              log("Favorite tap");
+              contrroller.toggleFavorite(post.id);
+            },
+            onTapShare: () {
+              contrroller.sharePost(post);
+            },
+            onTapMessage: () {
+              contrroller.showCommentsBottomSheet(post);
+            },
+          );
+        },
+      );
+    });
   }
 
   Widget _buildEmptyState() {
     return Obx(() {
-      final isFriendsTab = contrroller.tabIndex.value == 1;
+      final isFavoritesTab = contrroller.tabIndex.value == 1;
 
       return Center(
         child: Padding(
@@ -563,14 +582,14 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  isFriendsTab ? Icons.people_outline : Icons.photo_library_outlined,
+                  isFavoritesTab ? Icons.favorite_outline : Icons.photo_library_outlined,
                   size: 48,
                   color: _textSecondary,
                 ),
               ),
               const SizedBox(height: 24),
               Text(
-                isFriendsTab ? 'No Friends Posts' : 'No Posts Yet',
+                isFavoritesTab ? 'No Favorite Posts' : 'No Posts Yet',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -579,8 +598,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
               ),
               const SizedBox(height: 12),
               Text(
-                isFriendsTab
-                    ? 'Your friends haven\'t shared anything yet.\nFollow more friends to see their posts!'
+                isFavoritesTab
+                    ? 'You haven\'t favorited any posts yet.\nTap the heart on posts you love!'
                     : 'Be the first to share something amazing\nwith your friends!',
                 style: TextStyle(
                   fontSize: 14,
@@ -721,10 +740,16 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   Future<void> _refreshPosts() async {
     try {
-      await contrroller.fetchAdoredPosts(
-        followingOnly: contrroller.tabIndex.value == 1,
-        forceRefresh: true, // Force refresh to get latest data
-      );
+      if (contrroller.tabIndex.value == 1) {
+        // Favorites tab
+        await contrroller.fetchFavoritePosts();
+      } else {
+        // Hot Picks tab
+        await contrroller.fetchAdoredPosts(
+          followingOnly: false,
+          forceRefresh: true, // Force refresh to get latest data
+        );
+      }
     } catch (e) {
       log("Error refreshing posts: $e");
     }
