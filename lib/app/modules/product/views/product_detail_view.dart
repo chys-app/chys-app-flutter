@@ -1,4 +1,7 @@
 import 'package:chys/app/data/models/product.dart';
+import 'package:chys/app/modules/cart/controllers/cart_controller.dart';
+import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
+import 'package:chys/app/services/http_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -14,6 +17,29 @@ class ProductDetailView extends StatefulWidget {
 
 class _ProductDetailViewState extends State<ProductDetailView> {
   int _currentImageIndex = 0;
+  final ApiClient _apiClient = ApiClient();
+  late bool _isFavorite;
+  late CartController _cartController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _isFavorite = widget.product.isFavorite;
+    _cartController = Get.put(CartController());
+  }
+  
+  bool get _isCurrentUserCreator {
+    try {
+      if (Get.isRegistered<ProfileController>()) {
+        final profileController = Get.find<ProfileController>();
+        final currentUserId = profileController.profile.value?.id;
+        return currentUserId != null && currentUserId == widget.product.creator.id;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,46 +65,82 @@ class _ProductDetailViewState extends State<ProductDetailView> {
               onPressed: () => Get.back(),
             ),
             actions: [
-              // Edit button
+              // Edit button - only show for creator
+              if (_isCurrentUserCreator)
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.edit, color: Colors.white, size: 20),
+                  ),
+                  onPressed: () {
+                    // TODO: Navigate to edit product
+                    Get.snackbar(
+                      'Edit Product',
+                      'Edit functionality coming soon',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.black87,
+                      colorText: Colors.white,
+                    );
+                  },
+                ),
+              // Promote button - only show for creator
+              if (_isCurrentUserCreator)
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.campaign, color: Colors.white, size: 20),
+                  ),
+                  onPressed: () {
+                    // TODO: Navigate to promote product
+                    Get.snackbar(
+                      'Promote Product',
+                      'Promotion functionality coming soon',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.black87,
+                      colorText: Colors.white,
+                    );
+                  },
+                ),
+              // Favorite button
               IconButton(
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
+                    color: _isFavorite 
+                        ? const Color(0xFFE91E63).withOpacity(0.9)
+                        : Colors.black.withOpacity(0.5),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.edit, color: Colors.white, size: 20),
+                  child: Icon(
+                    _isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                 ),
                 onPressed: () {
-                  // TODO: Navigate to edit product
-                  Get.snackbar(
-                    'Edit Product',
-                    'Edit functionality coming soon',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.black87,
-                    colorText: Colors.white,
-                  );
+                  _toggleFavorite();
                 },
               ),
-              // Promote button
+              // Add to cart button
               IconButton(
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
+                    color: const Color(0xFF0095F6).withOpacity(0.9),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.campaign, color: Colors.white, size: 20),
+                  child: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 20),
                 ),
                 onPressed: () {
-                  // TODO: Navigate to promote product
-                  Get.snackbar(
-                    'Promote Product',
-                    'Promotion functionality coming soon',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.black87,
-                    colorText: Colors.white,
-                  );
+                  _addToCart();
                 },
               ),
               const SizedBox(width: 8),
@@ -402,5 +464,75 @@ class _ProductDetailViewState extends State<ProductDetailView> {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
     return name[0].toUpperCase();
+  }
+
+  Future<void> _toggleFavorite() async {
+    try {
+      setState(() {
+        _isFavorite = !_isFavorite;
+      });
+      
+      await _apiClient.favoriteProduct(widget.product.id);
+      
+      Get.snackbar(
+        _isFavorite ? "Added to Favorites" : "Removed from Favorites",
+        _isFavorite 
+            ? "${widget.product.description.isNotEmpty ? widget.product.description : 'Product'} added to favorites"
+            : "${widget.product.description.isNotEmpty ? widget.product.description : 'Product'} removed from favorites",
+        backgroundColor: _isFavorite ? Colors.pink.shade100 : Colors.grey.shade100,
+        colorText: _isFavorite ? Colors.pink.shade800 : Colors.grey.shade800,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 2),
+        icon: Icon(
+          _isFavorite ? Icons.favorite : Icons.favorite_border,
+          color: _isFavorite ? Colors.pink : Colors.grey,
+        ),
+        margin: const EdgeInsets.all(16),
+      );
+    } catch (e) {
+      // Revert on error
+      setState(() {
+        _isFavorite = !_isFavorite;
+      });
+      
+      Get.snackbar(
+        "Error",
+        "Failed to update favorites. Please try again.",
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.red.shade800,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 2),
+        icon: const Icon(Icons.error, color: Colors.red),
+        margin: const EdgeInsets.all(16),
+      );
+    }
+  }
+
+  Future<void> _addToCart() async {
+    final success = await _cartController.addToCart(widget.product);
+    
+    if (success) {
+      Get.snackbar(
+        "Added to Cart",
+        "${widget.product.description.isNotEmpty ? widget.product.description : 'Product'} added to cart",
+        backgroundColor: Colors.green.shade100,
+        colorText: Colors.green.shade800,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 2),
+        icon: const Icon(Icons.check_circle, color: Colors.green),
+        margin: const EdgeInsets.all(16),
+      );
+    } else {
+      Get.snackbar(
+        "Error",
+        "Failed to add product to cart",
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.red.shade800,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 2),
+        icon: const Icon(Icons.error, color: Colors.red),
+        margin: const EdgeInsets.all(16),
+      );
+    }
   }
 }

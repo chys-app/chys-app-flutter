@@ -238,4 +238,12 @@ class ApiClient {
       headers: headers,
     ));
   }
+
+  Future<dynamic> favoriteProduct(String productId) async {
+    final url = '$baseUrl/products/$productId/favorite';
+    return _handleRequest(http.post(
+      Uri.parse(url),
+      headers: headers,
+    ));
+  }
 }
