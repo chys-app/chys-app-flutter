@@ -1,4 +1,5 @@
 import 'package:chys/app/data/models/product.dart';
+import 'package:chys/app/modules/cart/controllers/cart_controller.dart';
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:chys/app/services/http_service.dart';
 import 'package:flutter/material.dart';
@@ -18,11 +19,13 @@ class _ProductDetailViewState extends State<ProductDetailView> {
   int _currentImageIndex = 0;
   final ApiClient _apiClient = ApiClient();
   late bool _isFavorite;
+  late CartController _cartController;
   
   @override
   void initState() {
     super.initState();
     _isFavorite = widget.product.isFavorite;
+    _cartController = Get.put(CartController());
   }
   
   bool get _isCurrentUserCreator {
@@ -505,16 +508,31 @@ class _ProductDetailViewState extends State<ProductDetailView> {
     }
   }
 
-  void _addToCart() {
-    Get.snackbar(
-      "Added to Cart",
-      "${widget.product.description.isNotEmpty ? widget.product.description : 'Product'} added to cart",
-      backgroundColor: Colors.green.shade100,
-      colorText: Colors.green.shade800,
-      snackPosition: SnackPosition.TOP,
-      duration: const Duration(seconds: 2),
-      icon: const Icon(Icons.check_circle, color: Colors.green),
-      margin: const EdgeInsets.all(16),
-    );
+  Future<void> _addToCart() async {
+    final success = await _cartController.addToCart(widget.product);
+    
+    if (success) {
+      Get.snackbar(
+        "Added to Cart",
+        "${widget.product.description.isNotEmpty ? widget.product.description : 'Product'} added to cart",
+        backgroundColor: Colors.green.shade100,
+        colorText: Colors.green.shade800,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 2),
+        icon: const Icon(Icons.check_circle, color: Colors.green),
+        margin: const EdgeInsets.all(16),
+      );
+    } else {
+      Get.snackbar(
+        "Error",
+        "Failed to add product to cart",
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.red.shade800,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 2),
+        icon: const Icon(Icons.error, color: Colors.red),
+        margin: const EdgeInsets.all(16),
+      );
+    }
   }
 }

@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:chys/app/data/models/product.dart';
 import 'package:chys/app/modules/%20home/widget/custom_header.dart';
 import 'package:chys/app/modules/%20home/widget/floating_action_button.dart';
+import 'package:chys/app/modules/cart/controllers/cart_controller.dart';
 import 'package:chys/app/modules/products/controller/products_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -21,6 +22,7 @@ class MarketplaceView extends StatefulWidget {
 class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingObserver {
   late final MapController mapController;
   late final ProductsController productsController;
+  late final CartController cartController;
 
   final RefreshController _refreshController = RefreshController();
   final ScrollController _scrollController = ScrollController();
@@ -41,6 +43,7 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
     super.initState();
     // Initialize controllers
     mapController = Get.put(MapController());
+    cartController = Get.put(CartController());
     
     if (Get.isRegistered<ProductsController>()) {
       productsController = Get.find<ProductsController>();
@@ -123,26 +126,61 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
         children: [
           Expanded(child: buildCustomHeader()),
           const SizedBox(width: 12),
-          // Shopping cart icon
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+          // Shopping cart icon with badge
+          Obx(() => GestureDetector(
+            onTap: () => Get.toNamed(AppRoutes.cart),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.shopping_cart_outlined,
+                    color: _primaryColor,
+                    size: 24,
+                  ),
+                ),
+              if (cartController.cartItemCount.value > 0)
+                Positioned(
+                  right: -4,
+                  top: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 20,
+                      minHeight: 20,
+                    ),
+                    child: Text(
+                      cartController.cartItemCount.value > 99 
+                          ? '99+' 
+                          : cartController.cartItemCount.value.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.shopping_cart_outlined,
-              color: _primaryColor,
-              size: 24,
-            ),
-          ),
+          )),
         ],
       ),
     );

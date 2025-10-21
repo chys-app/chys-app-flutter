@@ -3,6 +3,7 @@ import 'package:chys/app/modules/%20home/pet_detail.dart';
 import 'package:chys/app/modules/%20home/home_view.dart';
 import 'package:chys/app/modules/business_home/business_home_binding.dart';
 import 'package:chys/app/modules/business_home/business_home_view.dart';
+import 'package:chys/app/modules/cart/views/cart_view.dart';
 import 'package:chys/app/modules/marketplace/marketplace_view.dart';
 import 'package:chys/app/modules/adored_posts/view/adored_post.dart';
 import 'package:chys/app/modules/donate/view/donate_detail.dart';
@@ -458,6 +459,11 @@ class AppPages {
         final product = Get.arguments as Products;
         return ProductDetailView(product: product);
       },
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.cart,
+      page: () => CartView(),
       transition: Transition.cupertino,
     ),
   ];

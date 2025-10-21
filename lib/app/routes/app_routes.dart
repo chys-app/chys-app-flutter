@@ -141,4 +141,5 @@ abstract class AppRoutes {
   
   // Product routes
   static const productDetail = '/product-detail';
+  static const cart = '/cart';
 }
