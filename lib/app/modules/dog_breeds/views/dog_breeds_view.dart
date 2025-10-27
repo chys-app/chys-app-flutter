@@ -48,11 +48,15 @@ class DogBreedsView extends GetView<SignupController> {
               ),
               const SizedBox(height: 24),
 
-              CustomTextField(
+              Obx(() => CustomTextField(
                 controller: controller.breedTextController,
-                hint: "Enter dog breed(s), e.g., Labrador, Poodle...",
+                hint: controller.selectedPetType.value == 'Cat'
+                    ? 'Enter breed(s), e.g., Persian, Siamese, Maine Coon...'
+                    : controller.selectedPetType.value == 'Dog'
+                        ? 'Enter breed(s), e.g., Labrador, Poodle...'
+                        : 'Enter pet\'s breed(s)',
                 maxLines: null, // Optional: allows multiline
-              ),
+              )),
               const SizedBox(height: 32),
 
               // // Dog Breeds Grid

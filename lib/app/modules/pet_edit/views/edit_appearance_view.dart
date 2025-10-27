@@ -333,11 +333,15 @@ class EditAppearanceView extends GetView<PetEditController> {
                   fontWeight: FontWeight.w400,
                 ),
                 const SizedBox(height: 8),
-                CustomTextField(
+                Obx(() => CustomTextField(
                   controller: controller.breedController,
-                  hint: 'Enter breed(s), e.g., Labrador, Poodle...',
+                  hint: controller.selectedPetType.value == 'Cat'
+                      ? 'Enter breed(s), e.g., Persian, Siamese, Maine Coon...'
+                      : controller.selectedPetType.value == 'Dog'
+                          ? 'Enter breed(s), e.g., Labrador, Poodle...'
+                          : 'Enter pet\'s breed(s)',
                   maxLines: null,
-                ),
+                )),
                 const SizedBox(height: 24),
                 const AppText(
                   text: 'Size',
