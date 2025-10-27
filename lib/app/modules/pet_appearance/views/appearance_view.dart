@@ -191,11 +191,15 @@ class AppearanceView extends GetView<SignupController> {
                 ),
                 const SizedBox(height: 24),
 
-                CustomTextField(
+                Obx(() => CustomTextField(
                   controller: controller.breedTextController,
-                  hint: "Enter breed(s), e.g., Labrador, Poodle...",
+                  hint: controller.selectedPetType.value.toLowerCase() == 'cat'
+                      ? 'Enter breed(s), e.g., Persian, Siamese, Maine Coon...'
+                      : controller.selectedPetType.value.toLowerCase() == 'dog'
+                          ? 'Enter breed(s), e.g., Labrador, Poodle...'
+                          : 'Enter pet\'s breed(s)',
                   maxLines: null, // Optional: allows multiline
-                ),
+                )),
                 const SizedBox(height: 24),
                 // Size Dropdown
                 const AppText(
