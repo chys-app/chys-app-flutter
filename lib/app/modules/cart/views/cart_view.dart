@@ -1,4 +1,6 @@
 import 'package:chys/app/modules/cart/controllers/cart_controller.dart';
+import 'package:chys/app/services/payment_services.dart';
+import 'package:chys/app/core/controllers/loading_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -224,6 +226,33 @@ class CartView extends StatelessWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 8),
+                      // Price
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.attach_money,
+                            color: Color(0xFF0095F6),
+                            size: 16,
+                          ),
+                          Text(
+                            item.price.toStringAsFixed(2),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0095F6),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'x ${item.quantity}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF8E8E8E),
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 12),
                       
                       // Quantity Controls
@@ -269,6 +298,16 @@ class CartView extends StatelessWidget {
                             ),
                           ),
                           const Spacer(),
+                          // Item subtotal
+                          Text(
+                            '\$${(item.price * item.quantity).toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF262626),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           IconButton(
                             icon: const Icon(
                               Icons.delete_outline,
@@ -312,17 +351,48 @@ class CartView extends StatelessWidget {
                 const Text(
                   'Total Items',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     color: Color(0xFF8E8E8E),
                   ),
                 ),
                 Obx(() => Text(
                       '${cartController.getTotalItemCount()} items',
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF262626),
                       ),
+                    )),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Total Price',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF262626),
+                  ),
+                ),
+                Obx(() => Row(
+                      children: [
+                        const Icon(
+                          Icons.attach_money,
+                          color: Color(0xFF0095F6),
+                          size: 24,
+                        ),
+                        Text(
+                          cartController.getTotalPrice().toStringAsFixed(2),
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0095F6),
+                          ),
+                        ),
+                      ],
                     )),
               ],
             ),
@@ -330,16 +400,7 @@ class CartView extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  Get.snackbar(
-                    'Checkout',
-                    'Checkout functionality coming soon',
-                    backgroundColor: const Color(0xFF0095F6).withOpacity(0.1),
-                    colorText: const Color(0xFF0095F6),
-                    snackPosition: SnackPosition.BOTTOM,
-                    margin: const EdgeInsets.all(16),
-                  );
-                },
+                onPressed: () => _proceedToCheckout(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0095F6),
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -437,5 +498,59 @@ class CartView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _proceedToCheckout() async {
+    try {
+      // Ensure LoadingController is registered
+      if (!Get.isRegistered<LoadingController>()) {
+        Get.put(LoadingController());
+      }
+
+      final totalAmount = cartController.getTotalPrice();
+      final cartId = 'cart_${DateTime.now().millisecondsSinceEpoch}';
+      
+      Get.find<LoadingController>().show();
+      
+      final success = await PaymentServices.stripePayment(
+        totalAmount.toStringAsFixed(2),
+        cartId,
+        Get.context!,
+        onSuccess: () async {
+          // Clear cart after successful payment
+          await cartController.clearCart();
+          
+          Get.find<LoadingController>().hide();
+          
+          // Show success message
+          Get.snackbar(
+            'Payment Successful',
+            'Your order has been placed successfully!',
+            backgroundColor: Colors.green.shade100,
+            colorText: Colors.green.shade800,
+            snackPosition: SnackPosition.TOP,
+            duration: const Duration(seconds: 3),
+            icon: const Icon(Icons.check_circle, color: Colors.green),
+            margin: const EdgeInsets.all(16),
+          );
+        },
+      );
+
+      if (!success) {
+        Get.find<LoadingController>().hide();
+      }
+    } catch (e) {
+      Get.find<LoadingController>().hide();
+      Get.snackbar(
+        'Checkout Error',
+        'Failed to process payment. Please try again.',
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.red.shade800,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.error, color: Colors.red),
+        margin: const EdgeInsets.all(16),
+      );
+    }
   }
 }
