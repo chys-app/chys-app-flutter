@@ -41,8 +41,28 @@ class _ProductDetailViewState extends State<ProductDetailView> {
     }
   }
 
+  bool get _isBusinessUser {
+    try {
+      if (Get.isRegistered<ProfileController>()) {
+        final profileController = Get.find<ProfileController>();
+        final userRole = profileController.profile.value?.role;
+        final isBusiness = userRole != null && userRole.toLowerCase() == 'biz-user';
+        print('🔍 Product Detail - User role: $userRole, Is business: $isBusiness');
+        return isBusiness;
+      }
+      print('🔍 Product Detail - ProfileController not registered');
+      return false;
+    } catch (e) {
+      print('🔍 Product Detail - Error checking business user: $e');
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Debug: Print user type on build
+    print('🔍 Building ProductDetailView - Is Business User: $_isBusinessUser');
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: CustomScrollView(
@@ -65,9 +85,11 @@ class _ProductDetailViewState extends State<ProductDetailView> {
               onPressed: () => Get.back(),
             ),
             actions: [
-              // Edit button - only show for creator
-              if (_isCurrentUserCreator)
-                IconButton(
+              // Make actions reactive to profile changes
+              ...[
+                // Edit button - only show for creator
+                if (_isCurrentUserCreator)
+                  IconButton(
                   icon: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -99,88 +121,99 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     child: const Icon(Icons.campaign, color: Colors.white, size: 20),
                   ),
                   onPressed: () {
-                    // TODO: Navigate to promote product
-                    Get.snackbar(
-                      'Promote Product',
-                      'Promotion functionality coming soon',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.black87,
-                      colorText: Colors.white,
-                    );
+                    Get.toNamed('/promote-product', arguments: widget.product);
                   },
                 ),
-              // Favorite button
-              IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: _isFavorite 
-                        ? const Color(0xFFE91E63).withOpacity(0.9)
-                        : Colors.black.withOpacity(0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                onPressed: () {
-                  _toggleFavorite();
-                },
-              ),
-              // Shopping cart button with badge
-              IconButton(
-                icon: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0095F6).withOpacity(0.9),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 20),
+              // Favorite button - hide for business users
+              if (!_isBusinessUser)
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: _isFavorite 
+                          ? const Color(0xFFE91E63).withOpacity(0.9)
+                          : Colors.black.withOpacity(0.5),
+                      shape: BoxShape.circle,
                     ),
-                    // Cart item count badge
-                    Obx(() {
-                      final itemCount = _cartController.cartItemCount.value;
-                      if (itemCount > 0) {
-                        return Positioned(
-                          right: -4,
-                          top: -4,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE91E63),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 1.5),
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 18,
-                              minHeight: 18,
-                            ),
-                            child: Text(
-                              itemCount > 99 ? '99+' : itemCount.toString(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    }),
-                  ],
+                    child: Icon(
+                      _isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                  onPressed: () {
+                    _toggleFavorite();
+                  },
                 ),
-                onPressed: () {
-                  Get.toNamed('/cart');
-                },
-              ),
+              // For business users: show promote button
+              // For regular users: show shopping cart button
+              if (_isBusinessUser)
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00C851).withOpacity(0.9),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.campaign, color: Colors.white, size: 20),
+                  ),
+                  onPressed: () {
+                    Get.toNamed('/promote-product', arguments: widget.product);
+                  },
+                )
+              else
+                IconButton(
+                  icon: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0095F6).withOpacity(0.9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 20),
+                      ),
+                      // Cart item count badge
+                      Obx(() {
+                        final itemCount = _cartController.cartItemCount.value;
+                        if (itemCount > 0) {
+                          return Positioned(
+                            right: -4,
+                            top: -4,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE91E63),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 1.5),
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 18,
+                                minHeight: 18,
+                              ),
+                              child: Text(
+                                itemCount > 99 ? '99+' : itemCount.toString(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      }),
+                    ],
+                  ),
+                  onPressed: () {
+                    Get.toNamed('/cart');
+                  },
+                ),
               const SizedBox(width: 8),
+              ],
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: widget.product.media.isNotEmpty
@@ -259,31 +292,58 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // Add to Cart Button
+                        // For business users: Promote button
+                        // For regular users: Add to Cart button
                         Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _addToCart,
-                            icon: const Icon(Icons.shopping_cart, size: 20),
-                            label: const Text(
-                              'Add to Cart',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0095F6),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 16,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 2,
-                            ),
-                          ),
+                          child: _isBusinessUser
+                              ? ElevatedButton.icon(
+                                  onPressed: () {
+                                    Get.toNamed('/promote-product', arguments: widget.product);
+                                  },
+                                  icon: const Icon(Icons.campaign, size: 20),
+                                  label: const Text(
+                                    'Promote',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF00C851),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 2,
+                                  ),
+                                )
+                              : ElevatedButton.icon(
+                                  onPressed: _addToCart,
+                                  icon: const Icon(Icons.shopping_cart, size: 20),
+                                  label: const Text(
+                                    'Add to Cart',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF0095F6),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 2,
+                                  ),
+                                ),
                         ),
                       ],
                     ),
@@ -574,11 +634,15 @@ class _ProductDetailViewState extends State<ProductDetailView> {
 
   Future<void> _toggleFavorite() async {
     try {
+      if (!mounted) return;
+      
       setState(() {
         _isFavorite = !_isFavorite;
       });
       
       await _apiClient.favoriteProduct(widget.product.id);
+      
+      if (!mounted) return;
       
       Get.snackbar(
         _isFavorite ? "Added to Favorites" : "Removed from Favorites",
@@ -597,6 +661,8 @@ class _ProductDetailViewState extends State<ProductDetailView> {
       );
     } catch (e) {
       // Revert on error
+      if (!mounted) return;
+      
       setState(() {
         _isFavorite = !_isFavorite;
       });
