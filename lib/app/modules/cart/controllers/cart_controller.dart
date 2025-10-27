@@ -19,6 +19,18 @@ class CartController extends GetxController {
   void loadCart() {
     try {
       cartItems.value = CartService.getCartItems();
+      
+      // Remove items with invalid prices (migration from old cart format)
+      final invalidItems = cartItems.where((item) => item.price <= 0).toList();
+      if (invalidItems.isNotEmpty) {
+        log('Found ${invalidItems.length} items with invalid prices, removing them');
+        for (var item in invalidItems) {
+          CartService.removeFromCart(item.productId);
+        }
+        // Reload cart after cleanup
+        cartItems.value = CartService.getCartItems();
+      }
+      
       _updateCartCount();
       log('Cart loaded: ${cartItems.length} unique items');
     } catch (e) {
@@ -109,6 +121,11 @@ class CartController extends GetxController {
   /// Get total items count (including quantities)
   int getTotalItemCount() {
     return cartItems.fold(0, (sum, item) => sum + item.quantity);
+  }
+
+  /// Get total price of all items in cart
+  double getTotalPrice() {
+    return cartItems.fold(0.0, (sum, item) => sum + (item.price * item.quantity));
   }
 
   /// Update cart count
