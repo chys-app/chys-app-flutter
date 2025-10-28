@@ -9,6 +9,7 @@ void main() {
     required String id,
     required int sales,
     required int views,
+    double price = 0.0,
   }) {
     return Products(
       id: id,
@@ -17,6 +18,7 @@ void main() {
       likes: const [],
       viewCount: views,
       salesCount: sales,
+      price: price,
       tags: const [],
       isActive: true,
       comments: const [],
