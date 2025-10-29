@@ -704,9 +704,7 @@ class SignupController extends GetxController {
 
   Future<void> savePetProfile1() async {
     final loading = Get.find<LoadingController>();
-    if (nameController.text.isEmpty) {
-      Get.snackbar('Error', 'Please enter pet name',
-          backgroundColor: Colors.red, colorText: Colors.white);
+    if (!_validatePetProfileStep()) {
       return;
     }
 
@@ -742,6 +740,28 @@ class SignupController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  bool _validatePetProfileStep() {
+    if (nameController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please enter pet name',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+
+    if (selectedSex.value.isEmpty) {
+      Get.snackbar('Error', 'Please select pet sex',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+
+    if (dobController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please select date of birth',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+
+    return true;
   }
 
   void saveDraft() {
@@ -1067,23 +1087,13 @@ class SignupController extends GetxController {
 
   Future<void> saveAppearance() async {
     final loading = Get.find<LoadingController>();
+    if (!_validateAppearanceStep()) {
+      return;
+    }
+
     try {
       isLoading.value = true;
       loading.show();
-      // Validate required fields
-      if (photos.isEmpty && !isEditProfile.value) {
-        loading.hide();
-        Get.snackbar('Error', 'Please add at least one photo',
-            backgroundColor: Colors.red, colorText: Colors.white);
-        return;
-      }
-
-      if (weightController.text.isEmpty) {
-        loading.hide();
-        Get.snackbar('Error', 'Please enter pet weight',
-            backgroundColor: Colors.red, colorText: Colors.white);
-        return;
-      }
 
       // Save the appearance data
       weight.value = weightController.text;
@@ -1103,6 +1113,47 @@ class SignupController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  bool _validateAppearanceStep() {
+    if (photos.isEmpty && !isEditProfile.value) {
+      Get.snackbar('Error', 'Please add at least one photo',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+
+    if (petColor.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please enter pet color',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+
+    if (breedTextController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please enter pet breed',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+
+    if (selectedSize.value.isEmpty) {
+      Get.snackbar('Error', 'Please select pet size',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+
+    if (weightController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please enter pet weight',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+
+    final weight = double.tryParse(weightController.text.trim());
+    if (weight == null || weight <= 0) {
+      Get.snackbar('Error', 'Please enter a valid weight',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+
+    return true;
   }
 
   void updateLostStatus(String value) => lostStatus.value = value;
@@ -1128,6 +1179,10 @@ class SignupController extends GetxController {
 
   Future<void> saveIdentification() async {
     final loading = Get.find<LoadingController>();
+    if (!_validateIdentificationStep()) {
+      return;
+    }
+
     try {
       saveDraft();
       isLoading.value = true;
@@ -1164,6 +1219,22 @@ class SignupController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  bool _validateIdentificationStep() {
+    if (vetNameController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please enter vet name',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+
+    if (vetContactController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please enter vet contact number',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+
+    return true;
   }
 
   Future<void> saveBehavioralAndNavigate() async {
