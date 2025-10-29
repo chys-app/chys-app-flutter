@@ -35,7 +35,7 @@ class EditIdentificationView extends GetView<PetEditController> {
                 const SizedBox(height: 32),
 
                 AppText(
-                  text: 'Microchip Numbers',
+                  text: 'Microchip Number(s).',
                   color: AppColors.purple,
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
@@ -78,7 +78,12 @@ class EditIdentificationView extends GetView<PetEditController> {
                   ],
                 )),
                 const SizedBox(height: 24),
-
+AppText(
+                  text: ' For multiple pets, add multiple microchip numbers',
+                  color: AppColors.purple,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                ),
                 AppText(
                   text: 'Tag ID or CHYS ID',
                   color: AppColors.purple,
