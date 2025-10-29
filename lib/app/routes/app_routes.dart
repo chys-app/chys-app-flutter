@@ -106,11 +106,11 @@ abstract class AppRoutes {
     petProfile,
     appearance,
     identification,
+    behavioral,
     ownerInfo,
-    dogBreeds,
     cityView,
     map,
-    behavioral,
+    dogBreeds,
     home,
   ];
 
