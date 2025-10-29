@@ -47,7 +47,7 @@ class IdentificationView extends GetView<SignupController> {
 
                 // Microchip Numbers (Multiple)
                 AppText(
-                  text: 'Microchip Numbers',
+                  text: 'Microchip Number(s)',
                   color: AppColors.purple,
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
@@ -76,6 +76,12 @@ class IdentificationView extends GetView<SignupController> {
                         ),
                       ),
                     ),
+                    AppText(
+                  text: ' For multiple pets, add multiple microchip numbers',
+                  color: AppColors.purple,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: TextButton.icon(
