@@ -197,7 +197,7 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
       child: Obx(() => Row(
             children: [
               _buildTabButton('Best Sellers', 0, Icons.local_fire_department),
-              _buildTabButton('Most Viewed', 1, Icons.trending_up),
+              _buildTabButton('Favorites', 1, Icons.favorite),
               _buildTabButton('All Products', 2, Icons.grid_view),
             ],
           )),
@@ -289,7 +289,7 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
         case 0:
           return _buildProductsContent(sortBySales: true);
         case 1:
-          return _buildProductsContent(sortByViews: true);
+          return _buildProductsContent(favoritesOnly: true);
         case 2:
           return _buildProductsContent();
         default:
@@ -298,7 +298,7 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
     });
   }
 
-  Widget _buildProductsContent({bool sortByViews = false, bool sortBySales = false}) {
+  Widget _buildProductsContent({bool sortByViews = false, bool sortBySales = false, bool favoritesOnly = false}) {
     log('🛒 Building products content. Products count: ${productsController.products.length}, Loading: ${productsController.isLoading.value}');
     return SmartRefresher(
       controller: _refreshController,
@@ -319,10 +319,15 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
                 productsController.products.isEmpty) {
               return _buildProductsLoadingGrid();
             }
-            if (productsController.products.isEmpty) {
+            // Filter products based on tab
+            final displayProducts = favoritesOnly
+                ? productsController.products.where((p) => p.isFavorite).toList()
+                : productsController.products;
+            
+            if (displayProducts.isEmpty) {
               return _buildEmptyState();
             } else {
-              return _buildProductsGrid(sortByViews: sortByViews, sortBySales: sortBySales);
+              return _buildProductsGrid(sortByViews: sortByViews, sortBySales: sortBySales, favoritesOnly: favoritesOnly);
             }
           }),
 
@@ -346,47 +351,53 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(_defaultPadding * 2),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                shape: BoxShape.circle,
+    return Obx(() {
+      final isFavoritesTab = _tabIndex.value == 1;
+
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(_defaultPadding * 2),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isFavoritesTab ? Icons.favorite_outline : Icons.shopping_bag_outlined,
+                  size: 48,
+                  color: _textSecondary,
+                ),
               ),
-              child: Icon(
-                Icons.shopping_bag_outlined,
-                size: 48,
-                color: _textSecondary,
+              const SizedBox(height: 24),
+              Text(
+                isFavoritesTab ? 'No Favorite Products' : 'No Products Available',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: _textPrimary,
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No Products Available',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: _textPrimary,
+              const SizedBox(height: 12),
+              Text(
+                isFavoritesTab
+                    ? 'You haven\'t favorited any products yet.\nTap the heart on products you love!'
+                    : "Check back later for new products!",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _textSecondary,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "Check back later for new products!",
-              style: TextStyle(
-                fontSize: 14,
-                color: _textSecondary,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildProductsLoadingGrid() {
@@ -424,7 +435,7 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
     );
   }
 
-  Widget _buildProductsGrid({bool sortByViews = false, bool sortBySales = false}) {
+  Widget _buildProductsGrid({bool sortByViews = false, bool sortBySales = false, bool favoritesOnly = false}) {
     return Obx(() {
       final screenWidth = MediaQuery.of(context).size.width;
       final crossAxisCount = screenWidth > 900
@@ -433,8 +444,10 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
               ? 3
               : 2;
 
-      // Get products and sort if needed
-      List<Products> products = productsController.products.toList();
+      // Get products and filter/sort if needed
+      List<Products> products = favoritesOnly
+          ? productsController.products.where((p) => p.isFavorite).toList()
+          : productsController.products.toList();
       
       if (sortBySales) {
         products.sort((a, b) => b.salesCount.compareTo(a.salesCount));
