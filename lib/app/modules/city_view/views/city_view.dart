@@ -43,22 +43,7 @@ class CityView extends GetView<SignupController> {
                     ),
                     const SizedBox(height: 32),
 
-                    // Title
-                    const AppText(
-                      text: 'Your City',
-                      color: Colors.black,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 20,
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Subtitle
-                    const AppText(
-                      text: 'See the pets in your neighborhood',
-                      fontSize: 14,
-                      color: AppColors.purple,
-                      fontWeight: FontWeight.w400,
-                    ),
+                   
                   ],
                 ),
               ),
