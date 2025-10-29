@@ -205,7 +205,7 @@ class PetProfileView extends GetView<SignupController> {
                           )),
                       const SizedBox(width: 12),
                       const AppText(
-                        text: 'Sprayed/Neutered',
+                        text: 'Spayed/Neutered',
                         fontSize: 14,
                         color: AppColors.purple,
                         fontWeight: FontWeight.w400,
