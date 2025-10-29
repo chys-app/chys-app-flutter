@@ -297,7 +297,7 @@ class PetEditController extends GetxController {
       return;
     }
     final lbs = kg * 2.2046226218;
-    weightInLbs.value = lbs.toStringAsFixed(2) + ' lbs';
+    weightInLbs.value = lbs.toStringAsFixed(1);
   }
 
   Future<void> pickPetPhoto() async {
