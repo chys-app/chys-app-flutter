@@ -5,9 +5,11 @@ import 'package:chys/app/modules/%20home/widget/story_section.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
 import 'package:chys/app/modules/podcast/controllers/create_podcast_controller.dart';
 import 'package:chys/app/modules/podcast/controllers/podcast_controller.dart';
+import 'package:chys/app/modules/products/controller/products_controller.dart';
 import 'package:chys/app/services/custom_Api.dart';
 import 'package:chys/app/widget/common/custom_post_widget.dart';
 import 'package:chys/app/widget/common/post_grid_widget.dart';
+import 'package:chys/app/widget/common/product_grid_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
@@ -32,6 +34,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   late final CustomApiService _apiService;
   late final CreatePodCastController podcastController;
   late final PodcastController podCastCallController;
+  late final ProductsController productsController;
 
   final RefreshController _refreshController = RefreshController();
   final ScrollController _scrollController = ScrollController();
@@ -61,6 +64,11 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
       contrroller = Get.find<AddoredPostsController>(tag: 'home');
     } else {
       contrroller = Get.put(AddoredPostsController(), tag: 'home');
+    }
+    if (Get.isRegistered<ProductsController>()) {
+      productsController = Get.find<ProductsController>();
+    } else {
+      productsController = Get.put(ProductsController());
     }
     log("Home view using controller with tag: 'home'");
     WidgetsBinding.instance.addObserver(this);
@@ -93,7 +101,9 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
       // Defer fetching to after build phase to avoid setState during build
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Only fetch if posts are empty AND we haven't loaded before
+        // Fetch products for Hot Picks tab - always call, let controller handle caching
+        log("Initializing products fetch (controller will use cache if valid)");
+        productsController.fetchProducts(publicOnly: true);
         if (contrroller.posts.isEmpty && !contrroller.isLoading.value) {
           contrroller.fetchAdoredPosts();
         }
@@ -330,6 +340,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
     return Obx(() {
       switch (contrroller.tabIndex.value) {
         case 0:
+          return _buildProductsContent();
         case 1:
           return _buildPostsContent();
         case 2:
@@ -338,6 +349,67 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
           return _buildPostsContent();
       }
     });
+  }
+
+  Widget _buildProductsContent() {
+    return SmartRefresher(
+      controller: _refreshController,
+      enablePullDown: true,
+      enablePullUp: false,
+      header: const WaterDropHeader(
+        waterDropColor: _primaryColor,
+      ),
+      onRefresh: () async {
+        await _handleRefresh();
+        _refreshController.refreshCompleted();
+      },
+      child: Stack(
+        children: [
+          // Main content
+          Obx(() {
+            // Show loading overlay if loading or haven't attempted fetch yet
+            if (productsController.isLoading.value || !productsController.hasAttemptedFetch.value) {
+              return const SizedBox.shrink();
+            } else if (productsController.products.isEmpty) {
+              return _buildProductsEmptyState();
+            } else {
+              return _buildProductsGrid();
+            }
+          }),
+
+          // Single loading overlay
+          Obx(() {
+            if (productsController.isLoading.value) {
+              return Container(
+                color: Colors.white.withOpacity(0.9),
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(_primaryColor),
+                        strokeWidth: 3,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        "Loading products...",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: _textPrimary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
+        ],
+      ),
+    );
   }
 
   Widget _buildPostsContent() {
@@ -736,6 +808,98 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         ],
       ),
     );
+  }
+
+  Widget _buildProductsGrid() {
+    return Obx(() {
+      final screenWidth = MediaQuery.of(Get.context!).size.width;
+      final crossAxisCount = screenWidth > 900
+          ? 4
+          : screenWidth > 600
+              ? 3
+              : 2;
+
+      return StaggeredGridView.countBuilder(
+        controller: _scrollController,
+        shrinkWrap: true,
+        physics: const AlwaysScrollableScrollPhysics(),
+        crossAxisCount: crossAxisCount,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        padding: const EdgeInsets.all(16),
+        itemCount: productsController.products.length,
+        itemBuilder: (context, index) {
+          final product = productsController.products[index];
+          return ProductGridWidget(
+            product: product,
+            onTap: () {
+              // Navigate to product details
+              Get.toNamed(AppRoutes.productDetail, arguments: product);
+            },
+            onCreatorTap: () {
+              // Navigate to creator profile
+              log("Navigate to creator profile: ${product.creator.id}");
+            },
+          );
+        },
+        staggeredTileBuilder: (index) {
+          // Fixed height ratio for all products to make them uniform
+          return const StaggeredTile.count(1, 1.2);
+        },
+      );
+    });
+  }
+
+  Widget _buildProductsEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(_defaultPadding * 2),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.shopping_bag_outlined,
+                size: 48,
+                color: _textSecondary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'No Products Yet',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: _textPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Be the first to share amazing products\nwith the community!',
+              style: TextStyle(
+                fontSize: 14,
+                color: _textSecondary,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _refreshProducts() async {
+    try {
+      await productsController.refreshProducts();
+    } catch (e) {
+      log("Error refreshing products: $e");
+    }
   }
 
   Future<void> _refreshPosts() async {

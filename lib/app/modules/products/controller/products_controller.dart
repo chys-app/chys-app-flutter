@@ -8,6 +8,7 @@ class ProductsController extends GetxController {
   final CustomApiService apiService = CustomApiService();
   final RxList<Products> products = <Products>[].obs;
   final RxBool isLoading = false.obs;
+  final RxBool hasAttemptedFetch = false.obs;
 
   DateTime? _lastFetch;
   static const Duration _cacheDuration = Duration(minutes: 5);
@@ -23,6 +24,7 @@ class ProductsController extends GetxController {
 
     try {
       isLoading.value = true;
+      hasAttemptedFetch.value = true;
       // Use public endpoint for marketplace to get all products
       final endpoint = publicOnly ? 'products/public' : 'products';
       log('📦 Fetching products from API endpoint: $endpoint');
