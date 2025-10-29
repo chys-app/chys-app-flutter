@@ -352,69 +352,6 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
                           )),
                     ),
 
-                  // Action Buttons (only on image)
-                  if (!widget.isCurrentUser)
-                    Positioned(
-                      right: 10,
-                      bottom: 10,
-                      child: Column(
-                        children: [
-                          GestureDetector(
-                            onTap: widget.onTapLove,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: widget.posts.isFavorite 
-                                    ? Colors.red 
-                                    : Colors.white.withOpacity(0.6),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.favorite,
-                                color: widget.posts.isFavorite 
-                                    ? Colors.white 
-                                    : Colors.red,
-                                size: 24,
-                              ),
-                            ),
-                          ),
-                          Obx(() => Text(
-                                widget.posts.likes.length.toString(),
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 12),
-                              )),
-                          const SizedBox(height: 12),
-                          _circleIcon(AppImages.message, widget.onTapMessage),
-                          Obx(() => Text(
-                                widget.posts.comments.length.toString(),
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 12),
-                              )),
-                          const SizedBox(height: 12),
-                          _circleIcon(AppImages.share, widget.onTapShare),
-                          const SizedBox(height: 12),
-                          Obx(() => _circleIcon(
-                                AppImages.gift,
-                                () {
-                                  if (widget.posts.isFunded.value) {
-                                    return;
-                                  } else {
-                                    widget.addoredPostsController
-                                        .fundPost(widget.posts, context);
-                                  }
-                                },
-                                bgColor: widget.posts.isFunded.value
-                                    ? Colors.red
-                                    : Colors.white,
-                              )),
-                          Obx(() => Text(
-                                widget.posts.fundCount.value.toString(),
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 12),
-                              )),
-                        ],
-                      ),
-                    ),
                   if (widget.isCurrentUser)
                     Positioned(
                       right: 10,
@@ -430,7 +367,97 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
               ),
             ),
 
-            // User Info Section (below image)
+            // Action Buttons (below image, Instagram-style)
+            if (!widget.isCurrentUser)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                child: Row(
+                  children: [
+                    // Like button
+                    GestureDetector(
+                      onTap: widget.onTapLove,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.favorite,
+                            color: widget.posts.isFavorite 
+                                ? Colors.red 
+                                : Colors.black87,
+                            size: 28,
+                          ),
+                          const SizedBox(width: 4),
+                          Obx(() => Text(
+                                widget.posts.likes.length.toString(),
+                                style: const TextStyle(
+                                    color: Colors.black87, 
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600),
+                              )),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Comment button
+                    GestureDetector(
+                      onTap: widget.onTapMessage,
+                      child: Row(
+                        children: [
+                          AppImages.message.toSvg(color: Colors.black87, width: 28, height: 28),
+                          const SizedBox(width: 4),
+                          Obx(() => Text(
+                                widget.posts.comments.length.toString(),
+                                style: const TextStyle(
+                                    color: Colors.black87, 
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600),
+                              )),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Share button
+                    GestureDetector(
+                      onTap: widget.onTapShare,
+                      child: AppImages.share.toSvg(color: Colors.black87, width: 28, height: 28),
+                    ),
+                    const Spacer(),
+                    // Give/Fund button
+                    Obx(() => GestureDetector(
+                          onTap: () {
+                            if (widget.posts.isFunded.value) {
+                              return;
+                            } else {
+                              widget.addoredPostsController
+                                  .fundPost(widget.posts, context);
+                            }
+                          },
+                          child: Row(
+                            children: [
+                              AppImages.gift.toSvg(
+                                color: widget.posts.isFunded.value
+                                    ? Colors.red
+                                    : Colors.black87,
+                                width: 28,
+                                height: 28,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                widget.posts.fundCount.value.toString(),
+                                style: TextStyle(
+                                    color: widget.posts.isFunded.value
+                                        ? Colors.red
+                                        : Colors.black87, 
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                        )),
+                  ],
+                ),
+              ),
+
+            // User Info Section (below action buttons)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
               child: Column(
