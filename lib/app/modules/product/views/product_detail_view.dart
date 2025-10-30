@@ -237,19 +237,51 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                 children: [
                   const SizedBox(height: 24),
                   
-                  // Description
+                  // Description with creator name
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      widget.product.description.isNotEmpty
-                          ? widget.product.description
-                          : 'No description available',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF262626),
-                        height: 1.3,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.product.description.isNotEmpty
+                              ? widget.product.description
+                              : 'No description available',
+                          style: const TextStyle( 
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF262626),
+                            height: 1.3,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Text(
+                              'by ',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Color(0xFF8E8E8E),
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Get.toNamed('/profile', arguments: widget.product.creator.id);
+                              },
+                              child: const Text(
+                                'Awesome Pet Store',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Color(0xFF0095F6),
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
 
@@ -413,31 +445,6 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     ),
                     const SizedBox(height: 24),
                   ],
-
-                  // Divider
-                  const Divider(height: 1, thickness: 1),
-
-                  const SizedBox(height: 20),
-
-                  // Creator Section
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Creator',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF262626),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildCreatorCard(),
-                      ],
-                    ),
-                  ),
 
                   const SizedBox(height: 32),
                 ],

@@ -21,9 +21,15 @@ class CreatorMini {
         ? originalProfilePic!
         : 'https://ui-avatars.com/api/?name=User&background=0095F6&color=fff&size=150';
     
+    // Try multiple possible field names for the user's name
+    final name = map['name']?.toString() ?? 
+                 map['userName']?.toString() ?? 
+                 map['username']?.toString() ?? 
+                 'Unknown User';
+    
     return CreatorMini(
       id: map['_id']?.toString() ?? '',
-      name: map['name']?.toString() ?? '',
+      name: name,
       bio: map['bio']?.toString() ?? '',
       profilePic: finalProfilePic,
       isFollowing: map['isFollowing'] == true,
@@ -105,9 +111,35 @@ class Products {
         isFunded = isFunded.obs;
 
   factory Products.fromMap(Map<String, dynamic> map) {
-    final creatorMap = map['creator'] is Map<String, dynamic>
-        ? map['creator'] as Map<String, dynamic>
-        : {};
+    // Debug: Print the raw map to see what fields are available
+    print('🔍 Products.fromMap - Raw map keys: ${map.keys.toList()}');
+    print('🔍 Products.fromMap - product name field: ${map['name']}');
+    print('🔍 Products.fromMap - owner field type: ${map['owner'].runtimeType}');
+    print('🔍 Products.fromMap - owner field value: ${map['owner']}');
+    
+    // The API uses 'owner' field for creator information
+    dynamic creatorData = map['owner'] ?? map['creator'] ?? map['createdBy'] ?? map['user'];
+    
+    final creatorMap = creatorData is Map<String, dynamic>
+        ? creatorData as Map<String, dynamic>
+        : (creatorData is Map
+            ? Map<String, dynamic>.from(creatorData)
+            : {});
+    
+    // If owner object doesn't have a name, use the email as fallback
+    if (creatorMap.isNotEmpty && !creatorMap.containsKey('name')) {
+      if (creatorMap['email'] != null) {
+        creatorMap['name'] = creatorMap['email'];
+        print('🔍 Products.fromMap - Using email as name: ${creatorMap['email']}');
+      } else if (creatorMap['userName'] != null) {
+        creatorMap['name'] = creatorMap['userName'];
+      } else if (creatorMap['username'] != null) {
+        creatorMap['name'] = creatorMap['username'];
+      }
+    }
+    
+    print('🔍 Products.fromMap - Final creatorMap: $creatorMap');
+    print('🔍 Products.fromMap - creatorMap keys: ${creatorMap.keys.toList()}');
 
     return Products(
       isFunded: map["isFunded"] == true,

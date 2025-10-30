@@ -110,13 +110,11 @@ class ProductGridWidget extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    creator.name.isNotEmpty
-                                        ? creator.name
-                                        : 'Unknown creator',
+                                  const Text(
+                                    'Awesome Pet Store',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
