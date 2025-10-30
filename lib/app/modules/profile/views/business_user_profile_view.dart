@@ -394,12 +394,12 @@ class BusinessUserProfileView extends StatelessWidget {
     });
   }
 
-  Widget _buildStatsSection(AddoredPostsController postController) {
+  Widget _buildStatsSection(ProductsController productsController) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6), 
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -411,9 +411,9 @@ class BusinessUserProfileView extends StatelessWidget {
           ),
           _buildVerticalDivider(),
           _buildCompactStatItem(
-            count: postController.posts.length.toString(),
-            label: "Posts",
-            icon: Icons.grid_on_outlined,
+            count: productsController.products.length.toString(),
+            label: "Products",
+            icon: Icons.shopping_bag_outlined,
           ),
           _buildVerticalDivider(),
           _buildCompactStatItem(
@@ -732,33 +732,31 @@ class BusinessUserProfileView extends StatelessWidget {
     });
   }
 
-  Widget _buildPostsSection(AddoredPostsController postController) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Posts Content - No padding to cover full width
-        _buildPostsTab(postController),
-      ],
-    );
-  }
-
-  Widget _buildPostsTab(AddoredPostsController postController) {
+  Widget _buildProductsSection(ProductsController productsController) {
     return Obx(() {
-      if (postController.isLoading.value) {
-        return const CatQuoteCardShimmer();
+      if (productsController.isLoading.value) {
+        return const Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
       }
 
-      if (postController.posts.isEmpty) {
-        return const Center(
-          child: Column(
-            children: [
-              Icon(Icons.photo_library_outlined, size: 64, color: Colors.grey),
-              SizedBox(height: 16),
-              Text(
-                "No posts yet",
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            ],
+      if (productsController.products.isEmpty) {
+        return const Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Center(
+            child: Column(
+              children: [
+                Icon(Icons.shopping_bag_outlined, size: 64, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  "No products yet",
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              ],
+            ),
           ),
         );
       }
@@ -773,40 +771,33 @@ class BusinessUserProfileView extends StatelessWidget {
       return StaggeredGridView.countBuilder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
+        padding: const EdgeInsets.all(16),
         crossAxisCount: crossAxisCount,
-        mainAxisSpacing: 0,
-        crossAxisSpacing: 0,
-        itemCount: postController.posts.length,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        itemCount: productsController.products.length,
         itemBuilder: (context, index) {
-          final post = postController.posts[index];
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: PostGridWidget(
-              post: post,
-              addoredPostsController: postController,
-              // Enable thumbnail generation for videos
-              disableThumbnailGeneration: false,
-            ),
+          final product = productsController.products[index];
+          return ProductGridWidget(
+            product: product,
+            onTap: () {
+              // Navigate to product detail
+              Get.toNamed(AppRoutes.productDetail, arguments: product.id);
+            },
           );
         },
         staggeredTileBuilder: (index) {
-          // Fixed height ratio for all posts to make them the same height
-          const double heightRatio = 1.2;
+          // Variable height for visual interest
+          final heightRatio = 1.0 + (index % 4) * 0.2;
           return StaggeredTile.count(1, heightRatio);
         },
       );
     });
   }
+
+  
+
+  
 
   Widget _buildProfessionalPetCard(dynamic pet) {
     return Container(
