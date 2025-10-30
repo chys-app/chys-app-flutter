@@ -77,9 +77,9 @@ class AddoredPostsController extends GetxController {
       fetchAdoredPosts(userId: "", followingOnly: false, forceRefresh: false);
       print('Hot picks selected');
     } else if (index == 1) {
-      // Favorites - show favorited posts
-      fetchFavoritePosts();
-      print('Favorites selected');
+      // Furrfriends - show posts from followed users only
+      fetchAdoredPosts(userId: "", followingOnly: true, forceRefresh: false);
+      print('Furrfriends selected - showing posts from followed users');
     }
     // index == 2 is Podcasts, handled separately in home view
   }

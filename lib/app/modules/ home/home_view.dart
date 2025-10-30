@@ -197,7 +197,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
       child: Obx(() => Row(
             children: [
               _buildTabButton('Hot Picks', 0, Icons.local_fire_department),
-              _buildTabButton('Favorites', 1, Icons.favorite),
+              _buildTabButton('Furrfriends', 1, Icons.favorite),
               _buildTabButton('Podcasts', 2, Icons.mic),
             ],
           )),
@@ -661,7 +661,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
               ),
               const SizedBox(height: 24),
               Text(
-                isFavoritesTab ? 'No Favorite Posts' : 'No Posts Yet',
+                isFavoritesTab ? 'Furrfriends Posts' : 'No Posts Yet',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
