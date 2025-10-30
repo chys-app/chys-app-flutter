@@ -688,10 +688,8 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
               Get.toNamed(AppRoutes.productDetail, arguments: product);
             },
             onCreatorTap: () {
-              // Navigate to creator profile based on their role
-              final isBusiness = product.creator.role.toLowerCase() == 'biz-user';
-              final route = isBusiness ? AppRoutes.businessUserProfile : AppRoutes.otherUserProfile;
-              Get.toNamed(route, arguments: product.creator.id);
+              // Navigate to creator profile
+              Get.toNamed(AppRoutes.businessUserProfile, arguments: product.creator.id);
             },
           );
         },
