@@ -73,6 +73,8 @@ import '../modules/user_management/views/blocked_users_view.dart';
 import '../modules/user_management/views/reported_users_view.dart';
 import '../modules/product/views/product_detail_view.dart';
 import '../data/models/product.dart';
+import '../modules/search/search_view.dart';
+import '../modules/search/search_binding.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -339,6 +341,12 @@ class AppPages {
     GetPage(
       name: AppRoutes.marketplace,
       page: () => const MarketplaceView(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.search,
+      page: () => const SearchView(),
+      binding: SearchBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(

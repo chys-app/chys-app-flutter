@@ -330,70 +330,6 @@ class OtherUserProfileView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (pets.isNotEmpty) ...[
-              SizedBox(
-                height: 96,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: pets.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (context, index) {
-                    final pet = pets[index];
-                    final isSelected = pet.id == userPet?.id;
-                    return GestureDetector(
-                      onTap: () => otherUserProfileController.setSelectedTab(index),
-                      child: Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isSelected
-                                    ? AppColors.blue
-                                    : Colors.grey.shade300,
-                                width: isSelected ? 2.5 : 1,
-                              ),
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: AppColors.blue.withOpacity(0.2),
-                                        blurRadius: 8,
-                                        spreadRadius: 1,
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: _buildPetProfileAvatar(pet),
-                          ),
-                          const SizedBox(height: 6),
-                          SizedBox(
-                            width: 72,
-                            child: Text(
-                              pet.name ?? 'Pet',
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.w400,
-                                color: isSelected
-                                    ? Colors.black
-                                    : Colors.grey.shade600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -598,63 +534,18 @@ class OtherUserProfileView extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            // Profile Button - Open Pet Profile Details
+            // Pet Profile Button - Open Pet Profile Details
             _buildActionButton(
-              label: "Profile",
+              label: "Pet Profile",
               onTap: () {
                 if (userPet != null) {
                   _navigateToPetProfile(userPet);
                 }
               },
             ),
-
-            // DM Button - Send Message
-            _buildActionButton(
-              label: "DM",
-              isDisabled: otherUserProfileController.isCurrentUser,
-              onTap: () {
-                final currentUserId =
-                    otherUserProfileController.userCurrentId.value;
-                final isCurrentUser = otherUserProfileController.isCurrentUser;
-
-                // Prevent current user from DMing themselves
-                if (currentUserId.isNotEmpty && !isCurrentUser) {
-                  print(profileData);
-                  Get.toNamed(
-                    AppRoutes.chatDetail,
-                    arguments: {
-                      "id": profileData.id,
-                      "name": userPet!.name,
-                      "currentUserId": currentUserId,
-                      "profilePic": userPet.profilePic,
-                    },
-                  );
-                }
-              },
-            ),
-            // Invite Podcast Button
-            _buildActionButton(
-              label: "Podcast",
-              onTap: () async {
-                // Call API directly to invite user to podcast
-                final currentUserId =
-                    otherUserProfileController.userCurrentId.value;
-                if (currentUserId.isNotEmpty &&
-                    !otherUserProfileController.isCurrentUser) {
-                  await _inviteUserToPodcast(profileData.id!);
-                }
-              },
-            ),
-
-            // Fundraising Button - Send Gifts for Pet Care
-            _buildActionButton(
-              label: "Fundraising",
-              onTap: () {
-                if (userPet != null) {
-                  _showPetGiftDialog(userPet);
-                }
-              },
-            ),
+            // Follow Button
+            if (!otherUserProfileController.isCurrentUser)
+              _buildFollowActionButton(profileData.id ?? ''),
           ],
         ),
       );
@@ -698,6 +589,51 @@ class OtherUserProfileView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildFollowActionButton(String userId) {
+    return Obx(() {
+      final isFollowing = otherUserProfileController.isFollowing.value;
+      final isCurrentUser = otherUserProfileController.isCurrentUser;
+      
+      return GestureDetector(
+        onTap: !isCurrentUser && userId.isNotEmpty
+            ? () {
+                otherUserProfileController.followUnfollow(userId);
+              }
+            : null,
+        child: Container(
+          width: 90,
+          height: 44,
+          decoration: BoxDecoration(
+            color: isFollowing ? Colors.transparent : AppColors.blue,
+            border: isFollowing ? Border.all(color: Colors.grey.shade300, width: 1.5) : null,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: !isFollowing
+                ? [
+                    BoxShadow(
+                      color: AppColors.blue.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              isFollowing ? 'Following' : 'Follow',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: isFollowing ? Colors.grey.shade700 : Colors.white,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildFollowButton(String userId) {

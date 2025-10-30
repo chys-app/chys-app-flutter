@@ -5,12 +5,14 @@ class CreatorMini {
   final String name;
   final String bio;
   final String profilePic;
+  final bool isFollowing;
 
   CreatorMini({
     required this.id,
     required this.name,
     required this.bio,
     required this.profilePic,
+    this.isFollowing = false,
   });
 
   factory CreatorMini.fromMap(Map<dynamic, dynamic> map) {
@@ -22,8 +24,9 @@ class CreatorMini {
     return CreatorMini(
       id: map['_id']?.toString() ?? '',
       name: map['name']?.toString() ?? '',
-      bio: map['bio']?.toString() ?? '',
+      bio: map['bio']?.toString() ?? '', 
       profilePic: finalProfilePic,
+      isFollowing: map['isFollowing'] == true,
     );
   }
 }
