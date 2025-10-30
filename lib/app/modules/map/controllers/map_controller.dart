@@ -377,6 +377,9 @@ class MapController extends GetxController {
       case 'marketplace':
         onMarketplaceTap();
         break;
+      case 'search':
+        onSearchTap();
+        break;
     }
   }
 
@@ -714,6 +717,8 @@ class MapController extends GetxController {
   void onDonateTap() => Get.toNamed(AppRoutes.donate);
 
   void onMarketplaceTap() => Get.toNamed(AppRoutes.marketplace);
+
+  void onSearchTap() => Get.toNamed(AppRoutes.search);
 
   void _determineUserType() {
     final user = StorageService.getUser();

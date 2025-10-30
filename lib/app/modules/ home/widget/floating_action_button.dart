@@ -326,6 +326,11 @@ class BottomNavigationBarWidget extends StatelessWidget {
                   }
                 },
               ),
+            IconActionButton(
+              icon: Icons.search,
+              selected: controller.selectedFeature.value == 'search',
+              onTap: () => controller.selectFeature('search'),
+            ),
             SvgActionButton(
               icon: AppImages.podcast,
               selected: controller.selectedFeature.value == 'podcast',
@@ -342,11 +347,6 @@ class BottomNavigationBarWidget extends StatelessWidget {
               icon: Icons.volunteer_activism_outlined,
               selected: controller.selectedFeature.value == 'donate',
               onTap: () => controller.selectFeature('donate'),
-            ),
-            IconActionButton(
-              icon: Icons.shopping_bag_outlined,
-              selected: controller.selectedFeature.value == 'marketplace',
-              onTap: () => controller.selectFeature('marketplace'),
             ),
           ],
         ),

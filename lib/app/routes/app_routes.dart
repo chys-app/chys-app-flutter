@@ -6,6 +6,7 @@ abstract class AppRoutes {
   static const businessHome = '/business-home';
   static const marketplace = '/marketplace';
   static const map = '/map';
+  static const search = '/search';
   static const addBankInfo = '/addBankInfo';
   static const withdraw = '/withdraw';
   static const fundRaise = '/fundRaise';
