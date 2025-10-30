@@ -425,10 +425,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         _refreshController.refreshCompleted();
       },
       child: Obx(() {
-        // Use favoritePosts for Favorites tab, posts for Hot Picks
-        final postsList = contrroller.tabIndex.value == 1 
-            ? contrroller.favoritePosts 
-            : contrroller.posts;
+        // Use posts for both tabs - the controller handles filtering based on followingOnly
+        final postsList = contrroller.posts;
         
         return Stack(
           children: [
@@ -561,10 +559,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   Widget _buildPostsGrid() {
     return Obx(() {
-      // Use favoritePosts for Favorites tab, posts for Hot Picks
-      final postsList = contrroller.tabIndex.value == 1 
-          ? contrroller.favoritePosts 
-          : contrroller.posts;
+      // Use posts - the controller handles filtering based on followingOnly
+      final postsList = contrroller.posts;
       
       final screenWidth = MediaQuery.of(Get.context!).size.width;
       final crossAxisCount = screenWidth > 900
@@ -600,10 +596,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   Widget _buildPostsList() {
     return Obx(() {
-      // Use favoritePosts for Favorites tab, posts for Hot Picks
-      final postsList = contrroller.tabIndex.value == 1 
-          ? contrroller.favoritePosts 
-          : contrroller.posts;
+      // Use posts - the controller handles filtering based on followingOnly
+      final postsList = contrroller.posts;
       
       return ListView.builder(
         controller: _scrollController,
@@ -639,7 +633,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   Widget _buildEmptyState() {
     return Obx(() {
-      final isFavoritesTab = contrroller.tabIndex.value == 1;
+      final isFurrfriendsTab = contrroller.tabIndex.value == 1;
 
       return Center(
         child: Padding(
@@ -654,14 +648,14 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  isFavoritesTab ? Icons.favorite_outline : Icons.photo_library_outlined,
+                  isFurrfriendsTab ? Icons.favorite_outline : Icons.photo_library_outlined,
                   size: 48,
                   color: _textSecondary,
                 ),
               ),
               const SizedBox(height: 24),
               Text(
-                isFavoritesTab ? 'Furrfriends Posts' : 'No Posts Yet',
+                isFurrfriendsTab ? 'No Furrfriends Posts' : 'No Posts Yet',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -670,8 +664,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
               ),
               const SizedBox(height: 12),
               Text(
-                isFavoritesTab
-                    ? 'You haven\'t favorited any posts yet.\nTap the heart on posts you love!'
+                isFurrfriendsTab
+                    ? 'Follow other users to see their posts here!\nStart by searching for friends in the search tab.'
                     : 'Be the first to share something amazing\nwith your friends!',
                 style: TextStyle(
                   fontSize: 14,
@@ -905,10 +899,13 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   Future<void> _refreshPosts() async {
     try {
       if (contrroller.tabIndex.value == 1) {
-        // Favorites tab
-        await contrroller.fetchFavoritePosts();
+        // Furrfriends tab - show posts from followed users
+        await contrroller.fetchAdoredPosts(
+          followingOnly: true,
+          forceRefresh: true, // Force refresh to get latest data
+        );
       } else {
-        // Hot Picks tab
+        // Hot Picks tab - show all posts
         await contrroller.fetchAdoredPosts(
           followingOnly: false,
           forceRefresh: true, // Force refresh to get latest data
