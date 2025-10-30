@@ -52,6 +52,7 @@ import '../modules/post/views/post_preview_view.dart';
 import '../modules/post/views/new_post_preview_view.dart';
 import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_view.dart';
+import '../modules/profile/views/business_user_profile_view.dart';
 import '../modules/profile/views/other_user_profile_view.dart';
 import '../modules/settings/bindings/settings_binding.dart';
 import '../modules/settings/views/about_us_view.dart';

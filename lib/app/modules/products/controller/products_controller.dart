@@ -16,7 +16,7 @@ class ProductsController extends GetxController {
   bool get _isCacheValid =>
       _lastFetch != null && DateTime.now().difference(_lastFetch!) < _cacheDuration;
 
-  Future<void> fetchProducts({bool forceRefresh = false, bool publicOnly = false}) async {
+  Future<void> fetchProducts({bool forceRefresh = false, bool publicOnly = false, String userId = ''}) async {
     if (!forceRefresh && _isCacheValid && products.isNotEmpty) {
       log('📦 Using cached products (${products.length} items)');
       return;
@@ -25,8 +25,17 @@ class ProductsController extends GetxController {
     try {
       isLoading.value = true;
       hasAttemptedFetch.value = true;
-      // Use public endpoint for marketplace to get all products
-      final endpoint = publicOnly ? 'products/public' : 'products';
+      
+      // Determine endpoint based on parameters
+      String endpoint;
+      if (userId.isNotEmpty) {
+        endpoint = 'products/user/$userId?limit=0';
+      } else if (publicOnly) {
+        endpoint = 'products/public';
+      } else {
+        endpoint = 'products';
+      }
+      
       log('📦 Fetching products from API endpoint: $endpoint');
       final response = await apiService.getRequest(endpoint);
       log('📦 API Response: $response');
@@ -74,6 +83,9 @@ class ProductsController extends GetxController {
       
       if (response is List) {
         log('📦 Response is a List with ${response.length} items');
+        if (response.isNotEmpty) {
+          log('📦 First product raw data: ${response.first}');
+        }
         return response
             .whereType<Map<String, dynamic>>()
             .map(Products.fromMap)
@@ -100,6 +112,9 @@ class ProductsController extends GetxController {
           final candidate = listCandidates[i];
           if (candidate is List) {
             log('📦 Found products list at candidate index $i with ${candidate.length} items');
+            if (candidate.isNotEmpty) {
+              log('📦 First product raw data: ${candidate.first}');
+            }
             return candidate
                 .whereType<Map<String, dynamic>>()
                 .map(Products.fromMap)
