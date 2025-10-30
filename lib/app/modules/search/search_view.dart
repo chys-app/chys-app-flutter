@@ -8,6 +8,8 @@ import '../map/controllers/map_controller.dart';
 import '../ home/widget/floating_action_button.dart';
 import '../../data/models/post.dart';
 import '../../services/custom_Api.dart';
+import '../../services/http_service.dart';
+import '../../data/models/own_profile.dart';
 import 'dart:developer';
 
 class SearchView extends StatefulWidget {
@@ -24,10 +26,16 @@ class _SearchViewState extends State<SearchView> {
   late final MapController mapController;
   final FocusNode _searchFocusNode = FocusNode();
   final CustomApiService _customApiService = CustomApiService();
+  final ApiClient _apiClient = ApiClient();
   
   // Track follow state for each creator
   final Map<String, RxBool> _followStates = {};
   final Map<String, bool> _followingInProgress = {};
+  
+  // All users data
+  final RxList<OwnProfileModel> _allUsers = <OwnProfileModel>[].obs;
+  final RxList<OwnProfileModel> _filteredUsers = <OwnProfileModel>[].obs;
+  final RxBool _isLoadingUsers = false.obs;
   
   // Constants
   static const Color _primaryColor = Color(0xFF0095F6);
@@ -53,12 +61,65 @@ class _SearchViewState extends State<SearchView> {
       _postsController = Get.put(AddoredPostsController(), tag: 'search');
     }
     
-    // Fetch posts for search
+    // Fetch all users for search
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_postsController.posts.isEmpty) {
-        _postsController.fetchAdoredPosts();
-      }
+      _fetchAllUsers();
     });
+  }
+  
+  Future<void> _fetchAllUsers() async {
+    try {
+      _isLoadingUsers.value = true;
+      log("🔄 Fetching all users from API...");
+      
+      final response = await _apiClient.get(ApiEndPoints.allUsers);
+      log("📋 AllUsers response: $response");
+      
+      if (response != null) {
+        List<OwnProfileModel> users = [];
+        
+        // Handle different response structures
+        if (response['users'] is List) {
+          users = (response['users'] as List)
+              .map((user) => OwnProfileModel.fromMap(user as Map<String, dynamic>))
+              .toList();
+        } else if (response['data'] is List) {
+          users = (response['data'] as List)
+              .map((user) => OwnProfileModel.fromMap(user as Map<String, dynamic>))
+              .toList();
+        } else if (response is List) {
+          users = (response as List)
+              .map((user) => OwnProfileModel.fromMap(user as Map<String, dynamic>))
+              .toList();
+        }
+        
+        _allUsers.value = users;
+        _filteredUsers.value = users;
+        log("✅ Successfully loaded ${users.length} users");
+      } else {
+        log("❌ Failed to fetch users: response is null");
+      }
+    } catch (e) {
+      log("❌ Error fetching all users: $e");
+    } finally {
+      _isLoadingUsers.value = false;
+    }
+  }
+  
+  void _filterUsers(String query) {
+    if (query.isEmpty) {
+      _filteredUsers.value = _allUsers;
+    } else {
+      final lowerQuery = query.toLowerCase();
+      _filteredUsers.value = _allUsers.where((user) {
+        final nameLower = user.name.toLowerCase();
+        final bioLower = (user.bio ?? '').toLowerCase();
+        final emailLower = user.email.toLowerCase();
+        return nameLower.contains(lowerQuery) ||
+               bioLower.contains(lowerQuery) ||
+               emailLower.contains(lowerQuery);
+      }).toList();
+    }
   }
 
   @override
@@ -146,7 +207,7 @@ class _SearchViewState extends State<SearchView> {
                 ),
                 onChanged: (value) {
                   setState(() {});
-                  // TODO: Implement search filtering
+                  _filterUsers(value);
                 },
               ),
             ),
@@ -158,31 +219,28 @@ class _SearchViewState extends State<SearchView> {
 
   Widget _buildSearchResults() {
     return Obx(() {
-      if (_postsController.isLoading.value && _postsController.posts.isEmpty) {
+      if (_isLoadingUsers.value && _allUsers.isEmpty) {
         return _buildLoadingState();
       }
 
-      if (_postsController.posts.isEmpty) {
+      if (_filteredUsers.isEmpty) {
         return _buildEmptyState();
       }
 
-      return _buildCreatorsList();
+      return _buildUsersList();
     });
   }
 
-  Widget _buildCreatorsList() {
+  Widget _buildUsersList() {
     return Obx(() {
-      // Extract unique creators from posts
-      final creators = _getUniqueCreators();
-      
-      if (creators.isEmpty) {
+      if (_filteredUsers.isEmpty) {
         return _buildEmptyState();
       }
 
       return ListView.separated(
         controller: _scrollController,
         padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: creators.length,
+        itemCount: _filteredUsers.length,
         separatorBuilder: (context, index) => Divider(
           height: 1,
           thickness: 0.5,
@@ -190,42 +248,30 @@ class _SearchViewState extends State<SearchView> {
           indent: 72,
         ),
         itemBuilder: (context, index) {
-          final creator = creators[index];
-          return _buildCreatorListItem(creator);
+          final user = _filteredUsers[index];
+          return _buildUserListItem(user);
         },
       );
     });
   }
 
-  List<CreatorMini> _getUniqueCreators() {
-    final Map<String, CreatorMini> uniqueCreators = {};
-    
-    for (final post in _postsController.posts) {
-      if (!uniqueCreators.containsKey(post.creator.id)) {
-        uniqueCreators[post.creator.id] = post.creator;
-      }
-    }
-    
-    return uniqueCreators.values.toList();
-  }
-
-  Widget _buildCreatorListItem(CreatorMini creator) {
+  Widget _buildUserListItem(OwnProfileModel user) {
     // Initialize follow state if not already tracked
-    if (!_followStates.containsKey(creator.id)) {
-      _followStates[creator.id] = creator.isFollowing.obs;
+    if (!_followStates.containsKey(user.id)) {
+      _followStates[user.id] = user.isFollowing.obs;
     }
     
     return InkWell(
       onTap: () {
-        // Navigate to creator's profile
-        Get.toNamed(AppRoutes.otherUserProfile, arguments: creator.id);
+        // Navigate to user's profile
+        Get.toNamed(AppRoutes.otherUserProfile, arguments: user.id);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
             // Avatar
-            _buildCreatorAvatar(creator),
+            _buildUserAvatar(user),
             const SizedBox(width: 12),
             // Name and bio
             Expanded(
@@ -233,7 +279,7 @@ class _SearchViewState extends State<SearchView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    creator.name,
+                    user.name,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -242,10 +288,10 @@ class _SearchViewState extends State<SearchView> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (creator.bio.isNotEmpty) ...[
+                  if (user.bio?.isNotEmpty == true) ...[
                     const SizedBox(height: 2),
                     Text(
-                      creator.bio,
+                      user.bio!,
                       style: const TextStyle(
                         fontSize: 13,
                         color: _textSecondary,
@@ -259,14 +305,14 @@ class _SearchViewState extends State<SearchView> {
             ),
             const SizedBox(width: 12),
             // Follow button
-            _buildFollowButton(creator),
+            _buildFollowButtonForUser(user),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCreatorAvatar(CreatorMini creator) {
+  Widget _buildUserAvatar(OwnProfileModel user) {
     return Container(
       width: 48,
       height: 48,
@@ -278,15 +324,15 @@ class _SearchViewState extends State<SearchView> {
         ),
       ),
       child: ClipOval(
-        child: creator.profilePic.isNotEmpty
+        child: (user.profilePic?.isNotEmpty == true)
             ? Image.network(
-                creator.profilePic,
+                user.profilePic!,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
-                  return _buildInitialsAvatar(creator.name);
+                  return _buildInitialsAvatar(user.name);
                 },
               )
-            : _buildInitialsAvatar(creator.name),
+            : _buildInitialsAvatar(user.name),
       ),
     );
   }
@@ -317,13 +363,13 @@ class _SearchViewState extends State<SearchView> {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
-  Widget _buildFollowButton(CreatorMini creator) {
+  Widget _buildFollowButtonForUser(OwnProfileModel user) {
     return Obx(() {
-      final isFollowing = _followStates[creator.id]?.value ?? creator.isFollowing;
-      final isInProgress = _followingInProgress[creator.id] ?? false;
+      final isFollowing = _followStates[user.id]?.value ?? user.isFollowing;
+      final isInProgress = _followingInProgress[user.id] ?? false;
       
       return GestureDetector(
-        onTap: isInProgress ? null : () => _handleFollowToggle(creator),
+        onTap: isInProgress ? null : () => _handleFollowToggleForUser(user),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
@@ -355,24 +401,24 @@ class _SearchViewState extends State<SearchView> {
     });
   }
   
-  Future<void> _handleFollowToggle(CreatorMini creator) async {
-    if (_followingInProgress[creator.id] == true) {
+  Future<void> _handleFollowToggleForUser(OwnProfileModel user) async {
+    if (_followingInProgress[user.id] == true) {
       return;
     }
     
     try {
       setState(() {
-        _followingInProgress[creator.id] = true;
+        _followingInProgress[user.id] = true;
       });
       
       // Store current state for rollback
-      final wasFollowing = _followStates[creator.id]?.value ?? creator.isFollowing;
+      final wasFollowing = _followStates[user.id]?.value ?? user.isFollowing;
       
       // Optimistically update UI
-      _followStates[creator.id]?.value = !wasFollowing;
+      _followStates[user.id]?.value = !wasFollowing;
       
       // Call the follow-toggle endpoint
-      final endpoint = "users/follow-toggle/${creator.id}";
+      final endpoint = "users/follow-toggle/${user.id}";
       log("Calling follow-toggle endpoint: $endpoint");
       final response = await _customApiService.postRequest(endpoint, {});
       
@@ -380,16 +426,16 @@ class _SearchViewState extends State<SearchView> {
       
       // Update with actual response if available
       if (response != null && response['isFollowing'] != null) {
-        _followStates[creator.id]?.value = response['isFollowing'] as bool;
+        _followStates[user.id]?.value = response['isFollowing'] as bool;
       }
     } catch (e) {
       log("Error in follow/unfollow: $e");
       // Revert optimistic update on error
-      final currentState = _followStates[creator.id]?.value ?? false;
-      _followStates[creator.id]?.value = !currentState;
+      final currentState = _followStates[user.id]?.value ?? false;
+      _followStates[user.id]?.value = !currentState;
     } finally {
       setState(() {
-        _followingInProgress[creator.id] = false;
+        _followingInProgress[user.id] = false;
       });
     }
   }
@@ -417,18 +463,20 @@ class _SearchViewState extends State<SearchView> {
   }
 
   Widget _buildEmptyState() {
+    final isSearching = _searchController.text.isNotEmpty;
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.search,
+            isSearching ? Icons.search_off : Icons.people_outline,
             size: 64,
             color: _textSecondary.withOpacity(0.5),
           ),
           const SizedBox(height: 16),
           Text(
-            'No results found',
+            isSearching ? 'No results found' : 'No users yet',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -437,7 +485,9 @@ class _SearchViewState extends State<SearchView> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Try searching for something else',
+            isSearching 
+                ? 'Try searching for something else'
+                : 'Users will appear here when they join',
             style: TextStyle(
               fontSize: 14,
               color: _textSecondary,
