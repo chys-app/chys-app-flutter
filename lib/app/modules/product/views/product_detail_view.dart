@@ -267,7 +267,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                             ),
                             GestureDetector(
                               onTap: () {
-                                Get.toNamed('/profile', arguments: widget.product.creator.id);
+                                Get.toNamed('/business-user-profile', arguments: widget.product.creator.id);
                               },
                               child: const Text(
                                 'Awesome Pet Store',

@@ -66,6 +66,7 @@ abstract class AppRoutes {
   static const profileEdit = '/profile-edit';
   static const profileSettings = '/profile-settings';
   static const otherUserProfile = '/other-user-profile';
+  static const businessUserProfile = '/business-user-profile';
   static const followers = '/followers';
   static const following = '/following';
 

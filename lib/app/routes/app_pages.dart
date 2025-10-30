@@ -208,6 +208,12 @@ class AppPages {
       transition: Transition.cupertino,
     ),
     GetPage(
+      name: AppRoutes.businessUserProfile,
+      page: () => BusinessUserProfileView(),
+      binding: ProfileBinding(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
       name: AppRoutes.chat,
       page: () => const ChatListView(),
       binding: ChatBinding(),

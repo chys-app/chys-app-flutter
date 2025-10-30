@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'package:chys/app/core/const/app_colors.dart';
 import 'package:chys/app/core/utils/app_size.dart';
 import 'package:chys/app/data/models/own_profile.dart';
-import 'package:chys/app/modules/adored_posts/controller/controller.dart';
+import 'package:chys/app/modules/products/controller/products_controller.dart';
 import 'package:chys/app/modules/map/controllers/map_controller.dart';
 import 'package:chys/app/modules/profile/controllers/other_user_profile_controller.dart';
 import 'package:chys/app/modules/podcast/controllers/create_podcast_controller.dart';
@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../widget/common/post_grid_widget.dart';
+import '../../../widget/common/product_grid_widget.dart';
 import '../../../widget/shimmer/cat_quote_shimmer.dart';
 import '../../../services/date_time_service.dart';
 import '../../../services/payment_services.dart';
@@ -37,11 +37,11 @@ class BusinessUserProfileView extends StatelessWidget {
       return const Scaffold();
     }
 
-    // Controllers for posts - use separate instance for profile to avoid conflicts
-    final AddoredPostsController postController =
-        Get.put(AddoredPostsController(), tag: 'other_profile');
+    // Controllers for products - use separate instance for profile to avoid conflicts
+    final ProductsController productsController =
+        Get.put(ProductsController(), tag: 'other_profile_products');
 
-    log("Other user profile view using controller with tag: 'other_profile'");
+    log("Other user profile view using products controller with tag: 'other_profile_products'");
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       log("Loading other user profile for ID: $argument");
@@ -49,7 +49,7 @@ class BusinessUserProfileView extends StatelessWidget {
       // Load data in parallel for better performance
       await Future.wait([
         otherUserProfileController.fetchOtherUserProfile(argument),
-        postController.fetchAdoredPosts(userId: argument),
+        productsController.fetchProducts(userId: argument),
       ]);
     });
 
@@ -59,10 +59,10 @@ class BusinessUserProfileView extends StatelessWidget {
           child: RefreshIndicator(
             onRefresh: () async {
               try {
-                // Refresh profile data and posts for the specific user
+                // Refresh profile data and products for the specific user
                 await otherUserProfileController
                     .fetchOtherUserProfile(argument);
-                await postController.fetchAdoredPosts(
+                await productsController.fetchProducts(
                     userId: argument, forceRefresh: true);
               } catch (e) {
                 log("Error refreshing profile: $e");
@@ -104,7 +104,7 @@ class BusinessUserProfileView extends StatelessWidget {
                           Padding(
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: _buildStatsSection(postController),
+                            child: _buildStatsSection(productsController),
                           ),
                           const SizedBox(height: 16),
 
@@ -117,8 +117,8 @@ class BusinessUserProfileView extends StatelessWidget {
                           const SizedBox(height: 20),
                         ],
 
-                        // Posts Display - Full width without padding
-                        _buildPostsSection(postController),
+                        // Products Display - Full width without padding
+                        _buildProductsSection(productsController),
                       ],
                     );
                   }),
