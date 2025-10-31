@@ -388,7 +388,7 @@ class CreatePodCastController extends GetxController {
     }
   }
 
-  Future<void> getAllPodCast() async {
+  Future<void> getAllPodCast({bool followingOnly = false}) async {
     try {
       podcasts.clear();
       isPodcastLoading.value = true;

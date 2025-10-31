@@ -198,7 +198,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
             children: [
               _buildTabButton('Hot Picks', 0, Icons.local_fire_department),
               _buildTabButton('Furrfriends', 1, Icons.favorite),
-              _buildTabButton('Podcasts', 2, Icons.mic),
+              _buildTabButton('Podcasts', 2, Icons.mic_none),
             ],
           )),
     );
@@ -299,6 +299,14 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   void _onTabTap(int index) {
     contrroller.onTabChange(index);
+    
+    // Handle podcast tab changes
+    if (index == 2) {
+      // Podcasts tab - show podcasts from followed hosts
+      log("Switching to Podcasts tab (following only)");
+      podcastController.getAllPodCast(followingOnly: true);
+    }
+    
     _refreshController.refreshCompleted();
   }
 
@@ -783,7 +791,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
           ),
           const SizedBox(height: 16),
           Text(
-            'No podcasts available',
+            'No Furrfriends Podcasts',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -792,11 +800,12 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
           ),
           const SizedBox(height: 8),
           Text(
-            'Start a podcast or join an existing one!',
+            'Follow other users to see their podcasts here!\nStart by searching for friends in the search tab.',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade600,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
         ],
@@ -918,7 +927,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   Future<void> _refreshPodcasts() async {
     try {
-      await podcastController.getAllPodCast();
+      // Podcasts tab always shows podcasts from followed hosts
+      await podcastController.getAllPodCast(followingOnly: true);
     } catch (e) {
       log("Error refreshing podcasts: $e");
     }
