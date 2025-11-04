@@ -827,9 +827,9 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         shrinkWrap: true,
         physics: const AlwaysScrollableScrollPhysics(),
         crossAxisCount: crossAxisCount,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        padding: const EdgeInsets.all(16),
+        mainAxisSpacing: 0,
+        crossAxisSpacing: 0,
+        padding: EdgeInsets.zero,
         itemCount: productsController.products.length,
         itemBuilder: (context, index) {
           final product = productsController.products[index];
@@ -846,8 +846,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
           );
         },
         staggeredTileBuilder: (index) {
-          // Fixed height ratio for all products to make them uniform
-          return const StaggeredTile.count(1, 1.2);
+          // Fixed height ratio for all products to make them uniform (Instagram-like)
+          return const StaggeredTile.count(1, 1.0);
         },
       );
     });
