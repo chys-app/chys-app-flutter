@@ -725,55 +725,37 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
               : 2;
 
       return StaggeredGridView.countBuilder(
-        controller: _scrollController,
         shrinkWrap: true,
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         crossAxisCount: crossAxisCount,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        padding: const EdgeInsets.all(16),
+        mainAxisSpacing: 0,
+        crossAxisSpacing: 0,
+        padding: EdgeInsets.zero,
         itemCount: podcastController.podcasts.length,
         itemBuilder: (context, index) {
           final podcast = podcastController.podcasts[index];
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: PodcastGridWidget(
-                podcast: podcast,
-                onTap: () {
-                  final canJoin = CommonService.canJoinPodcast(
-                    hostId: podcast.host.id,
-                    status: podcast.status,
-                    scheduledAt: podcast.scheduledAt,
-                  );
-                  if (canJoin) {
-                    podCastCallController.podCastId = podcast.id;
-                    log("Pod cast id is ${podCastCallController.podCastId}");
-                    Get.toNamed(AppRoutes.podCastView, arguments: podcast);
-                  }
-                },
-                onUserProfileTap: () {
-                  // Navigate to user profile
-                },
-              ),
-            ),
+          return PodcastGridWidget(
+            podcast: podcast,
+            onTap: () {
+              final canJoin = CommonService.canJoinPodcast(
+                hostId: podcast.host.id,
+                status: podcast.status,
+                scheduledAt: podcast.scheduledAt,
+              );
+              if (canJoin) {
+                podCastCallController.podCastId = podcast.id;
+                log("Pod cast id is ${podCastCallController.podCastId}");
+                Get.toNamed(AppRoutes.podCastView, arguments: podcast);
+              }
+            },
+            onUserProfileTap: () {
+              // Navigate to user profile
+            },
           );
         },
         staggeredTileBuilder: (index) {
-          // Create different heights for podcasts
-          final heightRatio = 1.0 + (index % 4) * 0.2; // 1.0, 1.2, 1.4, 1.6
-          return StaggeredTile.count(1, heightRatio);
+          // Fixed height ratio for Instagram-like uniform grid
+          return const StaggeredTile.count(1, 1.0);
         },
       );
     });
@@ -823,9 +805,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
               : 2;
 
       return StaggeredGridView.countBuilder(
-        controller: _scrollController,
         shrinkWrap: true,
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         crossAxisCount: crossAxisCount,
         mainAxisSpacing: 0,
         crossAxisSpacing: 0,
