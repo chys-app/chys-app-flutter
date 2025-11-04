@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:chys/app/modules/product/controllers/product_controller.dart';
+import 'package:chys/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -93,7 +94,8 @@ class _AddProductViewState extends State<AddProductView> {
         _isLoading = false;
       });
 
-      Get.back(result: true);
+      // Navigate to business home to show the products list
+      Get.offAllNamed(AppRoutes.businessHome);
     } catch (e) {
       setState(() {
         _isLoading = false;
