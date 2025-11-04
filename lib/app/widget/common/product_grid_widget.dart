@@ -22,20 +22,10 @@ class ProductGridWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Stack(
+        child: Stack(
             children: [
               SizedBox(
                 width: double.infinity,
@@ -203,7 +193,6 @@ class ProductGridWidget extends StatelessWidget {
                 ),
               ),
             ],
-          ),
         ),
       ),
     );
