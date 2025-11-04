@@ -9,7 +9,9 @@ import '../ home/widget/floating_action_button.dart';
 import '../../data/models/post.dart';
 import '../../services/custom_Api.dart';
 import '../../services/http_service.dart';
+import '../../services/storage_service.dart';
 import '../../data/models/own_profile.dart';
+import '../../data/models/pet_profile.dart';
 import 'dart:developer';
 
 class SearchView extends StatefulWidget {
@@ -28,14 +30,14 @@ class _SearchViewState extends State<SearchView> {
   final CustomApiService _customApiService = CustomApiService();
   final ApiClient _apiClient = ApiClient();
   
-  // Track follow state for each creator
+  // All pets data
+  final RxList<PetModel> _allPets = <PetModel>[].obs;
+  final RxList<PetModel> _filteredPets = <PetModel>[].obs;
+  final RxBool _isLoadingPets = false.obs;
+  
+  // Track follow state for pet owners
   final Map<String, RxBool> _followStates = {};
   final Map<String, bool> _followingInProgress = {};
-  
-  // All users data
-  final RxList<OwnProfileModel> _allUsers = <OwnProfileModel>[].obs;
-  final RxList<OwnProfileModel> _filteredUsers = <OwnProfileModel>[].obs;
-  final RxBool _isLoadingUsers = false.obs;
   
   // Constants
   static const Color _primaryColor = Color(0xFF0095F6);
@@ -61,63 +63,86 @@ class _SearchViewState extends State<SearchView> {
       _postsController = Get.put(AddoredPostsController(), tag: 'search');
     }
     
-    // Fetch all users for search
+    // Fetch all pets for search
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchAllUsers();
+      _fetchAllPets();
     });
   }
   
-  Future<void> _fetchAllUsers() async {
+  Future<void> _fetchAllPets() async {
     try {
-      _isLoadingUsers.value = true;
-      log("🔄 Fetching all users from API...");
+      _isLoadingPets.value = true;
       
-      final response = await _apiClient.get(ApiEndPoints.allUsers);
-      log("📋 AllUsers response: $response");
+      // Log JWT token for debugging
+      final token = StorageService.getToken();
+      log("� JWT Token: $token");
+      log("�🔄 Fetching all pets from API endpoint: ${ApiEndPoints.nearbyPet}");
+      
+      final response = await _apiClient.get(ApiEndPoints.nearbyPet);
+      log("📋 AllPets response: $response");
+      log("📋 Response type: ${response.runtimeType}");
+      log("📋 Response keys: ${response is Map ? response.keys.toList() : 'Not a map'}");
       
       if (response != null) {
-        List<OwnProfileModel> users = [];
+        List<PetModel> pets = [];
         
         // Handle different response structures
-        if (response['users'] is List) {
-          users = (response['users'] as List)
-              .map((user) => OwnProfileModel.fromMap(user as Map<String, dynamic>))
+        if (response['pets'] is List) {
+          log("🐾 Found petProfiles array with ${(response['pets'] as List).length} items");
+          pets = (response['pets'] as List)
+              .map((pet) => PetModel.fromJson(pet as Map<String, dynamic>))
               .toList();
+        } else if (response['pets'] is Map) {
+          // Single pet profile response
+          log("🐾 Found single petProfile object");
+          pets = [PetModel.fromJson(response['petProfile'] as Map<String, dynamic>)];
         } else if (response['data'] is List) {
-          users = (response['data'] as List)
-              .map((user) => OwnProfileModel.fromMap(user as Map<String, dynamic>))
+          log("🐾 Found data array with ${(response['data'] as List).length} items");
+          pets = (response['data'] as List)
+              .map((pet) => PetModel.fromJson(pet as Map<String, dynamic>))
               .toList();
         } else if (response is List) {
-          users = (response as List)
-              .map((user) => OwnProfileModel.fromMap(user as Map<String, dynamic>))
+          log("🐾 Response is a direct list with ${(response as List).length} items");
+          pets = (response as List)
+              .map((pet) => PetModel.fromJson(pet as Map<String, dynamic>))
               .toList();
+        } else {
+          log("⚠️ Unknown response structure. Response: $response");
         }
         
-        _allUsers.value = users;
-        _filteredUsers.value = users;
-        log("✅ Successfully loaded ${users.length} users");
+        _allPets.value = pets;
+        _filteredPets.value = pets;
+        log("✅ Successfully loaded ${pets.length} pets");
+        
+        // Debug: Log pet user IDs
+        for (var pet in pets) {
+          log("🐾 Pet: ${pet.name}, User ID: ${pet.user}, Has UserModel: ${pet.userModel != null}");
+        }
       } else {
-        log("❌ Failed to fetch users: response is null");
+        log("❌ Failed to fetch pets: response is null");
       }
-    } catch (e) {
-      log("❌ Error fetching all users: $e");
+    } catch (e, stackTrace) {
+      log("❌ Error fetching all pets: $e");
+      log("❌ Stack trace: $stackTrace");
     } finally {
-      _isLoadingUsers.value = false;
+      _isLoadingPets.value = false;
     }
   }
   
-  void _filterUsers(String query) {
+  void _filterPets(String query) {
     if (query.isEmpty) {
-      _filteredUsers.value = _allUsers;
+      _filteredPets.value = _allPets;
     } else {
       final lowerQuery = query.toLowerCase();
-      _filteredUsers.value = _allUsers.where((user) {
-        final nameLower = user.name.toLowerCase();
-        final bioLower = (user.bio ?? '').toLowerCase();
-        final emailLower = user.email.toLowerCase();
+      _filteredPets.value = _allPets.where((pet) {
+        final nameLower = (pet.name ?? '').toLowerCase();
+        final breedLower = (pet.breed ?? '').toLowerCase();
+        final bioLower = (pet.bio ?? '').toLowerCase();
+        final petTypeLower = (pet.petType ?? '').toLowerCase();
         return nameLower.contains(lowerQuery) ||
+               breedLower.contains(lowerQuery) ||
                bioLower.contains(lowerQuery) ||
-               emailLower.contains(lowerQuery);
+               petTypeLower.contains(lowerQuery);
       }).toList();
     }
   }
@@ -207,7 +232,7 @@ class _SearchViewState extends State<SearchView> {
                 ),
                 onChanged: (value) {
                   setState(() {});
-                  _filterUsers(value);
+                  _filterPets(value);
                 },
               ),
             ),
@@ -219,206 +244,240 @@ class _SearchViewState extends State<SearchView> {
 
   Widget _buildSearchResults() {
     return Obx(() {
-      if (_isLoadingUsers.value && _allUsers.isEmpty) {
+      if (_isLoadingPets.value && _allPets.isEmpty) {
         return _buildLoadingState();
       }
 
-      if (_filteredUsers.isEmpty) {
+      if (_filteredPets.isEmpty) {
         return _buildEmptyState();
       }
 
-      return _buildUsersList();
+      return _buildPetsGrid();
     });
   }
 
-  Widget _buildUsersList() {
+  Widget _buildPetsGrid() {
     return Obx(() {
-      if (_filteredUsers.isEmpty) {
+      if (_filteredPets.isEmpty) {
         return _buildEmptyState();
       }
 
-      return ListView.separated(
-        controller: _scrollController,
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: _filteredUsers.length,
-        separatorBuilder: (context, index) => Divider(
-          height: 1,
-          thickness: 0.5,
-          color: _borderColor,
-          indent: 72,
-        ),
+      final screenWidth = MediaQuery.of(context).size.width;
+      final crossAxisCount = screenWidth > 900
+          ? 4
+          : screenWidth > 600
+              ? 3
+              : 3;
+
+      return StaggeredGridView.countBuilder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: crossAxisCount,
+        mainAxisSpacing: 0,
+        crossAxisSpacing: 0,
+        padding: EdgeInsets.zero,
+        itemCount: _filteredPets.length,
         itemBuilder: (context, index) {
-          final user = _filteredUsers[index];
-          return _buildUserListItem(user);
+          final pet = _filteredPets[index];
+          return _buildPetGridItem(pet);
+        },
+        staggeredTileBuilder: (index) {
+          return const StaggeredTile.count(1, 1.0);
         },
       );
     });
   }
 
-  Widget _buildUserListItem(OwnProfileModel user) {
-    // Initialize follow state if not already tracked
-    if (!_followStates.containsKey(user.id)) {
-      _followStates[user.id] = user.isFollowing.obs;
-    }
-    
-    return InkWell(
+  Widget _buildPetGridItem(PetModel pet) {
+    return GestureDetector(
       onTap: () {
-        // Navigate to user's profile
-        Get.toNamed(AppRoutes.otherUserProfile, arguments: user.id);
+        // Navigate to pet profile
+        Get.toNamed(AppRoutes.petProfile, arguments: pet.id);
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+        ),
+        child: Stack(
           children: [
-            // Avatar
-            _buildUserAvatar(user),
-            const SizedBox(width: 12),
-            // Name and bio
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: _textPrimary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            // Pet image
+            SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+              child: (pet.profilePic?.isNotEmpty == true)
+                  ? Image.network(
+                      pet.profilePic!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildPetPlaceholder(pet),
+                    )
+                  : _buildPetPlaceholder(pet),
+            ),
+            // Gradient overlay at bottom
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.7),
+                      Colors.transparent,
+                    ],
                   ),
-                  if (user.bio?.isNotEmpty == true) ...[
-                    const SizedBox(height: 2),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Text(
-                      user.bio!,
+                      pet.name ?? 'Unknown',
                       style: const TextStyle(
-                        fontSize: 13,
-                        color: _textSecondary,
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (pet.breed?.isNotEmpty == true) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        pet.breed!,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 11,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
-            const SizedBox(width: 12),
-            // Follow button
-            _buildFollowButtonForUser(user),
+            // Follow button in top right
+            if (pet.user != null)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: _buildFollowButton(pet),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildUserAvatar(OwnProfileModel user) {
+  Widget _buildPetPlaceholder(PetModel pet) {
     return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: _borderColor,
-          width: 0.5,
-        ),
-      ),
-      child: ClipOval(
-        child: (user.profilePic?.isNotEmpty == true)
-            ? Image.network(
-                user.profilePic!,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return _buildInitialsAvatar(user.name);
-                },
-              )
-            : _buildInitialsAvatar(user.name),
-      ),
-    );
-  }
-
-  Widget _buildInitialsAvatar(String name) {
-    final initials = _getInitials(name);
-    return Container(
-      color: _primaryColor.withOpacity(0.1),
+      color: Colors.grey.shade200,
       child: Center(
-        child: Text(
-          initials,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: _primaryColor,
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              pet.petType?.toLowerCase() == 'dog'
+                  ? Icons.pets
+                  : pet.petType?.toLowerCase() == 'cat'
+                      ? Icons.pets
+                      : Icons.pets,
+              size: 40,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              pet.name ?? 'Unknown',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  String _getInitials(String name) {
-    if (name.trim().isEmpty) return '?';
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.length == 1) {
-      return parts.first.substring(0, 1).toUpperCase();
+  Widget _buildFollowButton(PetModel pet) {
+    final userId = pet.user;
+    log("🔵 Building follow button for pet: ${pet.name}, userId: $userId");
+    
+    if (userId == null) {
+      log("⚠️ No userId for pet: ${pet.name}");
+      return const SizedBox.shrink();
     }
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-
-  Widget _buildFollowButtonForUser(OwnProfileModel user) {
+    
+    // Initialize follow state if not already tracked (default to false)
+    if (!_followStates.containsKey(userId)) {
+      _followStates[userId] = false.obs;
+    }
+    
     return Obx(() {
-      final isFollowing = _followStates[user.id]?.value ?? user.isFollowing;
-      final isInProgress = _followingInProgress[user.id] ?? false;
+      final isFollowing = _followStates[userId]?.value ?? false;
+      final isInProgress = _followingInProgress[userId] ?? false;
       
       return GestureDetector(
-        onTap: isInProgress ? null : () => _handleFollowToggleForUser(user),
+        onTap: isInProgress ? null : () => _handleFollowToggle(pet),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: isFollowing ? Colors.transparent : _primaryColor,
-            border: isFollowing ? Border.all(color: _borderColor) : null,
-            borderRadius: BorderRadius.circular(6),
+            color: isFollowing ? Colors.white.withOpacity(0.9) : _primaryColor,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: isInProgress
               ? SizedBox(
-                  width: 13,
-                  height: 13,
+                  width: 16,
+                  height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isFollowing ? _textSecondary : Colors.white,
+                      isFollowing ? _textPrimary : Colors.white,
                     ),
                   ),
                 )
-              : Text(
-                  isFollowing ? 'Following' : 'Follow',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isFollowing ? _textPrimary : Colors.white,
-                  ),
+              : Icon(
+                  isFollowing ? Icons.check : Icons.person_add,
+                  size: 16,
+                  color: isFollowing ? _textPrimary : Colors.white,
                 ),
         ),
       );
     });
   }
   
-  Future<void> _handleFollowToggleForUser(OwnProfileModel user) async {
-    if (_followingInProgress[user.id] == true) {
+  Future<void> _handleFollowToggle(PetModel pet) async {
+    final userId = pet.user;
+    if (userId == null || _followingInProgress[userId] == true) {
       return;
     }
     
     try {
       setState(() {
-        _followingInProgress[user.id] = true;
+        _followingInProgress[userId] = true;
       });
       
       // Store current state for rollback
-      final wasFollowing = _followStates[user.id]?.value ?? user.isFollowing;
+      final wasFollowing = _followStates[userId]?.value ?? false;
       
       // Optimistically update UI
-      _followStates[user.id]?.value = !wasFollowing;
+      _followStates[userId]?.value = !wasFollowing;
       
       // Call the follow-toggle endpoint
-      final endpoint = "users/follow-toggle/${user.id}";
+      final endpoint = "users/follow-toggle/$userId";
       log("Calling follow-toggle endpoint: $endpoint");
       final response = await _customApiService.postRequest(endpoint, {});
       
@@ -426,16 +485,16 @@ class _SearchViewState extends State<SearchView> {
       
       // Update with actual response if available
       if (response != null && response['isFollowing'] != null) {
-        _followStates[user.id]?.value = response['isFollowing'] as bool;
+        _followStates[userId]?.value = response['isFollowing'] as bool;
       }
     } catch (e) {
       log("Error in follow/unfollow: $e");
       // Revert optimistic update on error
-      final currentState = _followStates[user.id]?.value ?? false;
-      _followStates[user.id]?.value = !currentState;
+      final currentState = _followStates[userId]?.value ?? false;
+      _followStates[userId]?.value = !currentState;
     } finally {
       setState(() {
-        _followingInProgress[user.id] = false;
+        _followingInProgress[userId] = false;
       });
     }
   }
@@ -476,7 +535,7 @@ class _SearchViewState extends State<SearchView> {
           ),
           const SizedBox(height: 16),
           Text(
-            isSearching ? 'No results found' : 'No users yet',
+            isSearching ? 'No pets found' : 'No pets yet',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -486,8 +545,8 @@ class _SearchViewState extends State<SearchView> {
           const SizedBox(height: 8),
           Text(
             isSearching 
-                ? 'Try searching for something else'
-                : 'Users will appear here when they join',
+                ? 'Try searching for a different pet name or breed'
+                : 'Pet profiles will appear here',
             style: TextStyle(
               fontSize: 14,
               color: _textSecondary,

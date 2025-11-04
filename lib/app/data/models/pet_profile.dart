@@ -75,7 +75,11 @@ class PetModel {
 
       return PetModel(
       id: json['_id'] as String?,
-      user: userField is String ? userField : null,
+      user: userField is String 
+          ? userField 
+          : userField is Map<String, dynamic> 
+              ? userField['_id']?.toString() 
+              : null,
       userModel: userField is Map<String, dynamic>
           ? UserModel.fromJson(userField)
           : null,
@@ -98,7 +102,9 @@ class PetModel {
       size: json['size'] as String?,
       weight: json['weight'] as num?,
       marks: json['marks'] as String?,
-      microchipNumber: json['microchipNumber'] as String?,
+      microchipNumber: json['microchipNumber'] is String 
+          ? json['microchipNumber'] as String? 
+          : null,
       microchipNumbers: (json['microchipNumbers'] as List?)?.map((e) => e?.toString() ?? '').toList(),
       tagId: json['tagId'] as String?,
       lostStatus: json['lostStatus'] as bool?,
