@@ -32,7 +32,6 @@ class SignupController extends GetxController {
   final _imagePicker = ImagePicker();
   final ApiService _apiService;
   final LocationController controller;
-  // TODO: CRITICAL Remove this before checking in
   static const bool bypassEmailVerification = true;
   // Loading states
   final isLoading = false.obs;

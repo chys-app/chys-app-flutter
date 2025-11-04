@@ -461,7 +461,15 @@ class _SearchViewState extends State<SearchView> {
   
   Future<void> _handleFollowToggle(PetModel pet) async {
     final userId = pet.user;
-    if (userId == null || _followingInProgress[userId] == true) {
+    log("🔄 Follow button tapped for pet: ${pet.name}, userId: $userId");
+    
+    if (userId == null) {
+      log("❌ Cannot follow: userId is null");
+      return;
+    }
+    
+    if (_followingInProgress[userId] == true) {
+      log("⚠️ Follow request already in progress for userId: $userId");
       return;
     }
     
@@ -478,10 +486,13 @@ class _SearchViewState extends State<SearchView> {
       
       // Call the follow-toggle endpoint
       final endpoint = "users/follow-toggle/$userId";
-      log("Calling follow-toggle endpoint: $endpoint");
+      log("📞 Calling follow-toggle endpoint: $endpoint");
+      log("📤 Request data: {}");
+      
       final response = await _customApiService.postRequest(endpoint, {});
       
-      log("Follow-toggle response: $response");
+      log("📥 Follow-toggle response: $response");
+      log("📥 Response type: ${response.runtimeType}");
       
       // Update with actual response if available
       if (response != null && response['isFollowing'] != null) {
