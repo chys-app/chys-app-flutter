@@ -138,10 +138,16 @@ class PostController extends GetxController {
       } else {
         log("No cameras available");
         ShortMessageUtils.showError('No cameras available on this device');
+        // Navigate to gallery view after showing error
+        await Future.delayed(const Duration(milliseconds: 500));
+        await pickImages();
       }
     } catch (e) {
       log("Error initializing cameras: $e");
       ShortMessageUtils.showError('Failed to initialize camera: $e');
+      // Navigate to gallery view after showing error
+      await Future.delayed(const Duration(milliseconds: 500));
+      await pickImages();
     }
   }
 
