@@ -18,8 +18,9 @@ class NewPostPreviewView extends StatefulWidget {
   State<NewPostPreviewView> createState() => _NewPostPreviewViewState();
 }
 
-class _NewPostPreviewViewState extends State<NewPostPreviewView> {
+class _NewPostPreviewViewState extends State<NewPostPreviewView> with SingleTickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
+  late TabController _tabController;
   
   PostController get controller {
     try {
@@ -31,7 +32,14 @@ class _NewPostPreviewViewState extends State<NewPostPreviewView> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
   void dispose() {
+    _tabController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -90,13 +98,10 @@ class _NewPostPreviewViewState extends State<NewPostPreviewView> {
                     child: _buildMediaPreview(),
                   ),
                   
-                  // Description input section - scrollable
+                  // Description input section with tabs
                   Flexible(
                     flex: 2,
-                    child: SingleChildScrollView(
-                      controller: _scrollController,
-                      child: _buildDescriptionSection(),
-                    ),
+                    child: _buildDescriptionSection(),
                   ),
                 ],
               );
@@ -245,12 +250,6 @@ class _NewPostPreviewViewState extends State<NewPostPreviewView> {
 
   Widget _buildDescriptionSection() {
     return Container(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
@@ -263,6 +262,59 @@ class _NewPostPreviewViewState extends State<NewPostPreviewView> {
             offset: const Offset(0, -2),
           ),
         ],
+      ),
+      child: Column(
+        children: [
+          // Tab bar
+          Container(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Colors.grey[200]!, width: 1),
+              ),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Colors.blue[600],
+              unselectedLabelColor: Colors.grey[600],
+              indicatorColor: Colors.blue[600],
+              indicatorWeight: 3,
+              labelStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+              tabs: const [
+                Tab(text: 'Post'),
+                Tab(text: 'Fundraiser'),
+              ],
+            ),
+          ),
+          
+          // Tab content
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildPostTab(),
+                _buildFundraiserTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPostTab() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,6 +374,232 @@ class _NewPostPreviewViewState extends State<NewPostPreviewView> {
               ),
               child: const Text(
                 'Post',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          
+          // Bottom padding to ensure button is visible above keyboard
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFundraiserTab() {
+    final TextEditingController fundraiserDescriptionController = TextEditingController();
+    final TextEditingController amountController = TextEditingController();
+    final RxString selectedDeadline = ''.obs;
+
+    Future<void> _selectDeadline(BuildContext context) async {
+      final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now().add(const Duration(days: 7)),
+        firstDate: DateTime.now(),
+        lastDate: DateTime.now().add(const Duration(days: 365)),
+        builder: (context, child) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: ColorScheme.light(
+                primary: Colors.blue[600]!,
+                onPrimary: Colors.white,
+                onSurface: Colors.black,
+              ),
+            ),
+            child: child!,
+          );
+        },
+      );
+      if (picked != null) {
+        selectedDeadline.value = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      }
+    }
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Description input
+          Text(
+            'Description',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!, width: 1),
+            ),
+            child: TextField(
+              controller: fundraiserDescriptionController,
+              maxLines: 4,
+              textInputAction: TextInputAction.done,
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
+              decoration: InputDecoration(
+                hintText: 'Describe your fundraiser...',
+                hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+              ),
+              onSubmitted: (value) {
+                FocusScope.of(context).unfocus();
+              },
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Amount input
+          Text(
+            'Amount',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!, width: 1),
+            ),
+            child: TextField(
+              controller: amountController,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              textInputAction: TextInputAction.done,
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
+              decoration: InputDecoration(
+                hintText: 'Enter target amount',
+                hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
+                prefixIcon: Icon(Icons.attach_money, color: Colors.grey[600]),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+              ),
+              onSubmitted: (value) {
+                FocusScope.of(context).unfocus();
+              },
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Deadline input
+          Text(
+            'Deadline',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Obx(() => GestureDetector(
+            onTap: () => _selectDeadline(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[300]!, width: 1),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_today, color: Colors.grey[600], size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      selectedDeadline.value.isEmpty
+                          ? 'Select deadline date'
+                          : selectedDeadline.value,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: selectedDeadline.value.isEmpty
+                            ? Colors.grey[500]
+                            : Colors.black87,
+                      ),
+                    ),
+                  ),
+                  Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
+                ],
+              ),
+            ),
+          )),
+
+          const SizedBox(height: 20),
+          
+          // Create Fundraiser button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                // TODO: Implement fundraiser creation logic
+                if (fundraiserDescriptionController.text.trim().isEmpty) {
+                  Get.snackbar(
+                    'Error',
+                    'Please enter a description',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.red[600],
+                    colorText: Colors.white,
+                  );
+                  return;
+                }
+                if (amountController.text.trim().isEmpty) {
+                  Get.snackbar(
+                    'Error',
+                    'Please enter an amount',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.red[600],
+                    colorText: Colors.white,
+                  );
+                  return;
+                }
+                if (selectedDeadline.value.isEmpty) {
+                  Get.snackbar(
+                    'Error',
+                    'Please select a deadline',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.red[600],
+                    colorText: Colors.white,
+                  );
+                  return;
+                }
+                // Fundraiser creation logic here
+                Get.snackbar(
+                  'Coming Soon',
+                  'Fundraiser creation will be implemented soon',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.blue[600],
+                  colorText: Colors.white,
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green[600],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
+                shadowColor: Colors.green.withOpacity(0.3),
+              ),
+              child: const Text(
+                'Create Fundraiser',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
