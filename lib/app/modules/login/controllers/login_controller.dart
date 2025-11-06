@@ -84,11 +84,23 @@ class LoginController extends GetxController {
 
         Future.microtask(() => Get.put(MapController()).selectFeature("user"));
       } else {
-        if (result["message"] ==
-            "Your email is not verified. A new verification link has been sent to your email.") {
-          Get.put(SignupController());
-          Get.offAllNamed(AppRoutes.verifyEmailView);
+        // Check if this is an email verification error
+        final isEmailVerificationError = result["message"] ==
+            "Your email is not verified. A new verification link has been sent to your email.";
+        
+        if (isEmailVerificationError) {
+          // Only redirect to verification screen if bypass is disabled
+          if (!SignupController.bypassEmailVerification) {
+            Get.put(SignupController());
+            Get.offAllNamed(AppRoutes.verifyEmailView);
+            return; // Don't show error message if redirecting
+          } else {
+            // If bypass is enabled, log the issue but don't redirect
+            log('⚠️ Email verification error but bypass is enabled. Backend may need configuration.');
+          }
         }
+        
+        // Show the error message
         ShortMessageUtils.showError(result["message"]);
       }
     } catch (e) {
