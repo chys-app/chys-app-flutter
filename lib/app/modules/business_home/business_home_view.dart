@@ -7,6 +7,7 @@ import 'package:chys/app/widget/common/post_grid_widget.dart';
 import 'package:chys/app/widget/common/custom_post_widget.dart';
 import 'package:chys/app/modules/products/controller/products_controller.dart';
 import 'package:chys/app/modules/product/views/add_product_view.dart';
+import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -92,8 +93,17 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
       }
       if (productsController.products.isEmpty &&
           !productsController.isLoading.value) {
-        log('🏠 Fetching products...');
-        productsController.fetchProducts();
+        log('🏠 Fetching products for current user...');
+        // Get current user ID from ProfileController
+        final profileController = Get.find<ProfileController>();
+        final currentUserId = profileController.profile.value?.id ?? '';
+        if (currentUserId.isNotEmpty) {
+          log('🏠 Current user ID: $currentUserId');
+          productsController.fetchProducts(userId: currentUserId);
+        } else {
+          log('⚠️ Current user ID is empty, fetching all products');
+          productsController.fetchProducts();
+        }
       } else {
         log('🏠 Products already loaded: ${productsController.products.length} items');
       }
@@ -705,7 +715,16 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
 
   Future<void> _refreshProducts() async {
     try {
-      await productsController.refreshProducts();
+      // Get current user ID from ProfileController
+      final profileController = Get.find<ProfileController>();
+      final currentUserId = profileController.profile.value?.id ?? '';
+      if (currentUserId.isNotEmpty) {
+        log('🔄 Refreshing products for current user: $currentUserId');
+        await productsController.fetchProducts(forceRefresh: true, userId: currentUserId);
+      } else {
+        log('⚠️ Current user ID is empty, refreshing all products');
+        await productsController.refreshProducts();
+      }
     } catch (e) {
       log("Error refreshing products: $e");
     }
