@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'search_controller.dart' as search;
 import 'widgets/search_widget.dart';
-import '../business_home/widget/floating_action_button.dart';
+import '../ home/widget/floating_action_button.dart';
 
 class SearchView extends GetView<search.SearchController> {
   const SearchView({Key? key}) : super(key: key);
