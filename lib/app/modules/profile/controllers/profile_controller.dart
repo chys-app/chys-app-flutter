@@ -121,25 +121,39 @@ class ProfileController extends GetxController {
       // Update profile state optimistically
       if (currentProfile != null) {
         if (isFollowing.value) {
-          // Following - add current user to followers list
+          // Following - add target user to following list and current user to followers list
+          final updatedFollowing = List<String>.from(currentProfile.following);
           final updatedFollowers = List<String>.from(currentProfile.followers);
+          
+          if (!updatedFollowing.contains(userId)) {
+            updatedFollowing.add(userId);
+          }
           if (!updatedFollowers.contains(userCurrentId.value)) {
             updatedFollowers.add(userCurrentId.value);
           }
+          
           profile.value = currentProfile.copyWith(
+            following: updatedFollowing,
             followers: updatedFollowers,
             isFollowing: true,
           );
           followersCount.value = updatedFollowers.length;
+          followingCount.value = updatedFollowing.length;
         } else {
-          // Unfollowing - remove current user from followers list
+          // Unfollowing - remove target user from following list and current user from followers list
+          final updatedFollowing = List<String>.from(currentProfile.following);
           final updatedFollowers = List<String>.from(currentProfile.followers);
+          
+          updatedFollowing.remove(userId);
           updatedFollowers.remove(userCurrentId.value);
+          
           profile.value = currentProfile.copyWith(
+            following: updatedFollowing,
             followers: updatedFollowers,
             isFollowing: false,
           );
           followersCount.value = updatedFollowers.length;
+          followingCount.value = updatedFollowing.length;
         }
       }
 
