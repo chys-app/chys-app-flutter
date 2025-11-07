@@ -29,7 +29,6 @@ class SearchView extends GetView<search.SearchController> {
           onPetTap: controller.navigateToPetProfile,
           followStates: controller.currentFollowStates,
           followingInProgress: controller.currentFollowingInProgress,
-          onDebugFollowStates: controller.debugFollowStates,
         ),
         bottomNavigationBar: BottomNavigationBarWidget(controller: controller.mapController),
       );

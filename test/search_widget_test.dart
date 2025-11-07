@@ -59,7 +59,6 @@ void main() {
               onPetTap: (petId) {},
               followStates: testFollowStates,
               followingInProgress: testFollowingInProgress,
-              onDebugFollowStates: () {},
             ),
           ),
         ),

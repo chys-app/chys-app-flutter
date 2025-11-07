@@ -23,9 +23,6 @@ class SearchWidget extends StatelessWidget {
   final Function(String) onPetTap;
   final Map<String, bool> followStates;
   final Map<String, bool> followingInProgress;
-  
-  // Debug callback
-  final VoidCallback? onDebugFollowStates;
 
   const SearchWidget({
     Key? key,
@@ -39,7 +36,6 @@ class SearchWidget extends StatelessWidget {
     required this.onPetTap,
     required this.followStates,
     required this.followingInProgress,
-    this.onDebugFollowStates,
   }) : super(key: key);
 
   @override
@@ -71,14 +67,6 @@ class SearchWidget extends StatelessWidget {
       ),
       child: Column(
         children: [
-          if (onDebugFollowStates != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: ElevatedButton(
-                onPressed: onDebugFollowStates,
-                child: const Text('Debug Follow States'),
-              ),
-            ),
           TextField(
             style: TextStyle(
               fontSize: 14,
