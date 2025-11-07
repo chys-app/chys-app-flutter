@@ -94,16 +94,8 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
       if (productsController.products.isEmpty &&
           !productsController.isLoading.value) {
         log('🏠 Fetching products for current user...');
-        // Get current user ID from ProfileController
-        final profileController = Get.find<ProfileController>();
-        final currentUserId = profileController.profile.value?.id ?? '';
-        if (currentUserId.isNotEmpty) {
-          log('🏠 Current user ID: $currentUserId');
-          productsController.fetchProducts(userId: currentUserId);
-        } else {
-          log('⚠️ Current user ID is empty, fetching all products');
-          productsController.fetchProducts();
-        }
+        // Call /products endpoint to get products for current user
+        productsController.fetchProducts();
       } else {
         log('🏠 Products already loaded: ${productsController.products.length} items');
       }
