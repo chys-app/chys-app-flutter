@@ -36,6 +36,7 @@ class AddoredPostsController extends GetxController {
 
   RxInt currentIndex = 0.obs;
   RxBool isLoading = false.obs;
+  RxBool followingOnly = false.obs; // Track current filter state
   
   // Caching and API management
   final Map<String, dynamic> _cache = {};
@@ -54,6 +55,8 @@ class AddoredPostsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Initialize with Hot Picks (followingOnly = false)
+    followingOnly.value = false;
     // Clear expired cache on initialization
     _clearExpiredCache();
   }
@@ -74,10 +77,12 @@ class AddoredPostsController extends GetxController {
     tabIndex.value = index;
     if (index == 0) {
       // Hot picks - show all posts (clear user filtering)
+      followingOnly.value = false;
       fetchAdoredPosts(userId: "", followingOnly: false, forceRefresh: false);
       print('Hot picks selected');
     } else if (index == 1) {
       // Furrfriends - show posts from followed users only
+      followingOnly.value = true;
       fetchAdoredPosts(userId: "", followingOnly: true, forceRefresh: false);
       print('Furrfriends selected - showing posts from followed users');
     }
@@ -86,6 +91,15 @@ class AddoredPostsController extends GetxController {
 
   void toggleViewMode() {
     isGridView.value = !isGridView.value;
+  }
+
+  // Getter to return posts based on current filter state
+  List<Posts> get currentPosts {
+    final cacheKey = "posts__${followingOnly.value}";
+    if (_cache.containsKey(cacheKey)) {
+      return _cache[cacheKey] as List<Posts>;
+    }
+    return posts;
   }
 
   RxBool isSinglePostLoading = false.obs;
