@@ -433,8 +433,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         _refreshController.refreshCompleted();
       },
       child: Obx(() {
-        // Use posts for both tabs - the controller handles filtering based on followingOnly
-        final postsList = contrroller.posts;
+        // Use currentPosts which returns posts based on the current filter state
+        final postsList = contrroller.currentPosts;
         
         return Stack(
           children: [
@@ -567,8 +567,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   Widget _buildPostsGrid() {
     return Obx(() {
-      // Use posts - the controller handles filtering based on followingOnly
-      final postsList = contrroller.posts;
+      // Use currentPosts which returns posts based on the current filter state
+      final postsList = contrroller.currentPosts;
       
       final screenWidth = MediaQuery.of(Get.context!).size.width;
       final crossAxisCount = screenWidth > 900
@@ -604,8 +604,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   Widget _buildPostsList() {
     return Obx(() {
-      // Use posts - the controller handles filtering based on followingOnly
-      final postsList = contrroller.posts;
+      // Use currentPosts which returns posts based on the current filter state
+      final postsList = contrroller.currentPosts;
       
       return ListView.builder(
         controller: _scrollController,
