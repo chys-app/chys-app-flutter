@@ -41,6 +41,10 @@ class SearchController extends GetxController {
     super.onInit();
     mapController = Get.put(MapController());
     profileController = Get.find<ProfileController>();
+    
+    // Set selected feature to 'search' to highlight search tab in bottom navigation
+    mapController.selectFeature('search');
+    
     fetchAllPets();
     
     // Listen to search query changes
