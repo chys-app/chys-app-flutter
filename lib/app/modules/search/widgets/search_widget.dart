@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 import '../../../data/models/pet_profile.dart';
 import 'package:staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class SearchWidget extends StatelessWidget {
+  // Color constants
+  static const Color _backgroundColor = Color(0xFFF5F5F5);
+  static const Color _textPrimary = Color(0xFF2C3E50);
+  static const Color _textSecondary = Color(0xFF7F8C8D);
+  static const Color _primaryColor = Color(0xFF3498DB);
+  
   // Data
   final List<PetModel> allPets;
   final List<PetModel> filteredPets;
@@ -11,18 +18,14 @@ class SearchWidget extends StatelessWidget {
   
   // Callbacks
   final Function(String) onSearchChanged;
-  final Function() onClearSearch;
+  final VoidCallback onClearSearch;
   final Function(String) onFollowToggle;
   final Function(String) onPetTap;
   final Map<String, bool> followStates;
   final Map<String, bool> followingInProgress;
   
-  // Constants
-  static const Color _primaryColor = Color(0xFF0095F6);
-  static const Color _backgroundColor = Color(0xFFFAFAFA);
-  static const Color _textPrimary = Color(0xFF262626);
-  static const Color _textSecondary = Color(0xFF8E8E8E);
-  static const Color _borderColor = Color(0xFFDBDBDB);
+  // Debug callback
+  final VoidCallback? onDebugFollowStates;
 
   const SearchWidget({
     Key? key,
@@ -36,6 +39,7 @@ class SearchWidget extends StatelessWidget {
     required this.onPetTap,
     required this.followStates,
     required this.followingInProgress,
+    this.onDebugFollowStates,
   }) : super(key: key);
 
   @override
@@ -60,55 +64,59 @@ class SearchWidget extends StatelessWidget {
         color: Colors.white,
         border: Border(
           bottom: BorderSide(
-            color: _borderColor,
-            width: 0.5,
+            color: Colors.grey.shade300,
+            width: 1,
           ),
         ),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: Container(
-              height: 36,
-              decoration: BoxDecoration(
-                color: _backgroundColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: TextField(
-                style: TextStyle(
-                  fontSize: 14,
-                  color: _textPrimary,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Search',
-                  hintStyle: TextStyle(
-                    fontSize: 14,
-                    color: _textSecondary,
-                  ),
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: _textSecondary,
-                    size: 20,
-                  ),
-                  suffixIcon: searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(
-                            Icons.cancel,
-                            color: _textSecondary,
-                            size: 18,
-                          ),
-                          onPressed: onClearSearch,
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                ),
-                onChanged: onSearchChanged,
+          if (onDebugFollowStates != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: ElevatedButton(
+                onPressed: onDebugFollowStates,
+                child: const Text('Debug Follow States'),
               ),
             ),
+          TextField(
+            style: TextStyle(
+              fontSize: 14,
+              color: _textPrimary,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Search',
+              hintStyle: TextStyle(
+                fontSize: 14,
+                color: _textSecondary,
+              ),
+              prefixIcon: Icon(
+                Icons.search,
+                color: _textSecondary,
+                size: 20,
+              ),
+              suffixIcon: searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: Icon(
+                        Icons.cancel,
+                        color: _textSecondary,
+                        size: 18,
+                      ),
+                      onPressed: onClearSearch,
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: _backgroundColor,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+            ),
+            onChanged: onSearchChanged,
           ),
         ],
       ),
@@ -158,6 +166,14 @@ class SearchWidget extends StatelessWidget {
   }
 
   Widget _buildPetGridItem(PetModel pet) {
+    // Get the first photo from photos list, fallback to profilePic
+    final String? photoUrl = (pet.photos?.isNotEmpty == true) 
+        ? pet.photos!.first 
+        : pet.profilePic;
+    
+    // Debug logging
+    developer.log('Building pet grid item: ${pet.name}, photos count: ${pet.photos?.length ?? 0}, photoUrl: $photoUrl');
+    
     return GestureDetector(
       onTap: () {
         // Navigate to pet profile - this would need to be passed as callback for pure testing
@@ -172,11 +188,19 @@ class SearchWidget extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               height: double.infinity,
-              child: (pet.profilePic?.isNotEmpty == true)
+              child: (photoUrl?.isNotEmpty == true)
                   ? Image.network(
-                      pet.profilePic!,
+                      photoUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildPetPlaceholder(pet),
+                      errorBuilder: (_, __, ___) {
+                        developer.log('Image load error for pet: ${pet.name}, URL: $photoUrl');
+                        return _buildPetPlaceholder(pet);
+                      },
+                      loadingBuilder: (_, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        developer.log('Image loading for pet: ${pet.name}');
+                        return _buildPetPlaceholder(pet);
+                      },
                     )
                   : _buildPetPlaceholder(pet),
             ),
@@ -283,9 +307,14 @@ class SearchWidget extends StatelessWidget {
     final isFollowing = followStates[userId] ?? false;
     final isInProgress = followingInProgress[userId] ?? false;
     
+    developer.log('Building follow button for pet: ${pet.name}, userId: $userId, isFollowing: $isFollowing, isInProgress: $isInProgress');
+    
     return GestureDetector(
       key: Key('follow_button_$userId'),
-      onTap: isInProgress ? null : () => onFollowToggle(userId),
+      onTap: isInProgress ? null : () {
+        developer.log('Follow button tapped for pet: ${pet.name}, userId: $userId');
+        onFollowToggle(userId);
+      },
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(

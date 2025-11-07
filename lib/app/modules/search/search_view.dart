@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'search_controller.dart' as search;
@@ -10,6 +11,12 @@ class SearchView extends GetView<search.SearchController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      // Debug logging to see what data is being passed
+      log("🔍 SearchView build - allPetsList length: ${controller.allPetsList.length}");
+      log("🔍 SearchView build - filteredPetsList length: ${controller.filteredPetsList.length}");
+      log("🔍 SearchView build - isLoading: ${controller.isLoading}");
+      log("🔍 SearchView build - searchQuery: '${controller.currentSearchQuery}'");
+      
       return Scaffold(
         body: SearchWidget(
           allPets: controller.allPetsList,
@@ -22,6 +29,7 @@ class SearchView extends GetView<search.SearchController> {
           onPetTap: controller.navigateToPetProfile,
           followStates: controller.currentFollowStates,
           followingInProgress: controller.currentFollowingInProgress,
+          onDebugFollowStates: controller.debugFollowStates,
         ),
         bottomNavigationBar: BottomNavigationBarWidget(controller: controller.mapController),
       );
