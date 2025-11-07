@@ -56,6 +56,12 @@ class CustomApiService extends GetxService {
     }
   }
 
+  /// Toggle follow status for a user
+  Future<bool> toggleFollow(String userId) async {
+    final response = await postRequest('users/follow-toggle/$userId', {});
+    return response['isFollowing'] as bool;
+  }
+
   /// PUT request with JSON body
   Future<dynamic> putRequest(
       String endpoint, Map<String, dynamic> data) async {
