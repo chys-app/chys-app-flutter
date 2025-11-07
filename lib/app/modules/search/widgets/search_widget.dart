@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 import '../../../data/models/pet_profile.dart';
 import 'package:staggered_grid_view/flutter_staggered_grid_view.dart';
 
@@ -158,6 +159,14 @@ class SearchWidget extends StatelessWidget {
   }
 
   Widget _buildPetGridItem(PetModel pet) {
+    // Get the first photo from photos list, fallback to profilePic
+    final String? photoUrl = (pet.photos?.isNotEmpty == true) 
+        ? pet.photos!.first 
+        : pet.profilePic;
+    
+    // Debug logging
+    developer.log('Building pet grid item: ${pet.name}, photos count: ${pet.photos?.length ?? 0}, photoUrl: $photoUrl');
+    
     return GestureDetector(
       onTap: () {
         // Navigate to pet profile - this would need to be passed as callback for pure testing
@@ -172,11 +181,19 @@ class SearchWidget extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               height: double.infinity,
-              child: (pet.profilePic?.isNotEmpty == true)
+              child: (photoUrl?.isNotEmpty == true)
                   ? Image.network(
-                      pet.profilePic!,
+                      photoUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildPetPlaceholder(pet),
+                      errorBuilder: (_, __, ___) {
+                        developer.log('Image load error for pet: ${pet.name}, URL: $photoUrl');
+                        return _buildPetPlaceholder(pet);
+                      },
+                      loadingBuilder: (_, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        developer.log('Image loading for pet: ${pet.name}');
+                        return _buildPetPlaceholder(pet);
+                      },
                     )
                   : _buildPetPlaceholder(pet),
             ),

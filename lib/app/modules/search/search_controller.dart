@@ -97,7 +97,7 @@ class SearchController extends GetxController {
         
         // Debug: Log pet user IDs
         for (var pet in pets) {
-          log("Pet: ${pet.name}, User ID: ${pet.user}, Has UserModel: ${pet.userModel != null}");
+          log("Pet: ${pet.name}, User ID: ${pet.user}, Has UserModel: ${pet.userModel != null}, Photos count: ${pet.photos?.length ?? 0}, First photo: ${(pet.photos?.isNotEmpty == true) ? pet.photos!.first : 'none'}");
         }
       } else {
         log("Failed to fetch pets: response is null");
