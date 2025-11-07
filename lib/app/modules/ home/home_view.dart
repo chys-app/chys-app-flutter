@@ -103,6 +103,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // Fetch products for Hot Picks tab - always call, let controller handle caching
         log("Initializing products fetch (controller will use cache if valid)");
+        log("Products controller state before fetch - isLoading: ${productsController.isLoading.value}, products count: ${productsController.products.length}");
         productsController.fetchProducts(publicOnly: true);
         if (contrroller.posts.isEmpty && !contrroller.isLoading.value) {
           contrroller.fetchAdoredPosts();
@@ -320,6 +321,8 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
     try {
       switch (contrroller.tabIndex.value) {
         case 0:
+          await _refreshProducts();
+          break;
         case 1:
           await _refreshPosts();
           break;
@@ -375,45 +378,23 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         children: [
           // Main content
           Obx(() {
-            // Show loading overlay if loading or haven't attempted fetch yet
-            if (productsController.isLoading.value || !productsController.hasAttemptedFetch.value) {
-              return const SizedBox.shrink();
+            // Debug logging
+            log("Products content - isLoading: ${productsController.isLoading.value}, hasAttemptedFetch: ${productsController.hasAttemptedFetch.value}, products count: ${productsController.products.length}");
+            
+            // Show loading overlay if loading
+            if (productsController.isLoading.value) {
+              log("Showing loading state");
+              return _buildProductsLoadingState();
+            } else if (!productsController.hasAttemptedFetch.value) {
+              log("Showing initial state (no fetch attempted yet)");
+              return _buildProductsLoadingState();
             } else if (productsController.products.isEmpty) {
+              log("Showing empty state (no products found)");
               return _buildProductsEmptyState();
             } else {
+              log("Showing products grid (${productsController.products.length} products)");
               return _buildProductsGrid();
             }
-          }),
-
-          // Single loading overlay
-          Obx(() {
-            if (productsController.isLoading.value) {
-              return Container(
-                color: Colors.white.withOpacity(0.9),
-                child: const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(_primaryColor),
-                        strokeWidth: 3,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        "Loading products...",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: _textPrimary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
-            return const SizedBox.shrink();
           }),
         ],
       ),
@@ -832,6 +813,32 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         },
       );
     });
+  }
+
+  Widget _buildProductsLoadingState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(_defaultPadding * 2),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(_primaryColor),
+              strokeWidth: 3,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Loading products...',
+              style: TextStyle(
+                fontSize: 16,
+                color: _textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildProductsEmptyState() {
