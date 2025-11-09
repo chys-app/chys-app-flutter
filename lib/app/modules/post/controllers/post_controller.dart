@@ -6,7 +6,6 @@ import 'package:camera/camera.dart';
 import 'package:chys/app/core/controllers/loading_controller.dart';
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:chys/app/services/custom_Api.dart';
-import 'package:chys/app/services/http_service.dart';
 import 'package:chys/app/services/pet_ownership_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,6 +15,7 @@ import 'package:video_compress/video_compress.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart' as th;
 
+import 'package:chys/app/data/models/post.dart';
 import '../../../services/short_message_utils.dart';
 import '../../adored_posts/controller/controller.dart';
 
@@ -27,9 +27,12 @@ class PostController extends GetxController {
   
   final CustomApiService _apiService = Get.put(CustomApiService());
   final descriptionController = TextEditingController();
+  final amountController = TextEditingController();
+  final deadlineController = TextEditingController();
   final selectedMedia = <File>[].obs;
   final isLoading = false.obs;
   RxString selectedType = "Post".obs;
+  PostType selectedPostType = PostType.post;
   RxBool showEmojiPicker = false.obs;
   CameraController? cameraController;
   RxBool isCameraInitialized = false.obs;
@@ -54,11 +57,13 @@ class PostController extends GetxController {
 
   void setType(String type) {
     selectedType.value = type;
+    selectedPostType = type.toLowerCase() == 'fundraise' ? PostType.fundraise : PostType.post;
   }
 
   void resetType() {
     log("Come here");
     selectedType.value = "Post";
+    selectedPostType = PostType.post;
   }
 
   Future<void> flipCamera() async {
@@ -776,10 +781,29 @@ class PostController extends GetxController {
       uploadProgress.value = 0.3;
 
       // Use the injected API service for better consistency
+      final Map<String, String> fields = {
+        'description': descriptionController.text,
+        'type': selectedPostType.name,
+      };
+      
+      // Add fundraise-specific fields if applicable
+      if (selectedPostType == PostType.fundraise) {
+        if (amountController.text.trim().isNotEmpty) {
+          // Convert amount string to number for the goal field
+          final amountValue = int.tryParse(amountController.text.trim());
+          if (amountValue != null) {
+            fields['goal'] = amountValue.toString();
+          }
+        }
+        if (deadlineController.text.trim().isNotEmpty) {
+          fields['deadline'] = deadlineController.text.trim();
+        }
+      }
+      
       final result = await _apiService.uploadImage(
         endpoint: "posts",
         imageFiles: selectedMedia.toList(),
-        fields: {'description': descriptionController.text},
+        fields: fields,
         method: 'POST',
       );
 
@@ -792,6 +816,8 @@ class PostController extends GetxController {
       Get.find<LoadingController>().hide();
       
       descriptionController.clear();
+      amountController.clear();
+      deadlineController.clear();
       selectedMedia.clear();
       videoThumbnails.clear();
       
@@ -869,10 +895,29 @@ class PostController extends GetxController {
         log("📁 Selected file: ${file.path}");
       }
       
+      final Map<String, String> fields = {
+        'description': descriptionController.text,
+        'type': selectedPostType.name,
+      };
+      
+      // Add fundraise-specific fields if applicable
+      if (selectedPostType == PostType.fundraise) {
+        if (amountController.text.trim().isNotEmpty) {
+          // Convert amount string to number for the goal field
+          final amountValue = int.tryParse(amountController.text.trim());
+          if (amountValue != null) {
+            fields['goal'] = amountValue.toString();
+          }
+        }
+        if (deadlineController.text.trim().isNotEmpty) {
+          fields['deadline'] = deadlineController.text.trim();
+        }
+      }
+      
       final result = await _apiService.uploadImage(
         endpoint: "posts/$postId",
         imageFiles: selectedMedia.toList(),
-        fields: {'description': descriptionController.text},
+        fields: fields,
         method: 'PATCH',
       );
       
@@ -920,6 +965,11 @@ class PostController extends GetxController {
   }
 
   void _navigateToNewPostPreview() {
+    if (selectedPostType == PostType.fundraise) {
+      // For fundraise posts, don't navigate - stay in current view
+      log('Fundraise type detected, staying in current view');
+      return;
+    }
     Get.toNamed('/new-post-preview');
   }
 
@@ -931,6 +981,8 @@ class PostController extends GetxController {
     _recordingTimer = null;
     cameraController?.dispose();
     descriptionController.dispose();
+    amountController.dispose();
+    deadlineController.dispose();
     super.onClose();
   }
 }

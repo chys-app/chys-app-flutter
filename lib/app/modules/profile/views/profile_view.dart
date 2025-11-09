@@ -14,6 +14,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../widget/common/custom_post_widget.dart';
 import '../../../widget/common/post_grid_widget.dart';
 import '../../../widget/shimmer/cat_quote_shimmer.dart';
+import 'create_fundraise_view.dart';
 
 class ProfileView extends StatefulWidget {
   @override
@@ -558,6 +559,16 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
                 // Navigate to add pet flow if no pet exists
                 Get.toNamed(AppRoutes.editProfile);
               }
+            },
+          ),
+          const SizedBox(width: 8),
+          _buildVerticalDivider(),
+          const SizedBox(width: 8),
+          _buildActionButton(
+            label: "Fundraise",
+            onTap: () {
+              // Navigate to create fundraise view
+              Get.to(() => CreateFundraiseView());
             },
           ),
         ],
