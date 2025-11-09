@@ -14,6 +14,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../widget/common/custom_post_widget.dart';
 import '../../../widget/common/post_grid_widget.dart';
 import '../../../widget/shimmer/cat_quote_shimmer.dart';
+import 'create_fundraise_view.dart';
 
 class ProfileView extends StatefulWidget {
   @override
@@ -560,6 +561,17 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
               }
             },
           ),
+          const SizedBox(width: 8),
+          _buildVerticalDivider(),
+          const SizedBox(width: 8),
+          _buildActionButton(
+            label: "Raise Funds",
+            onTap: () {
+              // Navigate to create fundraise view
+              Get.to(() => CreateFundraiseView());
+            },
+          ),
+          const SizedBox(width: 11),
         ],
       ),
     );
@@ -586,15 +598,18 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
             ),
           ],
         ),
-        child: Center(
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: isDisabled ? Colors.grey.shade600 : Colors.white,
-              letterSpacing: 0.5,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Center(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: isDisabled ? Colors.grey.shade600 : Colors.white,
+                letterSpacing: 0.5,
+              ),
             ),
           ),
         ),

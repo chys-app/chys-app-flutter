@@ -1,5 +1,7 @@
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 
+enum PostType { post, fundraise }
+
 class CreatorMini {
   final String id;
   final String name;
@@ -74,6 +76,9 @@ class Posts {
   RxBool isFunded;
   RxInt fundedAmount;
   RxInt fundCount;
+  final PostType type;
+  final int? goal;
+  final String? deadline;
 
   Posts({
     required this.id,
@@ -93,6 +98,9 @@ class Posts {
     required int fundCount,
     required this.isFavorite,
     required this.v,
+    required this.type,
+    this.goal,
+    this.deadline,
   })  : likes = RxList<dynamic>(likes),
         comments =
             RxList<Map<String, dynamic>>(comments.cast<Map<String, dynamic>>()),
@@ -133,6 +141,11 @@ class Posts {
       v: map["__v"] is int
           ? map["__v"]
           : int.tryParse(map["__v"]?.toString() ?? '') ?? 0,
+      type: _parsePostType(map["type"]),
+      goal: map["goal"] is int
+          ? map["goal"]
+          : int.tryParse(map["goal"]?.toString() ?? ''),
+      deadline: map["deadline"]?.toString(),
     );
   }
 
@@ -141,5 +154,16 @@ class Posts {
       return list.map((item) => item.toString()).toList();
     }
     return [];
+  }
+
+  static PostType _parsePostType(dynamic type) {
+    switch (type?.toString()) {
+      case 'post':
+        return PostType.post;
+      case 'fundraise':
+        return PostType.fundraise;
+      default:
+        return PostType.post; // Default value
+    }
   }
 }
