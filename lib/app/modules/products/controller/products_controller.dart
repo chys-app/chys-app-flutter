@@ -2,16 +2,25 @@ import 'dart:developer';
 
 import 'package:chys/app/data/models/product.dart';
 import 'package:chys/app/services/custom_Api.dart';
+import 'package:chys/app/services/http_service.dart';
 import 'package:get/get.dart';
 
 class ProductsController extends GetxController {
   final CustomApiService apiService = CustomApiService();
+  final ApiClient apiClient = ApiClient();
   final RxList<Products> products = <Products>[].obs;
   final RxBool isLoading = false.obs;
   final RxBool hasAttemptedFetch = false.obs;
+  final RxList<String> wishlist = <String>[].obs;
 
   DateTime? _lastFetch;
   static const Duration _cacheDuration = Duration(minutes: 5);
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchWishlist();
+  }
 
   bool get _isCacheValid =>
       _lastFetch != null && DateTime.now().difference(_lastFetch!) < _cacheDuration;
@@ -135,5 +144,53 @@ class ProductsController extends GetxController {
     return map.containsKey('currentPage') &&
         map.containsKey('totalPages') &&
         map.containsKey('posts');
+  }
+
+  Future<void> toggleWishlist(String productId) async {
+    try {
+      // Check current state before making API call
+      final wasInWishlist = wishlist.contains(productId);
+      
+      // Optimistically update UI state
+      if (wasInWishlist) {
+        wishlist.remove(productId);
+      } else {
+        wishlist.add(productId);
+      }
+      
+      // Make API call
+      if (wasInWishlist) {
+        await apiClient.unfavoriteProduct(productId);
+        log('❤️ Removed from wishlist: $productId');
+      } else {
+        await apiClient.favoriteProduct(productId);
+        log('❤️ Added to wishlist: $productId');
+      }
+    } catch (e) {
+      // Revert state on error
+      if (wishlist.contains(productId)) {
+        wishlist.remove(productId);
+      } else {
+        wishlist.add(productId);
+      }
+      log('❌ Error toggling wishlist: $e');
+      Get.snackbar('Error', 'Failed to update wishlist');
+    }
+  }
+
+  bool isInWishlist(String productId) {
+    return wishlist.contains(productId);
+  }
+
+  Future<void> fetchWishlist() async {
+    try {
+      final response = await apiClient.getWishlist();
+      if (response is List) {
+        wishlist.assignAll(response.map((item) => item['_id'].toString()).toList());
+        log('❤️ Fetched wishlist: ${wishlist.length} items');
+      }
+    } catch (e) {
+      log('❌ Error fetching wishlist: $e');
+    }
   }
 }

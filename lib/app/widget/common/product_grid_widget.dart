@@ -1,8 +1,10 @@
 import 'package:chys/app/core/utils/app_size.dart';
 import 'package:chys/app/data/models/product.dart';
+import 'package:chys/app/modules/products/controller/products_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-class ProductGridWidget extends StatelessWidget {
+class ProductGridWidget extends StatefulWidget {
   final Products product;
   final VoidCallback? onTap;
   final VoidCallback? onCreatorTap;
@@ -15,12 +17,30 @@ class ProductGridWidget extends StatelessWidget {
   });
 
   @override
+  State<ProductGridWidget> createState() => _ProductGridWidgetState();
+}
+
+class _ProductGridWidgetState extends State<ProductGridWidget> {
+  late final ProductsController? productsController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Try to find ProductsController, but don't fail if it's not registered
+    try {
+      productsController = Get.find<ProductsController>();
+    } catch (e) {
+      productsController = null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final imageUrl = product.media.isNotEmpty ? product.media.first : null;
-    final creator = product.creator;
+    final imageUrl = widget.product.media.isNotEmpty ? widget.product.media.first : null;
+    final creator = widget.product.creator;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -58,8 +78,8 @@ class ProductGridWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        product.description.isNotEmpty
-                            ? product.description
+                        widget.product.description.isNotEmpty
+                            ? widget.product.description
                             : 'Untitled product',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -80,7 +100,7 @@ class ProductGridWidget extends StatelessWidget {
                             size: 18,
                           ),
                           Text(
-                            product.price.toStringAsFixed(2),
+                            widget.product.price.toStringAsFixed(2),
                             style: const TextStyle(
                               color: Color(0xFFC8E6C9),
                               fontSize: 18,
@@ -91,7 +111,7 @@ class ProductGridWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       GestureDetector(
-                        onTap: onCreatorTap,
+                        onTap: widget.onCreatorTap,
                         child: Row(
                           children: [
                             _buildCreatorAvatar(creator.profilePic, creator.name),
@@ -133,31 +153,57 @@ class ProductGridWidget extends StatelessWidget {
               Positioned(
                 top: 12,
                 left: 12,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.55),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.favorite_border,
-                        color: Colors.white,
-                        size: 12,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        product.likes.length.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                child: GestureDetector(
+                  onTap: productsController != null ? _toggleWishlist : null,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.55),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: productsController != null
+                        ? Obx(() {
+                            final isInWishlist = productsController!.isInWishlist(widget.product.id);
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isInWishlist ? Icons.favorite : Icons.favorite_border,
+                                  color: isInWishlist ? Colors.red : Colors.white,
+                                  size: 12,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isInWishlist ? '1' : '0',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            );
+                          })
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.favorite_border,
+                                color: Colors.white,
+                                size: 12,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                widget.product.likes.length.toString(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
                   ),
                 ),
               ),
@@ -181,7 +227,7 @@ class ProductGridWidget extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        product.viewCount.toString(),
+                        widget.product.viewCount.toString(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -232,6 +278,31 @@ class ProductGridWidget extends StatelessWidget {
         Icons.image_outlined,
         color: Colors.grey,
         size: 40,
+      ),
+    );
+  }
+
+  void _toggleWishlist() {
+    if (productsController == null) return;
+    
+    // Check current state before toggling
+    final wasInWishlist = productsController!.isInWishlist(widget.product.id);
+    
+    productsController!.toggleWishlist(widget.product.id);
+    
+    // Show snackbar feedback based on the action that was taken
+    Get.snackbar(
+      wasInWishlist ? 'Removed from Wishlist' : 'Added to Wishlist',
+      wasInWishlist 
+          ? 'Product removed from your wishlist'
+          : 'Product added to your wishlist',
+      backgroundColor: wasInWishlist ? Colors.grey.shade100 : Colors.pink.shade100,
+      colorText: wasInWishlist ? Colors.grey.shade800 : Colors.pink.shade800,
+      snackPosition: SnackPosition.TOP,
+      duration: const Duration(seconds: 2),
+      icon: Icon(
+        wasInWishlist ? Icons.favorite_border : Icons.favorite,
+        color: wasInWishlist ? Colors.grey : Colors.pink,
       ),
     );
   }

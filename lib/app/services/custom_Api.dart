@@ -259,4 +259,19 @@ class CustomApiService extends GetxService {
       );
     }
   }
+
+  /// Add product to wishlist
+  Future<dynamic> addToWishlist(String productId) async {
+    return await postRequest('wishlist/$productId', {});
+  }
+
+  /// Remove product from wishlist
+  Future<dynamic> removeFromWishlist(String productId) async {
+    return await deleteRequest('wishlist/$productId');
+  }
+
+  /// Get user's wishlist
+  Future<dynamic> getWishlist() async {
+    return await getRequest('wishlist');
+  }
 }
