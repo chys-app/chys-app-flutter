@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:chys/app/widget/image/svg_extension.dart';
-import 'package:chys/app/widget/common/image_viewer_widget.dart';
+import 'package:chys/app/widget/common/pet_profile_widget.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -463,6 +463,15 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Pet profile widget with circular photo and name
+                  PetProfileWidget(
+                    post: widget.posts,
+                    textColor: Colors.black,
+                    bioColor: const Color(0xFF8E8E8E),
+                    showBio: false, // Hide bio in posts list to keep it clean
+                  ),
+                  const SizedBox(height: 8),
+                  // Description text without username (since it's shown above)
                   _buildDescriptionText(),
                   const SizedBox(height: 4),
                   Text(
@@ -511,37 +520,13 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
     final shouldTruncate = description.length > maxLength;
 
     if (!shouldTruncate || _isDescriptionExpanded) {
-      // Show full text
-      return RichText(
-        text: TextSpan(
-          children: [
-            // Username in bold
-            TextSpan(
-              text: widget.posts.creator.name,
-              style: const TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-              recognizer: TapGestureRecognizer()
-                ..onTap = () {
-                  log("Id is ==>${widget.posts.creator.id}");
-                  Get.toNamed(AppRoutes.otherUserProfile,
-                      arguments: widget.posts.creator.id);
-                },
-            ),
-            // Space between username and description
-            const TextSpan(text: '  '),
-            // Full description
-            TextSpan(
-              text: description,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 14,
-                height: 1.4,
-              ),
-            ),
-          ],
+      // Show full text without username (handled by PetProfileWidget)
+      return Text(
+        description,
+        style: const TextStyle(
+          color: Colors.black,
+          fontSize: 14,
+          height: 1.4,
         ),
       );
     }
@@ -551,23 +536,6 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
     return RichText(
       text: TextSpan(
         children: [
-          // Username in bold
-          TextSpan(
-            text: widget.posts.creator.name,
-            style: const TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                log("Id is ==>${widget.posts.creator.id}");
-                Get.toNamed(AppRoutes.otherUserProfile,
-                    arguments: widget.posts.creator.id);
-              },
-          ),
-          // Space between username and description
-          const TextSpan(text: '  '),
           // Truncated description
           TextSpan(
             text: truncatedText,
@@ -586,18 +554,21 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
             ),
           ),
           // "more" link
-          TextSpan(
-            text: 'more',
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 14,
-            ),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
+          WidgetSpan(
+            child: GestureDetector(
+              onTap: () {
                 setState(() {
                   _isDescriptionExpanded = true;
                 });
               },
+              child: const Text(
+                'more',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                ),
+              ),
+            ),
           ),
         ],
       ),
