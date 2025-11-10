@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:chys/app/core/utils/app_size.dart';
 import 'package:chys/app/data/models/product.dart';
 import 'package:chys/app/modules/products/controller/products_controller.dart';
@@ -285,10 +286,18 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
   void _toggleWishlist() {
     if (productsController == null) return;
     
-    // Check current state before toggling
-    final wasInWishlist = productsController!.isInWishlist(widget.product.id);
+    // Validate product ID
+    final productId = widget.product.id;
+    if (productId.isEmpty || productId == 'null') {
+      log('❌ Cannot toggle wishlist - invalid product ID: $productId');
+      Get.snackbar('Error', 'Invalid product data. Please refresh the page.');
+      return;
+    }
     
-    productsController!.toggleWishlist(widget.product.id);
+    // Check current state before toggling
+    final wasInWishlist = productsController!.isInWishlist(productId);
+    
+    productsController!.toggleWishlist(productId);
     
     // Show snackbar feedback based on the action that was taken
     Get.snackbar(

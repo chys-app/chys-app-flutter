@@ -262,12 +262,36 @@ class CustomApiService extends GetxService {
 
   /// Add product to wishlist
   Future<dynamic> addToWishlist(String productId) async {
-    return await postRequest('users/wishlist/$productId', {});
+    log('🛍️ Adding to wishlist - Product ID: "$productId"');
+    if (productId.isEmpty || productId == 'null') {
+      throw Exception('Invalid product ID: $productId');
+    }
+    
+    try {
+      final result = await postRequest('wishlist/$productId', {});
+      log('🛍️ Successfully added to wishlist: $productId');
+      return result;
+    } catch (e) {
+      log('❌ Failed to add to wishlist: $productId - Error: $e');
+      rethrow;
+    }
   }
 
   /// Remove product from wishlist
   Future<dynamic> removeFromWishlist(String productId) async {
-    return await deleteRequest('users/wishlist/$productId');
+    log('🛍️ Removing from wishlist - Product ID: "$productId"');
+    if (productId.isEmpty || productId == 'null') {
+      throw Exception('Invalid product ID: $productId');
+    }
+    
+    try {
+      final result = await deleteRequest('wishlist/$productId');
+      log('🛍️ Successfully removed from wishlist: $productId');
+      return result;
+    } catch (e) {
+      log('❌ Failed to remove from wishlist: $productId - Error: $e');
+      rethrow;
+    }
   }
 
   /// Get user's wishlist

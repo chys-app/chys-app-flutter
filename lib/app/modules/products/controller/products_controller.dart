@@ -147,9 +147,17 @@ class ProductsController extends GetxController {
   }
 
   Future<void> toggleWishlist(String productId) async {
+    // Validate product ID first
+    if (productId.isEmpty || productId == 'null') {
+      log('❌ Invalid product ID: $productId');
+      Get.snackbar('Error', 'Invalid product ID');
+      return;
+    }
+    
     try {
       // Check current state before making API call
       final wasInWishlist = wishlist.contains(productId);
+      log('🛍️ Toggling wishlist for product: $productId (current state: $wasInWishlist)');
       
       // Optimistically update UI state
       if (wasInWishlist) {
@@ -180,7 +188,7 @@ class ProductsController extends GetxController {
       if (e.toString().contains('401')) {
         errorMessage = 'Please login to update wishlist';
       } else if (e.toString().contains('404')) {
-        errorMessage = 'Product not found';
+        errorMessage = 'Product not found. Please try refreshing the page.';
       } else if (e.toString().contains('network')) {
         errorMessage = 'Network error. Please try again';
       }
