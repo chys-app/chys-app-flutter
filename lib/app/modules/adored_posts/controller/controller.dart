@@ -1130,11 +1130,22 @@ class _FundBottomSheetState extends State<_FundBottomSheet> {
                     ),
                     onPressed: _isLoading
                         ? null
-                        : () async {
+                        : () {
                             setState(() => _isLoading = true);
-                            await widget.onConfirm(_amountController.text.trim());
-                            setState(() => _isLoading = false);
                             Get.back();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text("In app purchases coming soon!"),
+                                duration: const Duration(seconds: 2),
+                                behavior: SnackBarBehavior.floating,
+                                backgroundColor: const Color(0xFFF59E0B),
+                                margin: const EdgeInsets.all(16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            );
+                            setState(() => _isLoading = false);
                           },
                     child: _isLoading
                         ? const SizedBox(

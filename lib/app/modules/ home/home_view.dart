@@ -10,6 +10,7 @@ import 'package:chys/app/services/custom_Api.dart';
 import 'package:chys/app/widget/common/custom_post_widget.dart';
 import 'package:chys/app/widget/common/post_grid_widget.dart';
 import 'package:chys/app/widget/common/product_grid_widget.dart';
+import 'package:chys/app/data/models/post.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
@@ -598,10 +599,18 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
             posts: post,
             addoredPostsController: contrroller,
             onTapCard: () {
-              Get.toNamed(AppRoutes.postPreview, arguments: {
-                'postId': post.id,
-                'controller': contrroller,
-              });
+              // Route to different preview views based on post type
+              if (post.type == PostType.fundraise) {
+                Get.toNamed(AppRoutes.fundraisePreview, arguments: {
+                  'postId': post.id,
+                  'controller': contrroller,
+                });
+              } else {
+                Get.toNamed(AppRoutes.postPreview, arguments: {
+                  'postId': post.id,
+                  'controller': contrroller,
+                });
+              }
             },
             onTapPaw: () {},
             onTapLove: () {

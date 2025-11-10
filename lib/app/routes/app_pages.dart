@@ -49,6 +49,7 @@ import '../modules/podcast/bindings/podcast_binding.dart';
 import '../modules/post/bindings/post_binding.dart';
 import '../modules/post/views/add_post_view.dart';
 import '../modules/post/views/post_preview_view.dart';
+import '../modules/post/views/fundraise_preview_view copy.dart';
 import '../modules/post/views/new_post_preview_view.dart';
 import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_view.dart';
@@ -234,6 +235,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.postPreview,
       page: () => const PostPreviewView(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.fundraisePreview,
+      page: () => const FundraisePreviewView(),
       transition: Transition.cupertino,
     ),
     GetPage(
