@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:chys/app/data/models/post.dart';
 import 'package:chys/app/core/const/app_colors.dart';
 import 'package:chys/app/core/utils/app_size.dart';
 import 'package:chys/app/data/models/own_profile.dart';
@@ -794,63 +795,11 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
   }
 
   Widget _buildTabbedSection() {
-    return Column(
-      children: [
-        // Tab Bar
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 3,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-          child: TabBar(
-            controller: tabController,
-            labelColor: const Color(0xFF0095F6),
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: const Color(0xFF0095F6),
-            indicatorWeight: 2,
-            labelStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-            tabs: const [
-              Tab(
-                icon: Icon(Icons.grid_on, size: 20),
-                text: ' Posts',
-              ),
-              Tab(
-                icon: Icon(Icons.favorite, size: 20),
-                text: ' Donate',
-              ),
-              Tab(
-                icon: Icon(Icons.shopping_bag, size: 20),
-                text: ' Wishlist',
-              ),
-            ],
-          ),
-        ),
-        
-        // Tab Content
-        SizedBox(
-          height: Get.height * 0.6, // Adjust height as needed
-          child: ProfileTabsWidget.standard(
-            tabController: tabController,
-            postsTabContent: _buildPostsTabContent(),
-            donateTabContent: _buildDonateTabContent(),
-            wishlistTabContent: _buildWishlistTabContent(),
-          ),
-        ),
-      ],
+    return ProfileTabsWidget.standard(
+      tabController: tabController,
+      postsTabContent: _buildPostsTabContent(),
+      donateTabContent: _buildDonateTabContent(),
+      wishlistTabContent: _buildWishlistTabContent(),
     );
   }
 
@@ -862,7 +811,7 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
 
       // Filter posts by type 'post'
       final filteredPosts = postController.posts.where((post) => 
-        post.type == 'post' || post.type == null
+        post.type == PostType.post
       ).toList();
 
       if (filteredPosts.isEmpty) {
@@ -936,7 +885,7 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
 
       // Filter posts by type 'fundraise'
       final fundraisePosts = postController.posts.where((post) => 
-        post.type == 'fundraise'
+        post.type == PostType.fundraise
       ).toList();
 
       if (fundraisePosts.isEmpty) {
