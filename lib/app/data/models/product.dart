@@ -119,6 +119,13 @@ class Products {
     print('🔍 Products.fromMap - owner field type: ${map['owner'].runtimeType}');
     print('🔍 Products.fromMap - owner field value: ${map['owner']}');
     
+    // Extract and validate product ID
+    final productId = map["_id"]?.toString() ?? '';
+    print('🔍 Products.fromMap - Extracted product ID: "$productId"');
+    if (productId.isEmpty) {
+      print('⚠️ Products.fromMap - WARNING: Product ID is empty!');
+    }
+    
     // The API uses 'owner' field for creator information
     dynamic creatorData = map['owner'] ?? map['creator'] ?? map['createdBy'] ?? map['user'];
     
@@ -145,7 +152,7 @@ class Products {
 
     return Products(
       isFunded: map["isFunded"] == true,
-      id: map["_id"]?.toString() ?? '',
+      id: productId,
       description: map["description"]?.toString() ?? '',
       media: _safeStringList(map["media"]),
       likes: map["likes"] ?? [],
