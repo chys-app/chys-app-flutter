@@ -45,6 +45,7 @@ abstract class AppRoutes {
   static const donateNow = '/donateNow';
   static const adoredPost = '/adoredPost';
   static const postPreview = '/post-preview';
+  static const fundraisePreview = '/fundraise-preview';
   static const newPostPreview = '/new-post-preview';
 
   // Pet onboarding routes
