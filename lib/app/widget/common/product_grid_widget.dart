@@ -175,7 +175,7 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  isInWishlist ? '1' : '0',
+                                  widget.product.likes.length.toString(),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 12,

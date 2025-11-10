@@ -158,12 +158,12 @@ class ProductsController extends GetxController {
         wishlist.add(productId);
       }
       
-      // Make API call
+      // Make API call using CustomApiService
       if (wasInWishlist) {
-        await apiClient.unfavoriteProduct(productId);
+        await apiService.removeFromWishlist(productId);
         log('❤️ Removed from wishlist: $productId');
       } else {
-        await apiClient.favoriteProduct(productId);
+        await apiService.addToWishlist(productId);
         log('❤️ Added to wishlist: $productId');
       }
     } catch (e) {
@@ -174,7 +174,18 @@ class ProductsController extends GetxController {
         wishlist.add(productId);
       }
       log('❌ Error toggling wishlist: $e');
-      Get.snackbar('Error', 'Failed to update wishlist');
+      
+      // Show more specific error message
+      String errorMessage = 'Failed to update wishlist';
+      if (e.toString().contains('401')) {
+        errorMessage = 'Please login to update wishlist';
+      } else if (e.toString().contains('404')) {
+        errorMessage = 'Product not found';
+      } else if (e.toString().contains('network')) {
+        errorMessage = 'Network error. Please try again';
+      }
+      
+      Get.snackbar('Error', errorMessage);
     }
   }
 
@@ -184,7 +195,7 @@ class ProductsController extends GetxController {
 
   Future<void> fetchWishlist() async {
     try {
-      final response = await apiClient.getWishlist();
+      final response = await apiService.getWishlist();
       if (response is List) {
         wishlist.assignAll(response.map((item) => item['_id'].toString()).toList());
         log('❤️ Fetched wishlist: ${wishlist.length} items');

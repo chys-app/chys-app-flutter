@@ -36,6 +36,7 @@ void main() {
       fundCount: 0,
       isFavorite: false,
       v: 0,
+      isInWishlist: false,
     );
   }
 

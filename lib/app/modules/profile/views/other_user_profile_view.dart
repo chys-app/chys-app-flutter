@@ -906,7 +906,8 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
           final post = filteredPosts[index];
           return PostGridWidget(
             post: post,
-            onTap: () => Get.toNamed('/post-detail', arguments: post.id),
+            addoredPostsController: postController,
+            onTapCard: () => Get.toNamed('/post-detail', arguments: post.id),
           );
         },
         staggeredTileBuilder: (index) => StaggeredTile.count(
@@ -989,9 +990,9 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
                       color: Colors.grey.shade200,
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                     ),
-                    child: post.media[0].url.isNotEmpty
+                    child: post.media[0].isNotEmpty
                         ? Image.network(
-                            post.media[0].url,
+                            post.media[0],
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 48),
                           )
@@ -1129,9 +1130,9 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
                       color: Colors.grey.shade200,
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                     ),
-                    child: product.media.isNotEmpty && product.media[0].url.isNotEmpty
+                    child: product.media.isNotEmpty && product.media[0].isNotEmpty
                         ? Image.network(
-                            product.media[0].url,
+                            product.media[0],
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 48),
                           )
