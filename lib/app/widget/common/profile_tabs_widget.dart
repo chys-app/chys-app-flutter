@@ -72,7 +72,7 @@ class ProfileTabsWidget extends StatelessWidget {
             
             // Tab Content
             SizedBox(
-              height: Get.height * 0.5, // Reduced from 0.6 to prevent overflow
+              height: Get.height * 0.45, // Reduced from 0.5 to prevent overflow
               child: TabBarView(
                 controller: tabController,
                 children: tabChildren,

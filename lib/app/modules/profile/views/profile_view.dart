@@ -739,15 +739,11 @@ class _ProfileViewState extends State<ProfileView>
   }
 
   Widget _buildWishlistTabContent(ProductsController productsController) {
-    return SingleChildScrollView(
-      child: Obx(() {
-        // Show loading indicator while fetching wishlist
-        if (productsController.isLoading.value) {
-          return const SizedBox(
-            height: 200,
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+    return Obx(() {
+      // Show loading indicator while fetching wishlist
+      if (productsController.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
       // Get wishlist products
       final wishlistProducts = productsController.products.where((product) => 
@@ -794,12 +790,12 @@ class _ProfileViewState extends State<ProfileView>
 
           return GridView.count(
             shrinkWrap: true,
-            physics: const AlwaysScrollableScrollPhysics(), // Make it scrollable
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
             crossAxisCount: crossAxisCount,
             mainAxisSpacing: 8,
             crossAxisSpacing: 8,
-            childAspectRatio: 0.8, // Slightly taller for product cards
+            childAspectRatio: 0.75, // Slightly more compact to prevent overflow
             children: List.generate(wishlistProducts.length, (index) {
               final product = wishlistProducts[index];
               return Container(
@@ -876,8 +872,7 @@ class _ProfileViewState extends State<ProfileView>
           );
         },
       );
-      }),
-    );
+    });
   }
 
 
