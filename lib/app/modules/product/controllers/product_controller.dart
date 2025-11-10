@@ -98,6 +98,13 @@ class ProductController extends GetxController {
       }
 
       final product = Products.fromMap(response);
+      
+      // Sync wishlist status with ProductsController
+      if (Get.isRegistered<ProductsController>()) {
+        final productsController = Get.find<ProductsController>();
+        product.isInWishlist = productsController.isInWishlist(productId);
+      }
+      
       singleProduct.value = product;
       _singleProductCache[cacheKey] = product;
       _singleProductCacheTimestamps[cacheKey] = DateTime.now();
@@ -170,6 +177,70 @@ class ProductController extends GetxController {
       }
       singleProduct.refresh();
       log('Error liking product: $e');
+    }
+  }
+
+  Future<void> toggleWishlist() async {
+    final product = singleProduct.value;
+    if (product == null) return;
+
+    if (!Get.isRegistered<ProfileController>()) {
+      Get.put(ProfileController());
+    }
+
+    final profile = Get.find<ProfileController>().profile.value;
+    if (profile?.id == null) return;
+
+    final wasInWishlist = product.isInWishlist;
+    product.isInWishlist = !wasInWishlist;
+    singleProduct.refresh();
+
+    try {
+      // Sync with ProductsController if available
+      if (Get.isRegistered<ProductsController>()) {
+        final productsController = Get.find<ProductsController>();
+        if (wasInWishlist) {
+          productsController.wishlist.remove(product.id);
+        } else {
+          productsController.wishlist.add(product.id);
+        }
+      }
+      
+      if (wasInWishlist) {
+        await _apiService.removeFromWishlist(product.id);
+        ShortMessageUtils.showSuccess('Removed from wishlist');
+      } else {
+        await _apiService.addToWishlist(product.id);
+        ShortMessageUtils.showSuccess('Added to wishlist');
+      }
+    } catch (e) {
+      // revert
+      product.isInWishlist = wasInWishlist;
+      singleProduct.refresh();
+      
+      // Revert ProductsController state if available
+      if (Get.isRegistered<ProductsController>()) {
+        final productsController = Get.find<ProductsController>();
+        if (wasInWishlist) {
+          productsController.wishlist.add(product.id);
+        } else {
+          productsController.wishlist.remove(product.id);
+        }
+      }
+      
+      log('Error toggling wishlist: $e');
+      
+      // Show more specific error message
+      String errorMessage = 'Failed to update wishlist';
+      if (e.toString().contains('401')) {
+        errorMessage = 'Please login to update wishlist';
+      } else if (e.toString().contains('404')) {
+        errorMessage = 'Product not found';
+      } else if (e.toString().contains('network')) {
+        errorMessage = 'Network error. Please try again';
+      }
+      
+      ShortMessageUtils.showError(errorMessage);
     }
   }
 

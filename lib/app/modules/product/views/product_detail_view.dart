@@ -1,7 +1,7 @@
 import 'package:chys/app/data/models/product.dart';
 import 'package:chys/app/modules/cart/controllers/cart_controller.dart';
+import 'package:chys/app/modules/products/controller/products_controller.dart';
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
-import 'package:chys/app/services/http_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -17,14 +17,18 @@ class ProductDetailView extends StatefulWidget {
 
 class _ProductDetailViewState extends State<ProductDetailView> {
   int _currentImageIndex = 0;
-  final ApiClient _apiClient = ApiClient();
-  late bool _isFavorite;
+  late final ProductsController? _productsController;
   late CartController _cartController;
   
   @override
   void initState() {
     super.initState();
-    _isFavorite = widget.product.isFavorite;
+    // Try to find ProductsController, but don't fail if it's not registered
+    try {
+      _productsController = Get.find<ProductsController>();
+    } catch (e) {
+      _productsController = null;
+    }
     _cartController = Get.put(CartController());
   }
   
@@ -125,26 +129,29 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                   },
                 ),
               // Favorite button - hide for business users
-              if (!_isBusinessUser)
-                IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: _isFavorite 
-                          ? const Color(0xFFE91E63).withOpacity(0.9)
-                          : Colors.black.withOpacity(0.5),
-                      shape: BoxShape.circle,
+              if (!_isBusinessUser && _productsController != null)
+                Obx(() {
+                  final isInWishlist = _productsController.isInWishlist(widget.product.id);
+                  return IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isInWishlist 
+                            ? const Color(0xFFE91E63).withOpacity(0.9)
+                            : Colors.black.withOpacity(0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isInWishlist ? Icons.favorite : Icons.favorite_border,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
-                    child: Icon(
-                      _isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                  onPressed: () {
-                    _toggleFavorite();
-                  },
-                ),
+                    onPressed: () {
+                      _toggleWishlist();
+                    },
+                  );
+                }),
               // For business users: show promote button
               // For regular users: show shopping cart button
               if (_isBusinessUser)
@@ -558,125 +565,41 @@ class _ProductDetailViewState extends State<ProductDetailView> {
     );
   }
 
-  Widget _buildCreatorCard() {
-    final creator = widget.product.creator;
-    
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          // Avatar
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: const Color(0xFF0095F6),
-            backgroundImage: creator.profilePic.isNotEmpty
-                ? NetworkImage(creator.profilePic)
-                : null,
-            child: creator.profilePic.isEmpty
-                ? Text(
-                    _getInitials(creator.name),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
-                : null,
-          ),
-          const SizedBox(width: 16),
-          
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  creator.name.isNotEmpty ? creator.name : 'Unknown',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF262626),
-                  ),
-                ),
-                if (creator.bio.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    creator.bio,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          
-          // Arrow
-          Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: Colors.grey.shade400,
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getInitials(String name) {
-    if (name.isEmpty) return 'U';
-    final parts = name.split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    }
-    return name[0].toUpperCase();
-  }
-
-  Future<void> _toggleFavorite() async {
+  Future<void> _toggleWishlist() async {
     try {
+      if (!mounted || _productsController == null) return;
+      
+      // Check current state before toggling
+      final wasInWishlist = _productsController.isInWishlist(widget.product.id);
+      
+      // Toggle the wishlist state
+      await _productsController.toggleWishlist(widget.product.id);
+      
       if (!mounted) return;
       
-      setState(() {
-        _isFavorite = !_isFavorite;
-      });
-      
-      await _apiClient.favoriteProduct(widget.product.id);
-      
-      if (!mounted) return;
-      
+      // Show snackbar based on the action that was taken
       Get.snackbar(
-        _isFavorite ? "Added to Favorites" : "Removed from Favorites",
-        _isFavorite 
-            ? "${widget.product.description.isNotEmpty ? widget.product.description : 'Product'} added to favorites"
-            : "${widget.product.description.isNotEmpty ? widget.product.description : 'Product'} removed from favorites",
-        backgroundColor: _isFavorite ? Colors.pink.shade100 : Colors.grey.shade100,
-        colorText: _isFavorite ? Colors.pink.shade800 : Colors.grey.shade800,
+        wasInWishlist ? "Removed from Wishlist" : "Added to Wishlist",
+        wasInWishlist 
+            ? "${widget.product.description.isNotEmpty ? widget.product.description : 'Product'} removed from wishlist"
+            : "${widget.product.description.isNotEmpty ? widget.product.description : 'Product'} added to wishlist",
+        backgroundColor: wasInWishlist ? Colors.grey.shade100 : Colors.pink.shade100,
+        colorText: wasInWishlist ? Colors.grey.shade800 : Colors.pink.shade800,
         snackPosition: SnackPosition.TOP,
         duration: const Duration(seconds: 2),
         icon: Icon(
-          _isFavorite ? Icons.favorite : Icons.favorite_border,
-          color: _isFavorite ? Colors.pink : Colors.grey,
+          wasInWishlist ? Icons.favorite_border : Icons.favorite,
+          color: wasInWishlist ? Colors.grey : Colors.pink,
         ),
         margin: const EdgeInsets.all(16),
       );
     } catch (e) {
-      // Revert on error
+      // Show error message
       if (!mounted) return;
-      
-      setState(() {
-        _isFavorite = !_isFavorite;
-      });
       
       Get.snackbar(
         "Error",
-        "Failed to update favorites. Please try again.",
+        "Failed to update wishlist. Please try again.",
         backgroundColor: Colors.red.shade100,
         colorText: Colors.red.shade800,
         snackPosition: SnackPosition.TOP,

@@ -2,15 +2,20 @@ import 'dart:developer';
 import 'package:chys/app/core/const/app_colors.dart';
 import 'package:chys/app/core/utils/app_size.dart';
 import 'package:chys/app/data/models/own_profile.dart';
+import 'package:chys/app/data/models/product.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
+import 'package:chys/app/modules/donate/controller/donate_controller.dart';
 import 'package:chys/app/modules/map/controllers/map_controller.dart';
 import 'package:chys/app/modules/profile/controllers/other_user_profile_controller.dart';
 import 'package:chys/app/modules/podcast/controllers/create_podcast_controller.dart';
+import 'package:chys/app/modules/products/controller/products_controller.dart';
 import 'package:chys/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../../widget/common/wishlist_product_widget.dart';
+import '../../../widget/common/profile_tabs_widget.dart';
 import '../../../widget/common/post_grid_widget.dart';
 import '../../../widget/shimmer/cat_quote_shimmer.dart';
 import '../../../services/date_time_service.dart';
@@ -19,14 +24,82 @@ import '../../../services/custom_Api.dart';
 import '../../../core/controllers/loading_controller.dart';
 import '../../../services/short_message_utils.dart';
 
-class OtherUserProfileView extends StatelessWidget {
+class OtherUserProfileView extends StatefulWidget {
+  const OtherUserProfileView({super.key});
+
+  @override
+  State<OtherUserProfileView> createState() => _OtherUserProfileViewState();
+}
+
+class _OtherUserProfileViewState extends State<OtherUserProfileView> 
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   final mapController = Get.find<MapController>();
   // Use dedicated controller for other user profiles
   final otherUserProfileController =
       Get.put(OtherUserProfileController(), tag: 'other_user_profile');
   final CustomApiService customApiService = Get.put(CustomApiService());
+  
+  late final TabController tabController;
+  late final AddoredPostsController postController;
+  late final DonateController donateController;
+  late final ProductsController productsController;
+  
+  // Store the user's wishlist products
+  final RxList<Products> userWishlistProducts = <Products>[].obs;
 
-  OtherUserProfileView({super.key});
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    
+    // Initialize tab controller
+    tabController = TabController(length: 3, vsync: this);
+    
+    // Initialize controllers
+    postController = Get.put(AddoredPostsController(), tag: 'other_profile');
+    donateController = Get.put(DonateController(), tag: 'other_profile_donate');
+    productsController = Get.put(ProductsController(), tag: 'other_profile_products');
+    
+    // Fetch initial data
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    final argument = Get.arguments as String?;
+    
+    if (argument != null) {
+      // Load data in parallel for better performance
+      await Future.wait([
+        otherUserProfileController.fetchOtherUserProfile(argument),
+        postController.fetchAdoredPosts(userId: argument, forceRefresh: true),
+        donateController.fetchDonations(),
+      ]);
+      
+      // Fetch user-specific wishlist separately
+      log('🔍 Fetching wishlist for user: $argument');
+      final wishlist = await productsController.fetchUserWishlist(argument);
+      log('🔍 Received wishlist: ${wishlist.length} items');
+      userWishlistProducts.assignAll(wishlist);
+      log('🔍 Assigned to reactive list: ${userWishlistProducts.length} items');
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    tabController.dispose();
+    postController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Refresh data when app resumes
+      _initializeData();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,21 +110,7 @@ class OtherUserProfileView extends StatelessWidget {
       return const Scaffold();
     }
 
-    // Controllers for posts - use separate instance for profile to avoid conflicts
-    final AddoredPostsController postController =
-        Get.put(AddoredPostsController(), tag: 'other_profile');
-
     log("Other user profile view using controller with tag: 'other_profile'");
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      log("Loading other user profile for ID: $argument");
-
-      // Load data in parallel for better performance
-      await Future.wait([
-        otherUserProfileController.fetchOtherUserProfile(argument),
-        postController.fetchAdoredPosts(userId: argument),
-      ]);
-    });
 
     return Scaffold(
         backgroundColor: Colors.white,
@@ -64,6 +123,8 @@ class OtherUserProfileView extends StatelessWidget {
                     .fetchOtherUserProfile(argument);
                 await postController.fetchAdoredPosts(
                     userId: argument, forceRefresh: true);
+                await donateController.fetchDonations();
+                await productsController.fetchWishlist();
               } catch (e) {
                 log("Error refreshing profile: $e");
               }
@@ -117,8 +178,8 @@ class OtherUserProfileView extends StatelessWidget {
                           const SizedBox(height: 20),
                         ],
 
-                        // Posts Display - Full width without padding
-                        _buildPostsSection(postController),
+                        // Tabbed Content Section
+                        _buildTabbedSection(),
                       ],
                     );
                   }),
@@ -732,14 +793,333 @@ class OtherUserProfileView extends StatelessWidget {
     });
   }
 
-  Widget _buildPostsSection(AddoredPostsController postController) {
+  Widget _buildTabbedSection() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Posts Content - No padding to cover full width
-        _buildPostsTab(postController),
+        // Tab Bar
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: TabBar(
+            controller: tabController,
+            labelColor: const Color(0xFF0095F6),
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: const Color(0xFF0095F6),
+            indicatorWeight: 2,
+            labelStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+            tabs: const [
+              Tab(
+                icon: Icon(Icons.grid_on, size: 20),
+                text: ' Posts',
+              ),
+              Tab(
+                icon: Icon(Icons.favorite, size: 20),
+                text: ' Donate',
+              ),
+              Tab(
+                icon: Icon(Icons.shopping_bag, size: 20),
+                text: ' Wishlist',
+              ),
+            ],
+          ),
+        ),
+        
+        // Tab Content
+        SizedBox(
+          height: Get.height * 0.6, // Adjust height as needed
+          child: ProfileTabsWidget.standard(
+            tabController: tabController,
+            postsTabContent: _buildPostsTabContent(),
+            donateTabContent: _buildDonateTabContent(),
+            wishlistTabContent: _buildWishlistTabContent(),
+          ),
+        ),
       ],
     );
+  }
+
+  Widget _buildPostsTabContent() {
+    return Obx(() {
+      if (postController.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      // Filter posts by type 'post'
+      final filteredPosts = postController.posts.where((post) => 
+        post.type == 'post' || post.type == null
+      ).toList();
+
+      if (filteredPosts.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.photo_library_outlined,
+                size: 48,
+                color: Color(0xFF0095F6),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "No posts yet",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "This user hasn't posted anything yet",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      final screenWidth = MediaQuery.of(Get.context!).size.width;
+      final crossAxisCount = screenWidth > 900
+          ? 4
+          : screenWidth > 600
+              ? 3
+              : 2;
+
+      return StaggeredGridView.countBuilder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        crossAxisCount: crossAxisCount,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        itemCount: filteredPosts.length,
+        itemBuilder: (context, index) {
+          final post = filteredPosts[index];
+          return PostGridWidget(
+            post: post,
+            addoredPostsController: postController,
+            onTapCard: () => Get.toNamed('/post-detail', arguments: post.id),
+          );
+        },
+        staggeredTileBuilder: (index) => StaggeredTile.count(
+          1,
+          (filteredPosts[index].description.length % 3) * 0.1 + 1.2,
+        ),
+      );
+    });
+  }
+
+  Widget _buildDonateTabContent() {
+    return Obx(() {
+      if (postController.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      // Filter posts by type 'fundraise'
+      final fundraisePosts = postController.posts.where((post) => 
+        post.type == 'fundraise'
+      ).toList();
+
+      if (fundraisePosts.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.favorite_border,
+                size: 48,
+                color: Color(0xFF0095F6),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "No fundraisers yet",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "This user hasn't started any fundraisers",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: fundraisePosts.length,
+        itemBuilder: (context, index) {
+          final post = fundraisePosts[index];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (post.media.isNotEmpty)
+                  Container(
+                    width: double.infinity,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    ),
+                    child: post.media[0].isNotEmpty
+                        ? Image.network(
+                            post.media[0],
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 48),
+                          )
+                        : const Icon(Icons.image, size: 48),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        post.description,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      if (post.fundCount != null && post.fundedAmount != null) ...[
+                        Text(
+                          'Raised: \$${post.fundedAmount} / ${post.fundCount} backers',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF00C851),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => Get.toNamed('/post-detail', arguments: post.id),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0095F6),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Support Fundraiser',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    });
+  }
+
+  Widget _buildWishlistTabContent() {
+    return Obx(() {
+      log('🔍 Wishlist UI Debug - Loading: ${productsController.isLoading.value}, Products count: ${userWishlistProducts.length}');
+      
+      if (productsController.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (userWishlistProducts.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.shopping_bag_outlined,
+                size: 48,
+                color: Color(0xFF0095F6),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Wishlist is empty",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "This user hasn't added any products to their wishlist",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.7, // Even more height to prevent cutoff
+        ),
+        itemCount: userWishlistProducts.length,
+        itemBuilder: (context, index) {
+          final product = userWishlistProducts[index];
+          return WishlistProductWidget(product: product);
+        },
+      );
+    });
   }
 
   Widget _buildPostsTab(AddoredPostsController postController) {

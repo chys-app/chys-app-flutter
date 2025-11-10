@@ -240,8 +240,24 @@ class ApiClient {
   }
 
   Future<dynamic> favoriteProduct(String productId) async {
-    final url = '$baseUrl/products/$productId/favorite';
+    final url = '$baseUrl/wishlist/$productId';
     return _handleRequest(http.post(
+      Uri.parse(url),
+      headers: headers,
+    ));
+  }
+
+  Future<dynamic> unfavoriteProduct(String productId) async {
+    final url = '$baseUrl/wishlist/$productId';
+    return _handleRequest(http.delete(
+      Uri.parse(url),
+      headers: headers,
+    ));
+  }
+
+  Future<dynamic> getWishlist() async {
+    final url = '$baseUrl/wishlist';
+    return _handleRequest(http.get(
       Uri.parse(url),
       headers: headers,
     ));

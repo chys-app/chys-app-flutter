@@ -6,13 +6,13 @@ import 'package:chys/app/data/models/pet_profile.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
 import 'package:chys/app/modules/map/controllers/map_controller.dart';
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
+import 'package:chys/app/modules/products/controller/products_controller.dart';
 import 'package:chys/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../../widget/common/custom_post_widget.dart';
 import '../../../widget/common/post_grid_widget.dart';
+import '../../../widget/common/profile_tabs_widget.dart';
 import '../../../widget/shimmer/cat_quote_shimmer.dart';
 import 'create_fundraise_view.dart';
 
@@ -21,19 +21,24 @@ class ProfileView extends StatefulWidget {
   State<ProfileView> createState() => _ProfileViewState();
 }
 
-class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
+class _ProfileViewState extends State<ProfileView> 
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   final mapController = Get.find<MapController>();
   final profileController = Get.find<ProfileController>();
+  late TabController tabController;
 
   @override
   void initState() {
     super.initState();
+    tabController = TabController(length: 3, vsync: this);
+    // Remove the listener to prevent unnecessary rebuilds that cause flicker
     WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    tabController.dispose();
     super.dispose();
   }
 
@@ -53,6 +58,7 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
 
     // Controllers for posts - use separate instance for profile to avoid conflicts
     final AddoredPostsController postController = Get.put(AddoredPostsController(), tag: 'profile');
+    final ProductsController productsController = Get.find<ProductsController>();
 
     log("Profile view using controller with tag: 'profile'");
 
@@ -77,6 +83,9 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
           if (currentUserId.isNotEmpty) {
             await postController.fetchAdoredPosts(userId: currentUserId, forceRefresh: true);
           }
+          
+          // Fetch wishlist products
+          await productsController.fetchWishlist();
         }
       } catch (e) {
         log("Error in profile page initialization: $e");
@@ -99,6 +108,8 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
                 userId: id,
                 forceRefresh: true,
               );
+              // Refresh wishlist
+              await productsController.fetchWishlist();
             } catch (e) {
               log("Error refreshing profile: $e");
             }
@@ -269,7 +280,7 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
                   
                   // Posts Display - Full width without padding
                   SliverToBoxAdapter(
-                    child: _buildPostsSection(postController),
+                    child: _buildPostsSection(postController, productsController),
                   ),
                 ]
 
@@ -617,19 +628,16 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildPostsSection(AddoredPostsController postController) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Posts Content - No padding to cover full space
-        _buildPostsTab(postController),
-      ],
+  Widget _buildPostsSection(AddoredPostsController postController, ProductsController productsController) {
+    return ProfileTabsWidget.standard(
+      tabController: tabController,
+      postsTabContent: _buildPostsTabContent(postController),
+      donateTabContent: _buildDonateTabContent(),
+      wishlistTabContent: _buildWishlistTabContent(productsController),
     );
   }
 
-
-
-  Widget _buildPostsTab(AddoredPostsController postController) {
+  Widget _buildPostsTabContent(AddoredPostsController postController) {
     return Obx(() {
       if (postController.isLoading.value) {
         return ListView.builder(
@@ -643,7 +651,7 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
 
       if (postController.posts.isEmpty) {
         return SizedBox(
-          height: Get.height* 0.45,
+          height: Get.height * 0.45,
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -667,9 +675,9 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
                   ),
                   child: const AppText(
                     text: "Share your first post to get started!",
-                      fontSize: 14,
-                      color: Color(0xFF6E6E6E), // App's text secondary color
-                      fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                    color: Color(0xFF6E6E6E), // App's text secondary color
+                    fontWeight: FontWeight.w500,
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -694,54 +702,204 @@ class _ProfileViewState extends State<ProfileView> with WidgetsBindingObserver {
         );
       }
 
-      return postController.isGridView.value
-          ? _buildGridView(postController)
-          : _buildListView(postController);
+      return _buildGridView(postController);
     });
   }
 
+  Widget _buildDonateTabContent() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.favorite,
+            size: 48,
+            color: Color(0xFFE91E63),
+          ),
+          SizedBox(height: 16),
+          Text(
+            "Donate Feature",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF262626),
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            "Coming soon!",
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF8E8E93),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWishlistTabContent(ProductsController productsController) {
+    return Obx(() {
+      // Show loading indicator while fetching wishlist
+      if (productsController.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      // Get wishlist products
+      final wishlistProducts = productsController.products.where((product) => 
+        productsController.isInWishlist(product.id)
+      ).toList();
+
+      if (wishlistProducts.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.shopping_bag_outlined,
+                size: 48,
+                color: Colors.grey.shade400,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Your wishlist is empty",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Add products to your wishlist to see them here",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      // Show wishlist products in a grid
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = constraints.maxWidth;
+          final crossAxisCount = screenWidth > 600 ? 4 : 3;
+
+          return GridView.count(
+            shrinkWrap: true,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 0.75, // Slightly more compact to prevent overflow
+            children: List.generate(wishlistProducts.length, (index) {
+              final product = wishlistProducts[index];
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product image
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                          color: Colors.grey.shade100,
+                        ),
+                        child: product.media.isNotEmpty
+                            ? ClipRRect(
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                child: Image.network(
+                                  product.media.first,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => 
+                                    Icon(Icons.image, color: Colors.grey.shade400, size: 32),
+                                ),
+                              )
+                            : Icon(Icons.image, color: Colors.grey.shade400, size: 32),
+                      ),
+                    ),
+                    // Product info
+                    Expanded(
+                      flex: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              product.description,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const Spacer(),
+                            Text(
+                              '\$${product.price.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0095F6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          );
+        },
+      );
+    });
+  }
+
+
+
+  
   Widget _buildGridView(AddoredPostsController postController) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
-        final crossAxisCount = screenWidth > 600 ? 3 : 2;
+        final crossAxisCount = screenWidth > 600 ? 4 : 3;
 
-        return MasonryGridView.count(
+        return GridView.count(
           shrinkWrap: true,
           physics: const ScrollPhysics(),
           padding: EdgeInsets.zero,
           crossAxisCount: crossAxisCount,
-          mainAxisSpacing: 0,
-          crossAxisSpacing: 0,
-          itemCount: postController.posts.length,
-          itemBuilder: (context, index) {
-            return AspectRatio(
-              aspectRatio: 0.7 +
-                  (postController.posts[index].description.length % 3) * 0.1,
-              child: PostGridWidget(
-                post: postController.posts[index],
-                addoredPostsController: postController,
-                // Enable thumbnail generation for videos
-                disableThumbnailGeneration: false,
-              ),
+          mainAxisSpacing: 2,
+          crossAxisSpacing: 2,
+          childAspectRatio: 1.0, // Square tiles
+          children: List.generate(postController.posts.length, (index) {
+            return PostGridWidget(
+              post: postController.posts[index],
+              addoredPostsController: postController,
+              // Enable thumbnail generation for videos
+              disableThumbnailGeneration: false,
             );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildListView(AddoredPostsController postController) {
-    return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      padding: EdgeInsets.zero,
-      itemCount: postController.posts.length,
-      itemBuilder: (context, index) {
-        return CustomPostWidget(
-          isCurrentUser: profileController.isCurrentUser.value,
-          posts: postController.posts[index],
-          addoredPostsController: postController,
+          }),
         );
       },
     );

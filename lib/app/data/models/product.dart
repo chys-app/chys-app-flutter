@@ -82,6 +82,7 @@ class Products {
   RxBool isFunded;
   RxInt fundedAmount;
   RxInt fundCount;
+  bool isInWishlist;
 
   Products({
     required this.id,
@@ -103,6 +104,7 @@ class Products {
     required int fundCount,
     required this.isFavorite,
     required this.v,
+    required this.isInWishlist,
   })  : likes = RxList<dynamic>(likes),
         comments =
             RxList<Map<String, dynamic>>(comments.cast<Map<String, dynamic>>()),
@@ -166,6 +168,7 @@ class Products {
       createdAt: map["createdAt"]?.toString() ?? '',
       updatedAt: map["updatedAt"]?.toString() ?? '',
       isFavorite: map["isFavorite"] == true,
+      isInWishlist: map["isInWishlist"] == true || map["isWishlisted"] == true,
       fundedAmount: map["viewCount"] is int
           ? map["viewCount"]
           : int.tryParse(map["viewCount"]?.toString() ?? '') ?? 0,
