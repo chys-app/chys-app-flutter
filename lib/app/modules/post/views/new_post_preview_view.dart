@@ -1,8 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:chys/app/core/const/app_colors.dart';
-import 'package:chys/app/core/utils/app_size.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
@@ -18,9 +16,8 @@ class NewPostPreviewView extends StatefulWidget {
   State<NewPostPreviewView> createState() => _NewPostPreviewViewState();
 }
 
-class _NewPostPreviewViewState extends State<NewPostPreviewView> with SingleTickerProviderStateMixin {
+class _NewPostPreviewViewState extends State<NewPostPreviewView> {
   final ScrollController _scrollController = ScrollController();
-  late TabController _tabController;
   
   PostController get controller {
     try {
@@ -34,12 +31,10 @@ class _NewPostPreviewViewState extends State<NewPostPreviewView> with SingleTick
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -263,47 +258,70 @@ class _NewPostPreviewViewState extends State<NewPostPreviewView> with SingleTick
           ),
         ],
       ),
-      child: Column(
-        children: [
-          // Tab bar
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: Colors.grey[200]!, width: 1),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Description input
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[300]!, width: 1),
+              ),
+              child: TextField(
+                controller: controller.descriptionController,
+                maxLines: 4,
+                textInputAction: TextInputAction.done,
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+                decoration: InputDecoration(
+                  hintText: 'Write a caption...',
+                  hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                ),
               ),
             ),
-            child: TabBar(
-              controller: _tabController,
-              labelColor: Colors.blue[600],
-              unselectedLabelColor: Colors.grey[600],
-              indicatorColor: Colors.blue[600],
-              indicatorWeight: 3,
-              labelStyle: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+            const SizedBox(height: 16),
+            // Post button
+            Obx(() => ElevatedButton(
+              onPressed: controller.isLoading.value ? null : () {
+                controller.createPost();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[600],
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
               ),
-              unselectedLabelStyle: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-              tabs: const [
-                Tab(text: 'Post'),
-                Tab(text: 'Fundraiser'),
-              ],
-            ),
-          ),
-          
-          // Tab content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildPostTab(),
-                _buildFundraiserTab(),
-              ],
-            ),
-          ),
-        ],
+              child: controller.isLoading.value
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Post',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+            )),
+          ],
+        ),
       ),
     );
   }

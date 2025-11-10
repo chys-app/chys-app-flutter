@@ -1,11 +1,8 @@
 import 'dart:io';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../../post/controllers/post_controller.dart';
 
@@ -35,423 +32,381 @@ class _CreateFundraiseViewState extends State<CreateFundraiseView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return GestureDetector(
+      onTap: () {
+        // Hide keyboard when tapping outside text field
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Color(0xff4B164C),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+            ),
+            onPressed: () => Get.back(),
           ),
-          onPressed: () => Get.back(),
-        ),
-        title: const Text(
-          'Fundraise',
-          style: TextStyle(
-            color: Color(0xff4B164C),
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+          title: const Text(
+            'Fundraise',
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
           ),
+          centerTitle: true,
         ),
-        centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: () => _postController.createPost(),
-            child: const Text(
-              'Submit',
-              style: TextStyle(
-                color: Color(0xff4B164C),
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+        resizeToAvoidBottomInset: true,
+        body: Obx(() {
+          // Safety check for controller and selectedMedia
+          if (_postController.selectedMedia.isEmpty) {
+            return _buildEmptyState();
+          }
+          
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return Column(
+                children: [
+                  // Media preview section - flexible height
+                  Flexible(
+                    flex: 3,
+                    child: _buildMediaPreview(),
+                  ),
+                  
+                  // Fundraiser input section
+                  Flexible(
+                    flex: 2,
+                    child: _buildFundraiserSection(),
+                  ),
+                ],
+              );
+            },
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.photo_library_outlined,
+            size: 80,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No media selected',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Add photos or videos to continue',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => _showMediaPicker(),
+            icon: const Icon(Icons.add),
+            label: const Text('Add Media'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[600],
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+    );
+  }
+
+  Widget _buildMediaPreview() {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: Colors.black,
+      child: PageView.builder(
+        controller: PageController(),
+        itemCount: _postController.selectedMedia.length,
+        itemBuilder: (context, index) {
+          final mediaFile = _postController.selectedMedia[index];
+          if (mediaFile.path.toLowerCase().endsWith('.mp4') ||
+              mediaFile.path.toLowerCase().endsWith('.mov') ||
+              mediaFile.path.toLowerCase().endsWith('.avi')) {
+            return _buildVideoPreview(mediaFile);
+          } else {
+            return _buildImagePreview(mediaFile);
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildImagePreview(File imageFile) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      child: Image.file(
+        imageFile,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  Widget _buildVideoPreview(File videoFile) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: Colors.black,
+      child: Stack(
+        children: [
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            child: Icon(
+              Icons.play_circle_outline,
+              color: Colors.white.withOpacity(0.7),
+              size: 80,
+            ),
+          ),
+          Center(
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: const Icon(
+                Icons.play_arrow,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFundraiserSection() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(color: Colors.grey[200]!, width: 1),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Description Field
-            _buildSectionTitle('Description'),
-            _buildDescriptionField(),
-            const SizedBox(height: 24),
-
-            // Amount Needed Field
-            _buildSectionTitle('Amount Needed'),
-            _buildAmountField(),
-            const SizedBox(height: 24),
-
-            // Deadline Field (Optional)
-            _buildSectionTitle('Deadline (optional)'),
-            _buildDeadlineField(),
-            const SizedBox(height: 24),
-
-            // Media Section
-            _buildSectionTitle('Photos & Videos'),
-            _buildMediaSection(),
-            const SizedBox(height: 24),
-
-            // Submit Button
-            _buildSubmitButton(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: Color(0xff4B164C),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDescriptionField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: TextField(
-        controller: _postController.descriptionController,
-        maxLines: 5,
-        decoration: const InputDecoration(
-          hintText: 'Describe your fundraising campaign...',
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.all(16),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAmountField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: TextField(
-        controller: _postController.amountController,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          hintText: 'Enter amount needed (optional)',
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.all(16),
-          prefixText: '\$ ',
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDeadlineField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: TextField(
-        controller: _postController.deadlineController,
-        readOnly: true,
-        decoration: InputDecoration(
-          hintText: 'Select deadline date',
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.all(16),
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.calendar_today, color: Color(0xff4B164C)),
-            onPressed: _selectDeadlineDate,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMediaSection() {
-    return Column(
-      children: [
-        // Media Grid
-        Obx(() {
-          if (_postController.selectedMedia.isEmpty) {
-            return const SizedBox.shrink();
-          }
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.photo_library,
-                      color: Colors.grey[700],
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${_postController.selectedMedia.length}/${PostController.MAX_MEDIA_FILES}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
+            // Description input
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[300]!, width: 1),
+              ),
+              child: TextField(
+                controller: _postController.descriptionController,
+                maxLines: 4,
+                textInputAction: TextInputAction.done,
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+                decoration: InputDecoration(
+                  hintText: 'Describe your fundraiser...',
+                  hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            // Amount input
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[300]!, width: 1),
+              ),
+              child: TextField(
+                controller: _postController.amountController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+                decoration: InputDecoration(
+                  hintText: 'Amount needed (\$)',
+                  hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            // Deadline input
+            GestureDetector(
+              onTap: _selectDeadlineDate,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!, width: 1),
+                ),
+                child: TextField(
+                  controller: _postController.deadlineController,
+                  readOnly: true,
+                  style: const TextStyle(fontSize: 16, color: Colors.black87),
+                  decoration: InputDecoration(
+                    hintText: 'Deadline (optional)',
+                    hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                    suffixIcon: Icon(Icons.calendar_today, color: Colors.grey[600]),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            // Submit button
+            Obx(() => ElevatedButton(
+              onPressed: _postController.isLoading.value ? null : () {
+                _postController.createPost();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[600],
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              child: _postController.isLoading.value
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Create Fundraiser',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 120,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _postController.selectedMedia.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 16),
-                    itemBuilder: (context, index) {
-                      final file = _postController.selectedMedia[index];
-                      final isVideo = _isVideoFile(file);
-                      return _buildMediaThumbnail(file, isVideo, index);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-
-        // Add Media Buttons
-        if (_postController.canAddMoreMedia)
-          Row(
-            children: [
-              Expanded(
-                child: _buildMediaButton(
-                  icon: Icons.photo_camera,
-                  label: 'Camera',
-                  onTap: _capturePhoto,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildMediaButton(
-                  icon: Icons.photo_library,
-                  label: 'Gallery',
-                  onTap: _pickFromGallery,
-                ),
-              ),
-            ],
-          ),
-      ],
-    );
-  }
-
-  Widget _buildMediaButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xff4B164C).withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xff4B164C).withOpacity(0.3)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: const Color(0xff4B164C), size: 20),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Color(0xff4B164C),
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+            )),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMediaThumbnail(File file, bool isVideo, int index) {
-    return Container(
-      width: 100,
-      height: 100,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.grey[200],
-      ),
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: isVideo
-                ? _buildVideoThumbnail(file)
-                : Image.file(
-                    file,
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.videocam, color: Colors.grey),
-                      );
-                    },
-                  ),
-          ),
-          Positioned(
-            top: 4,
-            right: 4,
-            child: GestureDetector(
-              onTap: () => _removeMedia(index),
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.close,
-                  color: Colors.white,
-                  size: 16,
-                ),
-              ),
-            ),
-          ),
-          if (isVideo)
-            const Positioned(
-              bottom: 4,
-              right: 4,
-              child: Icon(
-                Icons.play_circle_filled,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildVideoThumbnail(File videoFile) {
-    return FutureBuilder<String?>(
-      future: _getVideoThumbnail(videoFile.path),
-      builder: (context, snapshot) {
-        if (snapshot.hasData && snapshot.data != null) {
-          return Image.file(
-            File(snapshot.data!),
-            width: 100,
-            height: 100,
-            fit: BoxFit.cover,
-          );
-        }
-        return Container(
-          color: Colors.grey[300],
-          child: const Icon(Icons.videocam, color: Colors.grey),
-        );
-      },
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    return Obx(() => SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _postController.isLoading.value ? null : () => _postController.createPost(),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xff4B164C),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+  void _showMediaPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
         ),
-        child: _postController.isLoading.value
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Text(
-                'Create Fundraising Campaign',
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 20),
+              const Text(
+                'Add Media',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
               ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: Colors.blue),
+                title: const Text('Gallery'),
+                onTap: () {
+                  Get.back();
+                  _pickFromGallery();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Colors.blue),
+                title: const Text('Camera'),
+                onTap: () {
+                  Get.back();
+                  _pickFromCamera();
+                },
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
       ),
-    ));
-  }
-
-  bool _isVideoFile(File file) {
-    final path = file.path.toLowerCase();
-    return path.endsWith('.mp4') || path.endsWith('.mov') || path.endsWith('.avi');
-  }
-
-  Future<String?> _getVideoThumbnail(String videoPath) async {
-    try {
-      final thumbnailPath = await VideoThumbnail.thumbnailFile(
-        video: videoPath,
-        thumbnailPath: (await getTemporaryDirectory()).path,
-        imageFormat: ImageFormat.JPEG,
-        maxHeight: 100,
-        quality: 75,
-      );
-      return thumbnailPath;
-    } catch (e) {
-      log('Error generating video thumbnail: $e');
-      return null;
-    }
-  }
-
-  Future<void> _capturePhoto() async {
-    try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 80,
-      );
-      if (image != null) {
-        _postController.selectedMedia.add(File(image.path));
-      }
-    } catch (e) {
-      log('Error capturing photo: $e');
-    }
+    );
   }
 
   Future<void> _pickFromGallery() async {
-    try {
-      final List<XFile> media = await _imagePicker.pickMultipleMedia();
-      for (final file in media) {
-        if (_postController.canAddMoreMedia) {
+    final List<XFile>? pickedFiles = await _imagePicker.pickMultiImage();
+    if (pickedFiles != null) {
+      for (var file in pickedFiles) {
+        if (_postController.selectedMedia.length < PostController.MAX_MEDIA_FILES) {
           _postController.selectedMedia.add(File(file.path));
         }
       }
-    } catch (e) {
-      log('Error picking media: $e');
     }
   }
 
-  void _removeMedia(int index) {
-    _postController.selectedMedia.removeAt(index);
+  Future<void> _pickFromCamera() async {
+    final XFile? pickedFile = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+    );
+    if (pickedFile != null && _postController.selectedMedia.length < PostController.MAX_MEDIA_FILES) {
+      _postController.selectedMedia.add(File(pickedFile.path));
+    }
   }
 
   Future<void> _selectDeadlineDate() async {
@@ -462,7 +417,6 @@ class _CreateFundraiseViewState extends State<CreateFundraiseView> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
     if (picked != null) {
-      // Format date as YYYY-MM-DD for proper backend parsing
       _postController.deadlineController.text = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
     }
   }
