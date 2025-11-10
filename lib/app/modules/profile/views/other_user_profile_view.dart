@@ -14,6 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../../widget/common/wishlist_product_widget.dart';
+import '../../../widget/common/profile_tabs_widget.dart';
 import '../../../widget/common/post_grid_widget.dart';
 import '../../../widget/shimmer/cat_quote_shimmer.dart';
 import '../../../services/date_time_service.dart';
@@ -841,13 +843,11 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
         // Tab Content
         SizedBox(
           height: Get.height * 0.6, // Adjust height as needed
-          child: TabBarView(
-            controller: tabController,
-            children: [
-              _buildPostsTabContent(),
-              _buildDonateTabContent(),
-              _buildWishlistTabContent(),
-            ],
+          child: ProfileTabsWidget.standard(
+            tabController: tabController,
+            postsTabContent: _buildPostsTabContent(),
+            donateTabContent: _buildDonateTabContent(),
+            wishlistTabContent: _buildWishlistTabContent(),
           ),
         ),
       ],
@@ -1116,96 +1116,7 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
         itemCount: userWishlistProducts.length,
         itemBuilder: (context, index) {
           final product = userWishlistProducts[index];
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                      color: Colors.grey.shade100,
-                    ),
-                    child: product.media.isNotEmpty && product.media[0].isNotEmpty
-                        ? ClipRRect(
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                            child: Image.network(
-                              product.media[0],
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 48),
-                            ),
-                          )
-                        : const Icon(Icons.image, size: 48),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product.description,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const Spacer(),
-                        if (product.price != null)
-                          Text(
-                            '\$${product.price}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0095F6),
-                            ),
-                          ),
-                        const SizedBox(height: 6),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () => Get.toNamed('/product-detail', arguments: product),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0095F6),
-                              padding: const EdgeInsets.symmetric(vertical: 6),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                            ),
-                            child: const Text(
-                              'View',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
+          return WishlistProductWidget(product: product);
         },
       );
     });
