@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:chys/app/core/const/app_colors.dart';
 import 'package:chys/app/core/utils/app_size.dart';
 import 'package:chys/app/data/models/own_profile.dart';
+import 'package:chys/app/data/models/product.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
 import 'package:chys/app/modules/donate/controller/donate_controller.dart';
 import 'package:chys/app/modules/map/controllers/map_controller.dart';
@@ -40,6 +41,9 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
   late final AddoredPostsController postController;
   late final DonateController donateController;
   late final ProductsController productsController;
+  
+  // Store the user's wishlist products
+  final RxList<Products> userWishlistProducts = <Products>[].obs;
 
   @override
   void initState() {
@@ -67,8 +71,14 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
         otherUserProfileController.fetchOtherUserProfile(argument),
         postController.fetchAdoredPosts(userId: argument, forceRefresh: true),
         donateController.fetchDonations(),
-        productsController.fetchWishlist(),
       ]);
+      
+      // Fetch user-specific wishlist separately
+      log('🔍 Fetching wishlist for user: $argument');
+      final wishlist = await productsController.fetchUserWishlist(argument);
+      log('🔍 Received wishlist: ${wishlist.length} items');
+      userWishlistProducts.assignAll(wishlist);
+      log('🔍 Assigned to reactive list: ${userWishlistProducts.length} items');
     }
   }
 
@@ -1057,15 +1067,13 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
 
   Widget _buildWishlistTabContent() {
     return Obx(() {
+      log('🔍 Wishlist UI Debug - Loading: ${productsController.isLoading.value}, Products count: ${userWishlistProducts.length}');
+      
       if (productsController.isLoading.value) {
         return const Center(child: CircularProgressIndicator());
       }
 
-      final wishlistProducts = productsController.products.where((product) => 
-        productsController.isInWishlist(product.id)
-      ).toList();
-
-      if (wishlistProducts.isEmpty) {
+      if (userWishlistProducts.isEmpty) {
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1103,11 +1111,11 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
           crossAxisCount: 2,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: 0.8,
+          childAspectRatio: 0.7, // Even more height to prevent cutoff
         ),
-        itemCount: wishlistProducts.length,
+        itemCount: userWishlistProducts.length,
         itemBuilder: (context, index) {
-          final product = wishlistProducts[index];
+          final product = userWishlistProducts[index];
           return Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -1124,68 +1132,75 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
+                  flex: 3,
                   child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      color: Colors.grey.shade100,
                     ),
                     child: product.media.isNotEmpty && product.media[0].isNotEmpty
-                        ? Image.network(
-                            product.media[0],
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 48),
+                        ? ClipRRect(
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                            child: Image.network(
+                              product.media[0],
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 48),
+                            ),
                           )
                         : const Icon(Icons.image, size: 48),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.description,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      if (product.price != null)
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          '\$${product.price}',
+                          product.description,
                           style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0095F6),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () => Get.toNamed('/product-detail', arguments: product.id),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0095F6),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
+                        const Spacer(),
+                        if (product.price != null)
+                          Text(
+                            '\$${product.price}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0095F6),
                             ),
                           ),
-                          child: const Text(
-                            'View',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                        const SizedBox(height: 6),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () => Get.toNamed('/product-detail', arguments: product),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0095F6),
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                            child: const Text(
+                              'View',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],

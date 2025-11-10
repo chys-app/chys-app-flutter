@@ -274,4 +274,8 @@ class CustomApiService extends GetxService {
   Future<dynamic> getWishlist() async {
     return await getRequest('users/wishlist');
   }
+
+  Future<dynamic> getWishlistByUser(String userId) async {
+    return await getRequest('users/wishlist/$userId');
+  }
 }

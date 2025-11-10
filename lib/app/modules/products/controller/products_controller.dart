@@ -204,4 +204,43 @@ class ProductsController extends GetxController {
       log('❌ Error fetching wishlist: $e');
     }
   }
+
+  Future<List<Products>> fetchUserWishlist(String userId) async {
+    try {
+      isLoading.value = true;
+      log('🔍 API Debug - Fetching wishlist for user: $userId');
+      final response = await apiService.getWishlistByUser(userId);
+      log('🔍 API Debug - Response type: ${response.runtimeType}');
+      log('🔍 API Debug - Response data: $response');
+      
+      // Handle the actual response structure: {success: true, wishlist: [...]}
+      if (response is Map && response['wishlist'] is List) {
+        final wishlistData = response['wishlist'] as List;
+        final userWishlistProducts = wishlistData.map((item) {
+          log('🔍 API Debug - Parsing item: $item');
+          return Products.fromMap(item);
+        }).toList();
+        
+        log('❤️ Fetched user wishlist: ${userWishlistProducts.length} items for user $userId');
+        return userWishlistProducts;
+      } else if (response is List) {
+        // Fallback for direct list response
+        final userWishlistProducts = response.map((item) {
+          log('🔍 API Debug - Parsing item: $item');
+          return Products.fromMap(item);
+        }).toList();
+        
+        log('❤️ Fetched user wishlist: ${userWishlistProducts.length} items for user $userId');
+        return userWishlistProducts;
+      } else {
+        log('🔍 API Debug - Response is not expected format, got: ${response.runtimeType}');
+      }
+      return [];
+    } catch (e) {
+      log('❌ Error fetching user wishlist: $e');
+      return [];
+    } finally {
+      isLoading.value = false;
+    }
+  }
 }
