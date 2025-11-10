@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:chys/app/data/models/post.dart';
 import 'package:chys/app/core/const/app_colors.dart';
 import 'package:chys/app/core/const/app_text.dart';
 import 'package:chys/app/data/models/own_profile.dart';
@@ -632,7 +633,7 @@ class _ProfileViewState extends State<ProfileView>
     return ProfileTabsWidget.standard(
       tabController: tabController,
       postsTabContent: _buildPostsTabContent(postController),
-      donateTabContent: _buildDonateTabContent(),
+      donateTabContent: _buildDonateTabContent(postController),
       wishlistTabContent: _buildWishlistTabContent(productsController),
     );
   }
@@ -649,7 +650,12 @@ class _ProfileViewState extends State<ProfileView>
         );
       }
 
-      if (postController.posts.isEmpty) {
+      // Filter posts by type 'post'
+      final postsList = postController.posts.where((post) => 
+        post.type == PostType.post
+      ).toList();
+
+      if (postsList.isEmpty) {
         return SizedBox(
           height: Get.height * 0.45,
           child: Center(
@@ -702,40 +708,64 @@ class _ProfileViewState extends State<ProfileView>
         );
       }
 
-      return _buildGridView(postController);
+      return _buildGridView(postController, postsList);
     });
   }
 
-  Widget _buildDonateTabContent() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.favorite,
-            size: 48,
-            color: Color(0xFFE91E63),
-          ),
-          SizedBox(height: 16),
-          Text(
-            "Donate Feature",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF262626),
+  Widget _buildDonateTabContent(AddoredPostsController postController) {
+    return Obx(() {
+      if (postController.isLoading.value) {
+        return ListView.builder(
+          physics: const ScrollPhysics(),
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          itemCount: 3,
+          itemBuilder: (_, __) => const CatQuoteCardShimmer(),
+        );
+      }
+
+      // Filter posts by type 'fundraise'
+      final fundraiseList = postController.posts.where((post) => 
+        post.type == PostType.fundraise
+      ).toList();
+
+      if (fundraiseList.isEmpty) {
+        return SizedBox(
+          height: Get.height * 0.45,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.favorite,
+                  size: 48,
+                  color: Color(0xFFE91E63),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  "No Fundraise Posts",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF262626),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "Create your first fundraise post to see it here",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF8E8E93),
+                  ),
+                ),
+              ],
             ),
           ),
-          SizedBox(height: 8),
-          Text(
-            "Coming soon!",
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF8E8E93),
-            ),
-          ),
-        ],
-      ),
-    );
+        );
+      }
+
+      return _buildGridView(postController, fundraiseList);
+    });
   }
 
   Widget _buildWishlistTabContent(ProductsController productsController) {
@@ -878,7 +908,7 @@ class _ProfileViewState extends State<ProfileView>
 
 
   
-  Widget _buildGridView(AddoredPostsController postController) {
+  Widget _buildGridView(AddoredPostsController postController, List<Posts> postsList) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
@@ -892,9 +922,9 @@ class _ProfileViewState extends State<ProfileView>
           mainAxisSpacing: 2,
           crossAxisSpacing: 2,
           childAspectRatio: 1.0, // Square tiles
-          children: List.generate(postController.posts.length, (index) {
+          children: List.generate(postsList.length, (index) {
             return PostGridWidget(
-              post: postController.posts[index],
+              post: postsList[index],
               addoredPostsController: postController,
               // Enable thumbnail generation for videos
               disableThumbnailGeneration: false,

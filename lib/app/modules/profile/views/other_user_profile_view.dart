@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:chys/app/data/models/post.dart';
 import 'package:chys/app/core/const/app_colors.dart';
 import 'package:chys/app/core/utils/app_size.dart';
 import 'package:chys/app/data/models/own_profile.dart';
@@ -862,7 +863,7 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
 
       // Filter posts by type 'post'
       final filteredPosts = postController.posts.where((post) => 
-        post.type == 'post' || post.type == null
+        post.type == PostType.post
       ).toList();
 
       if (filteredPosts.isEmpty) {
@@ -936,7 +937,7 @@ class _OtherUserProfileViewState extends State<OtherUserProfileView>
 
       // Filter posts by type 'fundraise'
       final fundraisePosts = postController.posts.where((post) => 
-        post.type == 'fundraise'
+        post.type == PostType.fundraise
       ).toList();
 
       if (fundraisePosts.isEmpty) {
