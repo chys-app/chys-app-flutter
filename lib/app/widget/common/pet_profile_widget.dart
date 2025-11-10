@@ -78,13 +78,28 @@ class PetProfileWidget extends StatelessWidget {
       onTap: () {
         Get.toNamed(AppRoutes.otherUserProfile, arguments: post.creator.id);
       },
-      child: Text(
-        post.creator.name,
-        style: TextStyle(
-          color: textColor,
-          fontWeight: fontWeight,
-          fontSize: fontSize,
-        ),
+      child: Row(
+        children: [
+          Text(
+            post.creator.name,
+            style: TextStyle(
+              color: textColor,
+              fontWeight: fontWeight,
+              fontSize: fontSize,
+            ),
+          ),
+          if (post.type == PostType.fundraise) ...[
+            const SizedBox(width: 8),
+            const Text(
+              'is holding a Fund Raiser!',
+              style: TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
