@@ -363,6 +363,41 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
                         },
                       ),
                     ),
+
+                  // Love icon for fundraiser posts
+                  if (!widget.isCurrentUser && widget.posts.type == PostType.fundraise)
+                    Positioned(
+                      left: 10,
+                      top: 10,
+                      child: Obx(() => GestureDetector(
+                        onTap: () {
+                          if (widget.posts.isFunded.value) {
+                            return;
+                          } else {
+                            widget.addoredPostsController.fundPost(widget.posts, context);
+                          }
+                        },
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: widget.posts.isFunded.value 
+                                ? Colors.red 
+                                : Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: AppImages.love.toSvg(
+                              color: widget.posts.isFunded.value 
+                                  ? Colors.white 
+                                  : Colors.black,
+                              width: 24,
+                              height: 24,
+                            ),
+                          ),
+                        ),
+                      )),
+                    ),
                 ],
               ),
             ),
@@ -433,7 +468,7 @@ class _CustomPostWidgetState extends State<CustomPostWidget>
                           },
                           child: Row(
                             children: [
-                              AppImages.gift.toSvg(
+                              AppImages.love.toSvg(
                                 color: widget.posts.isFunded.value
                                     ? Colors.red
                                     : Colors.black87,
