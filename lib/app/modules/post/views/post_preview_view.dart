@@ -1,11 +1,9 @@
 import 'dart:async';
 
 import 'package:chys/app/core/const/app_image.dart';
-import 'package:chys/app/core/utils/app_size.dart';
-import 'package:chys/app/data/models/post.dart';
 import 'package:chys/app/modules/adored_posts/controller/controller.dart';
-import 'package:chys/app/routes/app_routes.dart';
 import 'package:chys/app/widget/image/svg_extension.dart';
+import 'package:chys/app/widget/common/pet_profile_widget.dart';
 import 'package:chys/app/widget/shimmer/post_preview_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -706,117 +704,14 @@ class _PostPreviewViewState extends State<PostPreviewView>
 
                     // User profile section
                     Expanded(
-                      child: Row(
-                        children: [
-                          // Profile image with error handling
-                          Stack(
-                            children: [
-                              Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: ClipOval(
-                                  child: _buildProfileImage(
-                                      post.creator.profilePic, post),
-                                ),
-                              ),
-
-                              // Debug indicator for fallback image
-                              if (post.creator.profilePic
-                                  .contains('ui-avatars.com'))
-                                Positioned(
-                                  top: -2,
-                                  right: -2,
-                                  child: Container(
-                                    width: 12,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color: Colors.orange,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.black,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: const Center(
-                                      child: Text(
-                                        'F',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 8,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(width: 12),
-
-                          // User info
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  post.creator.name,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                if (post.creator.bio != null &&
-                                    post.creator.bio!.isNotEmpty)
-                                  Text(
-                                    post.creator.bio!,
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.7),
-                                      fontSize: 12,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
+                      child: PetProfileWidget(
+                        post: post,
+                        textColor: Colors.white,
+                        bioColor: Colors.white.withOpacity(0.7),
                       ),
                     ),
 
-                    // View Profile button
-                    GestureDetector(
-                      onTap: () {
-                        Get.toNamed(AppRoutes.otherUserProfile,
-                            arguments: post.creator.id);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0095F6),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Text(
-                          'View Profile',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
                 ),
               ),
             ),
@@ -878,63 +773,6 @@ class _PostPreviewViewState extends State<PostPreviewView>
         ),
       );
     });
-  }
-
-  Widget _buildProfileImage(String? profilePic, Posts post) {
-    if (profilePic == null || profilePic.isEmpty) {
-      return _buildFallbackProfileImage(post);
-    }
-
-    return Image.network(
-      profilePic,
-      fit: BoxFit.cover,
-      width: 32,
-      height: 32,
-      errorBuilder: (context, error, stackTrace) {
-        return _buildFallbackProfileImage(post);
-      },
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) {
-          return child;
-        }
-        return Container(
-          width: 32,
-          height: 32,
-          color: Colors.grey[800],
-          child: const Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFallbackProfileImage(Posts post) {
-    final userName = post.creator.name;
-    final initials = getUserInitials(userName);
-    final color = getAvatarColor(initials);
-
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: Text(
-          initials,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildActionButton(
