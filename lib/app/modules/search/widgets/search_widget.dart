@@ -164,7 +164,10 @@ class SearchWidget extends StatelessWidget {
     
     return GestureDetector(
       onTap: () {
-        // Navigate to pet profile - this would need to be passed as callback for pure testing
+        // Navigate to user profile
+        if (pet.user != null) {
+          onPetTap(pet.user!);
+        }
       },
       child: Container(
         decoration: const BoxDecoration(

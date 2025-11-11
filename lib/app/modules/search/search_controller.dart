@@ -248,8 +248,8 @@ class SearchController extends GetxController {
     }
   }
   
-  void navigateToPetProfile(String petId) {
-    Get.toNamed(AppRoutes.petProfile, arguments: petId);
+  void navigateToUserProfile(String userId) {
+    Get.toNamed(AppRoutes.otherUserProfile, arguments: userId);
   }
   
   Future<void> refreshPets() async {

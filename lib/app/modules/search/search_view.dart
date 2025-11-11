@@ -26,7 +26,7 @@ class SearchView extends GetView<search.SearchController> {
           onSearchChanged: controller.updateSearchQuery,
           onClearSearch: controller.clearSearch,
           onFollowToggle: controller.handleFollowToggle,
-          onPetTap: controller.navigateToPetProfile,
+          onPetTap: controller.navigateToUserProfile,
           followStates: controller.currentFollowStates,
           followingInProgress: controller.currentFollowingInProgress,
         ),
