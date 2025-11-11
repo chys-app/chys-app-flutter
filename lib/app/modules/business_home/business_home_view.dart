@@ -484,7 +484,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
 
   Widget _buildLoadingGrid() {
     final screenWidth = MediaQuery.of(Get.context!).size.width;
-    final crossAxisCount = screenWidth > 600 ? 3 : 2;
+    final crossAxisCount = screenWidth > 600 ? 3 : 3;
 
     return StaggeredGridView.countBuilder(
       controller: _scrollController,
@@ -521,7 +521,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
           ? 4
           : screenWidth > 600
               ? 3
-              : 2;
+              : 3;
 
       return StaggeredGridView.countBuilder(
         controller: _scrollController,
@@ -630,7 +630,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
         ? 4
         : screenWidth > 600
             ? 3
-            : 2;
+            : 3;
 
     return StaggeredGridView.countBuilder(
       controller: _scrollController,
@@ -662,7 +662,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
           ? 4
           : screenWidth > 600
               ? 3
-              : 2;
+              : 3;
 
       // Get products and sort if needed
       List<Products> products = productsController.products.toList();

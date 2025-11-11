@@ -406,7 +406,7 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
         ? 4
         : screenWidth > 600
             ? 3
-            : 2;
+            : 3;
 
     return StaggeredGridView.countBuilder(
       controller: _scrollController,
@@ -442,7 +442,7 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
           ? 4
           : screenWidth > 600
               ? 3
-              : 2;
+              : 3;
 
       // Get products and filter/sort if needed
       List<Products> products = favoritesOnly
