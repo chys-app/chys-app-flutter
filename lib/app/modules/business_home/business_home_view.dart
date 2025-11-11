@@ -95,7 +95,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView> with WidgetsBinding
           !productsController.isLoading.value) {
         log('🏠 Fetching products for current user...');
         // Call /products endpoint to get products for current user
-        productsController.fetchProducts();
+        productsController.fetchProducts(publicOnly: true);
       } else {
         log('🏠 Products already loaded: ${productsController.products.length} items');
       }

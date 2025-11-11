@@ -46,6 +46,9 @@ class BusinessUserProfileView extends StatelessWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       log("Loading other user profile for ID: $argument");
 
+      // Reset products controller state to prevent flashing from previous user
+      productsController.resetController();
+
       // Load data in parallel for better performance
       await Future.wait([
         otherUserProfileController.fetchOtherUserProfile(argument),
@@ -59,6 +62,9 @@ class BusinessUserProfileView extends StatelessWidget {
           child: RefreshIndicator(
             onRefresh: () async {
               try {
+                // Reset products controller state to prevent flashing
+                productsController.resetController();
+                
                 // Refresh profile data and products for the specific user
                 await otherUserProfileController
                     .fetchOtherUserProfile(argument);
@@ -93,13 +99,6 @@ class BusinessUserProfileView extends StatelessWidget {
                             child: _buildProfileHeader(),
                           ),
                           const SizedBox(height: 12),
-
-                          // Birthday & Gift Features - At the top
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: _buildBirthdaySection(),
-                          ),
 
                           Padding(
                             padding:
@@ -374,8 +373,7 @@ class BusinessUserProfileView extends StatelessWidget {
                                     color: Colors.grey.shade600,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                _buildGiftButton(profileData.id ?? ''),
+                                
                               ],
                             ),
                           ),
@@ -680,61 +678,12 @@ class BusinessUserProfileView extends StatelessWidget {
     });
   }
 
-  Widget _buildGiftButton(String userId) {
-    return Obx(() {
-      // Use the controller's isCurrentUser getter for proper comparison
-      final isCurrentUser = otherUserProfileController.isCurrentUser;
-      final currentUserId = otherUserProfileController.userCurrentId.value;
-      final profileId = otherUserProfileController.profile.value?.id;
-      final userPet = otherUserProfileController.userPet.value;
-
-      log("Gift button - Current user ID: '$currentUserId', Profile ID: '$profileId', Target user ID: '$userId', Is current user: $isCurrentUser");
-
-      // Debug: Check if button should be enabled
-      final shouldEnableButton = userId.isNotEmpty;
-      log("Gift button - Should enable: $shouldEnableButton");
-
-      // If current user ID is empty, try to reload it
-      if (currentUserId.isEmpty) {
-        log("Current user ID is empty, attempting to reload...");
-        otherUserProfileController.reloadCurrentUserId();
-      }
-
-      // Get gift text - show pet's birthday date
-      String giftText = "Send Gift";
-      if (userPet?.dateOfBirth != null) {
-        giftText = _formatBirthday(userPet!.dateOfBirth!);
-      }
-
-      return GestureDetector(
-        onTap: shouldEnableButton
-            ? () {
-                log("Gift button tapped for user ID: $userId");
-                _showGiftDialog(userId);
-              }
-            : null,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const Text("🎁", style: TextStyle(fontSize: 16)),
-            const SizedBox(width: 6),
-            Text(
-              giftText,
-              style: TextStyle(
-                color: AppColors.blue,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      );
-    });
-  }
+  
 
   Widget _buildProductsSection(ProductsController productsController) {
     return Obx(() {
-      if (productsController.isLoading.value) {
+      // Show loading indicator during initial load or refresh
+      if (productsController.isLoading.value || productsController.isInitialLoading.value) {
         return const Padding(
           padding: EdgeInsets.all(32.0),
           child: Center(
@@ -743,7 +692,8 @@ class BusinessUserProfileView extends StatelessWidget {
         );
       }
 
-      if (productsController.products.isEmpty) {
+      // Only show empty state if we've completed loading and have no products
+      if (productsController.products.isEmpty && productsController.hasAttemptedFetch.value) {
         return const Padding(
           padding: EdgeInsets.all(32.0),
           child: Center(
@@ -759,6 +709,11 @@ class BusinessUserProfileView extends StatelessWidget {
             ),
           ),
         );
+      }
+
+      // Don't render anything if we haven't attempted fetch yet (prevents flash)
+      if (!productsController.hasAttemptedFetch.value) {
+        return const SizedBox.shrink();
       }
 
       final screenWidth = MediaQuery.of(Get.context!).size.width;
@@ -1028,153 +983,7 @@ class BusinessUserProfileView extends StatelessWidget {
     );
   }
 
-  // Birthday & Gift Features - Only for Pet Owners
-  Widget _buildBirthdaySection() {
-    return Obx(() {
-      final userPet = otherUserProfileController.userPet.value;
-      final isCurrentUser = otherUserProfileController.isCurrentUser;
-
-      // Only show birthday section for pet owners (current user)
-      if (!isCurrentUser || userPet == null) {
-        return const SizedBox.shrink();
-      }
-
-      // If no birthday data, show a placeholder
-      if (userPet.dateOfBirth == null) {
-        return _buildBirthdayPlaceholder(userPet);
-      }
-
-      final isBirthdayToday = _isBirthdayToday(userPet.dateOfBirth!);
-      final isBirthdayThisWeek = _isBirthdayThisWeek(userPet.dateOfBirth!);
-      final isBirthdayIn7Days = _isBirthdayIn7Days(userPet.dateOfBirth!);
-
-      // Show if birthday is today, this week, or in 7 days
-      if (!isBirthdayToday && !isBirthdayThisWeek && !isBirthdayIn7Days) {
-        return const SizedBox.shrink();
-      }
-
-      return Column(
-        children: [
-          // Birthday Display - Prominent at top
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.pink.shade50, Colors.purple.shade50],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.pink.shade200,
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.pink.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: GestureDetector(
-              onTap: () => _showBirthdayGiftDialog(userPet),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.pink.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      "🎁",
-                      style: TextStyle(fontSize: 28),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isBirthdayToday
-                              ? "🎉 It's ${userPet.name}'s Birthday Today 🎉"
-                              : isBirthdayIn7Days
-                                  ? "🎂 ${userPet.name}'s Birthday in 7 Days"
-                                  : "${userPet.name}'s Birthday Coming Up",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: Colors.pink,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _formatBirthday(userPet.dateOfBirth!),
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey.shade700,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Tap anywhere to send birthday gifts 🎁",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      );
-    });
-  }
-
-  void _showGiftDialog(String userId) {
-    Get.bottomSheet(
-      _GiftBottomSheet(
-        userId: userId,
-        onConfirm: (amount, giftType) async {
-          try {
-            Get.find<LoadingController>().show();
-            await PaymentServices.stripePayment(
-                amount, "gift_${userId}", Get.context!, onSuccess: () async {
-              // Update UI state if needed
-              final response = await customApiService.postRequest(
-                  'posts/fundRaise/user/${userId}',
-                  {"amount": amount, "giftType": giftType});
-
-              log("Gift response: $response");
-              Get.snackbar(
-                "🎁 Gift Sent",
-                "Your $giftType gift of \$$amount has been sent",
-                backgroundColor: const Color(0xFF0095F6),
-                colorText: Colors.white,
-                snackPosition: SnackPosition.TOP,
-                duration: const Duration(seconds: 3),
-              );
-            });
-          } catch (e) {
-            log("Error sending gift: $e");
-            ShortMessageUtils.showError("Failed to send gift");
-          } finally {
-            Get.find<LoadingController>().hide();
-          }
-        },
-      ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-    );
-  }
+  
 
   Widget _buildGiftOption(String emoji, String label, VoidCallback onTap) {
     return GestureDetector(
@@ -1343,43 +1152,7 @@ class BusinessUserProfileView extends StatelessWidget {
     );
   }
 
-  void _showBirthdayGiftDialog(dynamic userPet) {
-    Get.bottomSheet(
-      _BirthdayGiftBottomSheet(
-        userPet: userPet,
-        onConfirm: (amount, giftType) async {
-          try {
-            Get.find<LoadingController>().show();
-            await PaymentServices.stripePayment(
-                amount, "birthday_gift_${userPet.id}", Get.context!,
-                onSuccess: () async {
-              // Update UI state if needed
-              final response = await customApiService.postRequest(
-                  'posts/fundRaise/pet/${userPet.id}',
-                  {"amount": amount, "giftType": giftType, "isBirthday": true});
-
-              log("Birthday gift response: $response");
-              Get.snackbar(
-                "🎂 Birthday Gift Sent",
-                "Your $giftType birthday gift of \$$amount has been sent to ${userPet.name}",
-                backgroundColor: const Color(0xFF0095F6),
-                colorText: Colors.white,
-                snackPosition: SnackPosition.TOP,
-                duration: const Duration(seconds: 3),
-              );
-            });
-          } catch (e) {
-            log("Error sending birthday gift: $e");
-            ShortMessageUtils.showError("Failed to send birthday gift");
-          } finally {
-            Get.find<LoadingController>().hide();
-          }
-        },
-      ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-    );
-  }
+  
 
   Widget _buildPetDetailRow(String label, String value) {
     return Padding(
@@ -1503,109 +1276,6 @@ class BusinessUserProfileView extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildBirthdayPlaceholder(dynamic userPet) {
-    return Column(
-      children: [
-        // Birthday Display Placeholder
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.pink[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.pink[200]!,
-              width: 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: () => _showGiftDialog(userPet),
-                child: const Text(
-                  "🎁",
-                  style: TextStyle(fontSize: 32),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "12/25/2023",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "${userPet.name}'s birthday is coming up",
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "(When you click on 🎁 you are directed to send a gift or donate)",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        // Birthday Notifications Placeholder
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.pink[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.pink[200]!,
-              width: 1,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.notifications, color: Colors.pink, size: 20),
-                  const SizedBox(width: 8),
-                  const Text(
-                    "Birthday Notifications",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const Text("+ notifications to all followers"),
-              const Text("a week before the birthday"),
-              const SizedBox(height: 4),
-              Text(
-                "\"${userPet.name}'s birthday reminder:",
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-              const Text("send ❤️ or 🎁\""),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -2192,8 +1862,7 @@ class _GiftBottomSheetState extends State<_GiftBottomSheet> {
           const SizedBox(height: 24),
           _buildCustomAmount(),
           const SizedBox(height: 24),
-          _buildActionButtons(),
-          const SizedBox(height: 12),
+         
         ],
       ),
     );
@@ -2240,30 +1909,8 @@ class _GiftBottomSheetState extends State<_GiftBottomSheet> {
                   color: Color(0xFF0095F6),
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Send a Special Gift",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0095F6),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Choose a gift to show your appreciation",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              
+              
             ],
           ),
         ),
@@ -2387,78 +2034,7 @@ class _GiftBottomSheetState extends State<_GiftBottomSheet> {
     );
   }
 
-  Widget _buildActionButtons() {
-    final hasSelection = _selectedGiftType != null && _selectedAmount != null;
-
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  hasSelection ? const Color(0xFF0095F6) : Colors.grey.shade300,
-              foregroundColor:
-                  hasSelection ? Colors.white : Colors.grey.shade600,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: hasSelection ? 4 : 0,
-            ),
-            onPressed: hasSelection && !_isLoading
-                ? () async {
-                    setState(() => _isLoading = true);
-                    await widget.onConfirm(
-                        _selectedAmount!, _selectedGiftType!);
-                    setState(() => _isLoading = false);
-                    Get.back();
-                  }
-                : null,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white),
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("🎁", style: TextStyle(fontSize: 18)),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Send Gift",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            onPressed: () => Get.back(),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  
 }
 
 // Birthday Gift Bottom Sheet - Special birthday-themed gift selection
@@ -2530,12 +2106,9 @@ class _BirthdayGiftBottomSheetState extends State<_BirthdayGiftBottomSheet> {
           const SizedBox(height: 8),
           _buildHeader(),
           const SizedBox(height: 24),
-          _buildBirthdayGiftGrid(),
-          const SizedBox(height: 24),
           _buildCustomAmount(),
           const SizedBox(height: 24),
-          _buildActionButtons(),
-          const SizedBox(height: 12),
+          
         ],
       ),
     );
@@ -2729,76 +2302,5 @@ class _BirthdayGiftBottomSheetState extends State<_BirthdayGiftBottomSheet> {
     );
   }
 
-  Widget _buildActionButtons() {
-    final hasSelection = _selectedGiftType != null && _selectedAmount != null;
-
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  hasSelection ? const Color(0xFF0095F6) : Colors.grey.shade300,
-              foregroundColor:
-                  hasSelection ? Colors.white : Colors.grey.shade600,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: hasSelection ? 4 : 0,
-            ),
-            onPressed: hasSelection && !_isLoading
-                ? () async {
-                    setState(() => _isLoading = true);
-                    await widget.onConfirm(
-                        _selectedAmount!, _selectedGiftType!);
-                    setState(() => _isLoading = false);
-                    Get.back();
-                  }
-                : null,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white),
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("🎁", style: TextStyle(fontSize: 18)),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Send Gift",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            onPressed: () => Get.back(),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  
 }
