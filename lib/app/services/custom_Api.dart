@@ -302,4 +302,9 @@ class CustomApiService extends GetxService {
   Future<dynamic> getWishlistByUser(String userId) async {
     return await getRequest('wishlist/$userId');
   }
+
+  /// Get user profile with products in a single request
+  Future<dynamic> getProfileWithProducts(String userId) async {
+    return await getRequest('profile-with-products/$userId');
+  }
 }

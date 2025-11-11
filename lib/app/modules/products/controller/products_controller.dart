@@ -10,10 +10,12 @@ class ProductsController extends GetxController {
   final ApiClient apiClient = ApiClient();
   final RxList<Products> products = <Products>[].obs;
   final RxBool isLoading = false.obs;
+  final RxBool isInitialLoading = false.obs;
   final RxBool hasAttemptedFetch = false.obs;
   final RxList<String> wishlist = <String>[].obs;
 
   DateTime? _lastFetch;
+  String _lastUserId = '';
   static const Duration _cacheDuration = Duration(minutes: 5);
 
   @override
@@ -23,10 +25,24 @@ class ProductsController extends GetxController {
   }
 
   bool get _isCacheValid =>
-      _lastFetch != null && DateTime.now().difference(_lastFetch!) < _cacheDuration;
+      _lastFetch != null && 
+      DateTime.now().difference(_lastFetch!) < _cacheDuration &&
+      _lastUserId.isNotEmpty;
 
   Future<void> fetchProducts({bool forceRefresh = false, bool publicOnly = false, String userId = ''}) async {
-    if (!forceRefresh && _isCacheValid && products.isNotEmpty) {
+    // For user-specific requests, always clear previous state to prevent flashing
+    if (userId.isNotEmpty && userId != _lastUserId) {
+      log('📦 UserId changed from $_lastUserId to $userId, clearing previous state');
+      products.clear();
+      _lastUserId = userId;
+      _lastFetch = null;
+      isInitialLoading.value = true;
+    }
+    
+    // For user-specific requests, always fetch fresh data to prevent flashing
+    final shouldUseCache = userId.isEmpty && !forceRefresh;
+    
+    if (shouldUseCache && _isCacheValid && products.isNotEmpty) {
       log('📦 Using cached products (${products.length} items)');
       return;
     }
@@ -38,7 +54,7 @@ class ProductsController extends GetxController {
       // Determine endpoint based on parameters
       String endpoint;
       if (userId.isNotEmpty) {
-        endpoint = 'products/user/$userId?limit=0';
+        endpoint = 'products?userId=$userId&limit=0';
       } else if (publicOnly) {
         endpoint = 'products/public';
       } else {
@@ -51,13 +67,28 @@ class ProductsController extends GetxController {
       final parsedProducts = _parseProducts(response);
       log('📦 Parsed ${parsedProducts.length} products');
       products.assignAll(parsedProducts);
-      _lastFetch = DateTime.now();
+      
+      // Only update cache for non-user-specific requests
+      if (userId.isEmpty) {
+        _lastFetch = DateTime.now();
+      }
       log('📦 Products updated successfully: ${products.length} items');
     } catch (e) {
       log('❌ Error fetching products: $e');
     } finally {
       isLoading.value = false;
+      isInitialLoading.value = false;
     }
+  }
+
+  void resetController() {
+    log('📦 Resetting ProductsController state');
+    products.clear();
+    _lastFetch = null;
+    _lastUserId = '';
+    hasAttemptedFetch.value = false;
+    isLoading.value = false;
+    isInitialLoading.value = false;
   }
 
   Future<void> refreshProducts() async {

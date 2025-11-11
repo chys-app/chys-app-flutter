@@ -3,12 +3,14 @@ import 'dart:convert';
 
 import 'package:chys/app/data/models/own_profile.dart';
 import 'package:chys/app/data/models/pet_profile.dart';
+import 'package:chys/app/data/models/product.dart';
 import 'package:chys/app/services/custom_Api.dart';
 import 'package:chys/app/services/storage_service.dart';
 import 'package:get/get.dart';
 
 import '../../adored_posts/controller/controller.dart';
 import '../controllers/profile_controller.dart';
+import '../../products/controller/products_controller.dart';
 
 class OtherUserProfileController extends GetxController {
   final CustomApiService customApiService = CustomApiService();
@@ -170,11 +172,50 @@ class OtherUserProfileController extends GetxController {
         userPet.value = null;
       }
 
-      log("Other user profile data loaded successfully");
+      // Fetch products separately
+      try {
+        log("Fetching products for user: $userId");
+        var productsResponse = await customApiService.getRequest("products/user/$userId?limit=0");
+        
+        final productsData = productsResponse;
+        if (productsData is List && productsData.isNotEmpty) {
+          // Store products in a way that ProductsController can access
+          Get.find<ProductsController>(tag: 'other_profile_products')
+            .products.assignAll(
+              productsData
+                  .whereType<Map<String, dynamic>>()
+                  .map((product) => Products.fromMap(product))
+                  .toList()
+            );
+          log("Loaded ${productsData.length} products for other user");
+        } else {
+          log("No products found for other user.");
+          Get.find<ProductsController>(tag: 'other_profile_products')
+            .products.clear();
+        }
+      } catch (e) {
+        log("Error fetching products: $e");
+        // Clear products on error
+        try {
+          Get.find<ProductsController>(tag: 'other_profile_products')
+            .products.clear();
+        } catch (e) {
+          log("Error clearing products: $e");
+        }
+      }
+
+      log("Other user profile with products data loaded successfully");
     } catch (e) {
       log("Error loading other user profile: $e");
       profile.value = null;
       userPet.value = null;
+      // Clear products on error
+      try {
+        Get.find<ProductsController>(tag: 'other_profile_products')
+          .products.clear();
+      } catch (e) {
+        log("Error clearing products: $e");
+      }
     } finally {
       isLoading.value = false;
     }
@@ -188,6 +229,15 @@ class OtherUserProfileController extends GetxController {
     followersCount.value = 0;
     followingCount.value = 0;
     selectedTab.value = 0;
+    
+    // Clear products data
+    try {
+      Get.find<ProductsController>(tag: 'other_profile_products')
+        .products.clear();
+    } catch (e) {
+      log("Error clearing products data: $e");
+    }
+    
     log("Other user profile data cleared");
   }
 

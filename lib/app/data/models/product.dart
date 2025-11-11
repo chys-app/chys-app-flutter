@@ -21,11 +21,23 @@ class CreatorMini {
         ? originalProfilePic!
         : 'https://ui-avatars.com/api/?name=User&background=0095F6&color=fff&size=150';
     
-    // Try multiple possible field names for the user's name
-    final name = map['name']?.toString() ?? 
-                 map['userName']?.toString() ?? 
-                 map['username']?.toString() ?? 
-                 'Unknown User';
+    // Try multiple possible field names for the user's name, preferring actual names over email
+    String name = map['name']?.toString() ?? 
+                  map['userName']?.toString() ?? 
+                  map['username']?.toString() ?? 
+                  map['firstName']?.toString() ?? 
+                  map['lastName']?.toString() ??
+                  '';
+    
+    // If no name found, try to construct from firstName + lastName
+    if (name.isEmpty && map['firstName'] != null && map['lastName'] != null) {
+      name = '${map['firstName']} ${map['lastName']}';
+    }
+    
+    // Only use email as last resort if no name fields are available
+    if (name.isEmpty) {
+      name = map['email']?.toString() ?? 'Unknown User';
+    }
     
     return CreatorMini(
       id: map['_id']?.toString() ?? '',
@@ -134,18 +146,6 @@ class Products {
         : (creatorData is Map
             ? Map<String, dynamic>.from(creatorData)
             : {});
-    
-    // If owner object doesn't have a name, use the email as fallback
-    if (creatorMap.isNotEmpty && !creatorMap.containsKey('name')) {
-      if (creatorMap['email'] != null) {
-        creatorMap['name'] = creatorMap['email'];
-        print('🔍 Products.fromMap - Using email as name: ${creatorMap['email']}');
-      } else if (creatorMap['userName'] != null) {
-        creatorMap['name'] = creatorMap['userName'];
-      } else if (creatorMap['username'] != null) {
-        creatorMap['name'] = creatorMap['username'];
-      }
-    }
     
     print('🔍 Products.fromMap - Final creatorMap: $creatorMap');
     print('🔍 Products.fromMap - creatorMap keys: ${creatorMap.keys.toList()}');

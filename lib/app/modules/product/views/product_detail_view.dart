@@ -276,9 +276,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                               onTap: () {
                                 Get.toNamed('/business-user-profile', arguments: widget.product.creator.id);
                               },
-                              child: const Text(
-                                'Awesome Pet Store',
-                                style: TextStyle(
+                              child: Text(
+                                widget.product.creator.name,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   color: Color(0xFF0095F6),
                                   fontWeight: FontWeight.w600,
