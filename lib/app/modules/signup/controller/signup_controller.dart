@@ -48,6 +48,9 @@ class SignupController extends GetxController {
   late TextEditingController passwordController;
   late TextEditingController confirmPasswordController;
   final nameController = TextEditingController();
+  final taxIdController = TextEditingController();
+  final contactNameController = TextEditingController();
+  final phoneController = TextEditingController();
   final breedController = TextEditingController();
   final bioController = TextEditingController();
   final dobController = TextEditingController();
@@ -617,23 +620,16 @@ class SignupController extends GetxController {
       isLoading.value = true;
       loading.show();
 
-      if (isBusinessOwner.value) {
-        final upgradeResult = await _apiService.upgradeToBusinessUser();
-        if (upgradeResult['success'] != true) {
-          loading.hide();
-          isLoading.value = false;
-          ShortMessageUtils.showError(
-              upgradeResult['message'] ?? 'Failed to switch to business account');
-          return;
-        }
-      }
-
+      // No API call needed here - just navigate to appropriate signup flow
       await Future.delayed(const Duration(milliseconds: 300));
       loading.hide();
       isLoading.value = false;
 
-      // Navigate directly to pet selection
-      if (hasPet.value == true) {
+      // Navigate based on selection
+      if (isBusinessOwner.value) {
+        await StorageService.setStepDone(StorageService.petOwnershipDone);
+        await Get.offAllNamed(AppRoutes.businessSignup);
+      } else if (hasPet.value == true) {
         await StorageService.setStepDone(StorageService.petOwnershipDone);
         await Get.offAllNamed(AppRoutes.petSelection);
       } else {
@@ -1513,6 +1509,99 @@ class SignupController extends GetxController {
     }
   }
 
+  Future<void> handleBusinessSignup() async {
+    final loading = Get.find<LoadingController>();
+    try {
+      if (!_validateBusinessSignupForm()) return;
+      
+      // Check if user is authenticated
+      final token = StorageService.getToken();
+      if (token == null || token.isEmpty) {
+        loading.hide();
+        ShortMessageUtils.showError("Please sign in first to update your business information");
+        return;
+      }
+      
+      isLoading.value = true;
+      loading.show();
+
+      // Prepare business data for update
+      final businessData = {
+        'businessName': nameController.text,
+        'taxId': taxIdController.text,
+        'contactName': contactNameController.text,
+        'phoneNumber': phoneController.text,
+        'street': streetController.text,
+        'state': stateController.text,
+        'zipCode': zipCodeController.text,
+        'role': 'biz-user', // Set role to business user
+      };
+
+      // Call update-user-info endpoint
+      final result = await _apiService.updateUserInfo(businessData);
+
+      if (result['success'] == true) {
+        loading.hide();
+        ShortMessageUtils.showSuccess("Business information updated successfully!");
+        
+        // Clear business fields after successful update
+        clearBusinessFields();
+        
+        // Navigate to business home
+        await Get.offAllNamed(AppRoutes.businessHome);
+      } else {
+        final errorMessage = result['message'] ?? 'Failed to update business information.';
+        loading.hide();
+        ShortMessageUtils.showError(errorMessage);
+      }
+      
+    } catch (e) {
+      loading.hide();
+      ShortMessageUtils.showError("An error occurred while updating business information $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  bool _validateBusinessSignupForm() {
+    if (nameController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please enter business name',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+    if (taxIdController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please enter tax ID',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+    if (contactNameController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please enter contact name',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+    if (phoneController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please enter phone number',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+    if (streetController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please enter street address',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+    if (stateController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please enter state',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+    if (zipCodeController.text.trim().isEmpty) {
+      Get.snackbar('Error', 'Please enter zip code',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
+    return true;
+  }
+
   void clearSignupFields() {
     // Auth basics
     usernameController.text = '';
@@ -1528,6 +1617,18 @@ class SignupController extends GetxController {
     // OTP
     otpController.text = '';
     stopOtpTimer();
+  }
+
+  void clearBusinessFields() {
+    // Business fields
+    nameController.text = '';
+    taxIdController.text = '';
+    contactNameController.text = '';
+    phoneController.text = '';
+    streetController.text = '';
+    stateController.text = '';
+    zipCodeController.text = '';
+    userName = '';
   }
 
   bool _validateSignupForm() {

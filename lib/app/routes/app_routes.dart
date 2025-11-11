@@ -2,6 +2,7 @@ abstract class AppRoutes {
   static const initial = '/';
   static const login = '/login';
   static const signup = '/signup';
+  static const businessSignup = '/business-signup';
   static const home = '/home';
   static const businessHome = '/business-home';
   static const marketplace = '/marketplace';

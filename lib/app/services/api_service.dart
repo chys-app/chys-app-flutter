@@ -703,6 +703,48 @@ class ApiService {
     return _handleMultipartRequest(() => request.send());
   }
 
+  Future<Map<String, dynamic>> updateUserInfo(Map<String, dynamic> userData) async {
+    try {
+      log('Updating user info with data: $userData');
+      
+      final response = await _client.put(
+        Uri.parse('$baseUrl/update-user-info'),
+        headers: {
+          ..._headers,
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(userData),
+      );
+
+      log('updateUserInfo status: ${response.statusCode}, body: ${response.body}');
+      
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final result = jsonDecode(response.body);
+        log('updateUserInfo success: $result');
+        return {
+          'success': true,
+          'data': result,
+          'message': 'User information updated successfully'
+        };
+      } else {
+        final errorBody = jsonDecode(response.body);
+        log('updateUserInfo error: $errorBody');
+        return {
+          'success': false,
+          'message': errorBody['message'] ?? 'Failed to update user information',
+          'error': errorBody,
+        };
+      }
+    } catch (e) {
+      log('updateUserInfo exception: $e');
+      return {
+        'success': false,
+        'message': 'An error occurred while updating user information: $e',
+        'error': e.toString(),
+      };
+    }
+  }
+
   @override
   void onClose() {
     _client.close();

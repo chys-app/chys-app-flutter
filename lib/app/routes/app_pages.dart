@@ -63,6 +63,7 @@ import '../modules/settings/views/privacy_view.dart';
 import '../modules/settings/views/settings_view.dart';
 import '../modules/signup/bindings/signup_binding.dart';
 import '../modules/signup/views/signup_view.dart';
+import '../modules/signup/views/business_signup_view.dart';
 import '../modules/pet_edit/bindings/pet_edit_binding.dart';
 import '../modules/pet_edit/views/edit_profile_view.dart';
 import '../modules/pet_edit/views/edit_appearance_view.dart';
@@ -98,6 +99,13 @@ class AppPages {
     GetPage(
       name: AppRoutes.signup,
       page: () => SignupView(),
+      binding: SignupBinding(),
+      preventDuplicates: true,
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: AppRoutes.businessSignup,
+      page: () => BusinessSignupView(),
       binding: SignupBinding(),
       preventDuplicates: true,
       transition: Transition.fadeIn,

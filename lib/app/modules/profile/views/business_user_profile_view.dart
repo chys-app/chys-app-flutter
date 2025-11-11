@@ -1089,10 +1089,6 @@ class BusinessUserProfileView extends StatelessWidget {
     return nextBirthday.difference(today).inDays == 7;
   }
 
-  String _formatBirthday(DateTime dateOfBirth) {
-    return "${dateOfBirth.month}/${dateOfBirth.day}/${dateOfBirth.year}";
-  }
-
   Widget _buildPetPlaceholder() {
     return Container(
       decoration: BoxDecoration(
