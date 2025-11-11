@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:chys/app/core/utils/app_size.dart';
 import 'package:chys/app/data/models/product.dart';
 import 'package:chys/app/modules/products/controller/products_controller.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +37,6 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
   @override
   Widget build(BuildContext context) {
     final imageUrl = widget.product.media.isNotEmpty ? widget.product.media.first : null;
-    final creator = widget.product.creator;
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -78,20 +76,6 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.product.description.isNotEmpty
-                            ? widget.product.description
-                            : 'Untitled product',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          height: 1.3,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
                       // Price
                       Row(
                         children: [
@@ -109,43 +93,6 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                             ),
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 12),
-                      GestureDetector(
-                        onTap: widget.onCreatorTap,
-                        child: Row(
-                          children: [
-                            _buildCreatorAvatar(creator.profilePic, creator.name),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Awesome Pet Store',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  if (creator.bio.isNotEmpty)
-                                    Text(
-                                      creator.bio,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 10,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
                     ],
                   ),
@@ -240,32 +187,6 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
                 ),
               ),
             ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCreatorAvatar(String profilePic, String name) {
-    if (profilePic.isNotEmpty) {
-      return CircleAvatar(
-        radius: 16,
-        backgroundImage: NetworkImage(profilePic),
-        onBackgroundImageError: (_, __) {},
-      );
-    }
-
-    final initials = getUserInitials(name);
-    final color = getAvatarColor(initials);
-
-    return CircleAvatar(
-      radius: 16,
-      backgroundColor: color,
-      child: Text(
-        initials,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );

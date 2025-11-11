@@ -27,7 +27,7 @@ class BusinessProductsGrid extends StatelessWidget {
             ? 4
             : width > 600
                 ? 3
-                : 2;
+                : 3;
 
         return StaggeredGridView.countBuilder(
           controller: scrollController,

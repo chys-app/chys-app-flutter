@@ -517,7 +517,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
 
   Widget _buildLoadingGrid() {
     final screenWidth = MediaQuery.of(Get.context!).size.width;
-    final crossAxisCount = screenWidth > 600 ? 3 : 2;
+    final crossAxisCount = screenWidth > 600 ? 3 : 3;
 
     return StaggeredGridView.countBuilder(
       controller: _scrollController,
@@ -557,7 +557,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
           ? 4
           : screenWidth > 600
               ? 3
-              : 2;
+              : 3;
 
       return StaggeredGridView.countBuilder(
         controller: _scrollController,
@@ -685,7 +685,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
         ? 4
         : screenWidth > 600
             ? 3
-            : 2;
+            : 3;
 
     return StaggeredGridView.countBuilder(
       controller: _scrollController,
@@ -712,7 +712,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
           ? 4
           : screenWidth > 600
               ? 3
-              : 2;
+              : 3;
 
       return StaggeredGridView.countBuilder(
         shrinkWrap: true,
@@ -792,7 +792,7 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
           ? 4
           : screenWidth > 600
               ? 3
-              : 2;
+              : 3;
 
       return StaggeredGridView.countBuilder(
         shrinkWrap: true,
