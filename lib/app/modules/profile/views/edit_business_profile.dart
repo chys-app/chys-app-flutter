@@ -11,18 +11,27 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../routes/app_routes.dart';
 
-class EditProfile extends StatelessWidget {
-  final profileController = Get.isRegistered<ProfileController>()
-      ? Get.find<ProfileController>()
-      : Get.put(ProfileController());
-  EditProfile({super.key});
+class EditBusinessProfile extends StatefulWidget {
+  EditBusinessProfile({super.key});
+
+  @override
+  State<EditBusinessProfile> createState() => _EditBusinessProfileState();
+}
+
+class _EditBusinessProfileState extends State<EditBusinessProfile> {
+  late final ProfileController profileController;
+
+  @override
+  void initState() {
+    super.initState();
+    profileController = Get.find<ProfileController>();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isCompleteProfile = Get.arguments ?? false;
-    
     // Detect if this is part of registration flow
     final isRegistrationFlow = Get.arguments is bool && Get.arguments == true;
+    final isCompleteProfile = isRegistrationFlow;
 
     return Scaffold(
       appBar: AppBar(
@@ -38,17 +47,17 @@ class EditProfile extends StatelessWidget {
             child: const Icon(Icons.arrow_back_ios_new, size: 20),
           ),
           onPressed: () {
-          if (isRegistrationFlow) {
-            // During registration, go back to pet ownership selection
-            Get.offAllNamed(AppRoutes.petOwnership);
-          } else {
-            // Regular edit, go back normally
-            Get.back();
-          }
-        },
+            if (isRegistrationFlow) {
+              // During registration, go back to pet ownership selection
+              Get.offAllNamed(AppRoutes.petOwnership);
+            } else {
+              // Regular edit, go back normally
+              Get.back();
+            }
+          },
         ),
         title: Text(
-          isRegistrationFlow ? "Complete Profile" : "Edit Profile",
+          isRegistrationFlow ? "Complete Business Profile" : "Edit Business Profile",
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -65,7 +74,7 @@ class EditProfile extends StatelessWidget {
             children: [
               const SizedBox(height: 8),
               const AppText(
-                text: "Personal Info",
+                text: "Business Info",
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
               ),
@@ -117,33 +126,59 @@ class EditProfile extends StatelessWidget {
                 ),
               ),
               const AppText(
-                text: 'Full Name',
+                text: 'Business Name',
                 color: Colors.black,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
               const SizedBox(height: 8),
               CustomTextField(
-                hint: "Enter full name",
+                hint: "Enter business name",
                 controller: profileController.nameController,
                 keyboardType: TextInputType.text,
               ),
               const SizedBox(height: 16),
               const AppText(
-                text: 'Bio',
+                text: 'Business Description',
                 color: Colors.black,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
               const SizedBox(height: 8),
               CustomTextField(
-                hint: "Tell us about yourself",
+                hint: "Tell us about your business",
                 controller: profileController.bioController,
                 keyboardType: TextInputType.text,
               ),
               const SizedBox(height: 16),
               const AppText(
-                text: 'Address detail',
+                text: 'Website',
+                color: Colors.black,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+              const SizedBox(height: 8),
+              CustomTextField(
+                hint: "Enter business website",
+                controller: profileController.websiteController,
+                keyboardType: TextInputType.url,
+              ),
+              const SizedBox(height: 16),
+              const AppText(
+                text: 'Tax ID',
+                color: Colors.black,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+              const SizedBox(height: 8),
+              CustomTextField(
+                hint: "Enter business tax ID",
+                controller: profileController.taxIdController,
+                keyboardType: TextInputType.text,
+              ),
+              const SizedBox(height: 16),
+              const AppText(
+                text: 'Business Address',
                 color: Colors.black,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -170,16 +205,15 @@ class EditProfile extends StatelessWidget {
                     children: [
                       const AppText(
                         text: 'Zip Code',
-                        color: Colors.grey,
+                        color: Colors.black,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        hint: "Enter zip code",
+                        hint: "Zip Code",
                         controller: profileController.zipController,
-                        keyboardType: TextInputType.phone,
-                        readOnly: true,
+                        keyboardType: TextInputType.number,
                       ),
                     ],
                   )),
@@ -190,7 +224,7 @@ class EditProfile extends StatelessWidget {
                     children: [
                       const AppText(
                         text: 'City',
-                        color: Colors.grey,
+                        color: Colors.black,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
@@ -198,7 +232,6 @@ class EditProfile extends StatelessWidget {
                       CustomTextField(
                         hint: "City",
                         controller: profileController.cityController,
-                        readOnly: true,
                       ),
                     ],
                   ))
@@ -213,7 +246,7 @@ class EditProfile extends StatelessWidget {
                     children: [
                       const AppText(
                         text: 'State',
-                        color: Colors.grey,
+                        color: Colors.black,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
@@ -221,7 +254,6 @@ class EditProfile extends StatelessWidget {
                       CustomTextField(
                         hint: "Select State",
                         controller: profileController.stateController,
-                        readOnly: true,
                       ),
                     ],
                   )),
@@ -232,7 +264,7 @@ class EditProfile extends StatelessWidget {
                     children: [
                       const AppText(
                         text: 'Country',
-                        color: Colors.grey,
+                        color: Colors.black,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
@@ -240,7 +272,6 @@ class EditProfile extends StatelessWidget {
                       CustomTextField(
                         hint: "Select country",
                         controller: profileController.countryController,
-                        readOnly: true,
                       ),
                     ],
                   ))
@@ -252,10 +283,10 @@ class EditProfile extends StatelessWidget {
                 borderColor: AppColors.blue,
                 backgroundColor: AppColors.blue,
                 borderWidth: 0,
-                label: isRegistrationFlow ? "Complete Profile" : "Save Profile",
+                label: isRegistrationFlow ? "Complete Business Profile" : "Save Business Profile",
                 textColor: AppColors.secondary,
                 onPressed: () {
-                  profileController.updateProfile(isCompleteProfile);
+                  profileController.updateProfile(isCompleteProfile, isBusinessProfile: true);
                 },
               ),
             ],

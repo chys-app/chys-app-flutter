@@ -617,29 +617,24 @@ class SignupController extends GetxController {
       isLoading.value = true;
       loading.show();
 
-      if (isBusinessOwner.value) {
-        final upgradeResult = await _apiService.upgradeToBusinessUser();
-        if (upgradeResult['success'] != true) {
-          loading.hide();
-          isLoading.value = false;
-          ShortMessageUtils.showError(
-              upgradeResult['message'] ?? 'Failed to switch to business account');
-          return;
-        }
-      }
-
       await Future.delayed(const Duration(milliseconds: 300));
       loading.hide();
       isLoading.value = false;
 
-      // Navigate directly to pet selection
-      if (hasPet.value == true) {
+      // Navigate based on user type
+      if (isBusinessOwner.value) {
+        // Business users go to business profile edit (role will be set there)
+        await StorageService.setStepDone(StorageService.petOwnershipDone);
+        await Get.offAllNamed(AppRoutes.editBusinessProfile, arguments: true);
+      } else if (hasPet.value == true) {
+        // Pet owners go to pet selection
         await StorageService.setStepDone(StorageService.petOwnershipDone);
         await Get.offAllNamed(AppRoutes.petSelection);
       } else {
-        log("Don't have pet");
-        await StorageService.setStepDone(StorageService.petProfileComplete);
-        await Get.offAllNamed(AppRoutes.cityView);
+        // Regular users without pets go to edit profile to update their info
+        log("Don't have pet - going to edit profile");
+        await StorageService.setStepDone(StorageService.petOwnershipDone);
+        await Get.offAllNamed(AppRoutes.editProfile, arguments: true);
       }
     } catch (e) {
       loading.hide();
@@ -1488,6 +1483,9 @@ class SignupController extends GetxController {
         loading.hide();
         ShortMessageUtils.showSuccess("Account created successfully!");
         // sendOtp();
+
+        // Wait 1 second before proceeding
+        await Future.delayed(const Duration(seconds: 1));
 
         await StorageService.saveToken(result['data']['token']);
         log('SignupController saved token: ${StorageService.getToken()}');

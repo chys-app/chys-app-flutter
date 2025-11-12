@@ -22,6 +22,8 @@ class OwnProfileModel {
   final String? zipCode;
   final String? state;
   final String? country;
+  final String? website;
+  final String? taxId;
 
   OwnProfileModel({
     required this.id,
@@ -47,6 +49,8 @@ class OwnProfileModel {
     this.zipCode,
     this.state,
     this.country,
+    this.website,
+    this.taxId,
   });
 
   factory OwnProfileModel.fromMap(Map<String, dynamic> map) {
@@ -97,6 +101,8 @@ class OwnProfileModel {
       zipCode: map['zipCode']?.toString(),
       state: map['state']?.toString(),
       country: map['country']?.toString(),
+      website: map['website']?.toString(),
+      taxId: map['taxId']?.toString(),
     );
   }
 
@@ -125,6 +131,8 @@ class OwnProfileModel {
     String? zipCode,
     String? state,
     String? country,
+    String? website,
+    String? taxId,
   }) {
     return OwnProfileModel(
       id: id ?? this.id,
@@ -150,6 +158,8 @@ class OwnProfileModel {
       zipCode: zipCode ?? this.zipCode,
       state: state ?? this.state,
       country: country ?? this.country,
+      website: website ?? this.website,
+      taxId: taxId ?? this.taxId,
     );
   }
 

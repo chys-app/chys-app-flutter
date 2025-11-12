@@ -16,6 +16,7 @@ abstract class AppRoutes {
   static const addPet = '/add-pet';
   static const profile = '/profile';
   static const editProfile = '/edit-profile';
+  static const editBusinessProfile = '/edit-business-profile';
   static const pets = '/pets';
 
   static const petProfile = '/pet-profile';
