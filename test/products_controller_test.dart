@@ -19,6 +19,7 @@ void main() {
       viewCount: views,
       salesCount: sales,
       price: price,
+      discount: 0.0,
       tags: const [],
       isActive: true,
       comments: const [],
