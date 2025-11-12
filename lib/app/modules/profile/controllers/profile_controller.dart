@@ -53,6 +53,8 @@ class ProfileController extends GetxController {
   final TextEditingController amountController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController bioController = TextEditingController();
+  final TextEditingController websiteController = TextEditingController();
+  final TextEditingController taxIdController = TextEditingController();
   final TextEditingController streetController = TextEditingController();
   final TextEditingController zipController = TextEditingController();
   final TextEditingController cityController = TextEditingController();
@@ -71,14 +73,7 @@ class ProfileController extends GetxController {
   final formKey = GlobalKey<FormState>();
 
   void onSuggestionClick(Place placeDetails) {
-    final fullStreet = [
-      placeDetails.streetAddress,
-      placeDetails.city,
-      placeDetails.state,
-      placeDetails.country,
-    ].where((e) => e != null && e.trim().isNotEmpty).join(', ');
-
-    streetController.text = fullStreet;
+    streetController.text = placeDetails.streetAddress ?? '';
     cityController.text = placeDetails.city ?? '';
     stateController.text = placeDetails.state ?? '';
     zipController.text = placeDetails.zipCode ?? '';
@@ -506,7 +501,7 @@ class ProfileController extends GetxController {
     }
   }
 
-  Future<void> updateProfile(bool isComplete) async {
+  Future<void> updateProfile(bool isComplete, {bool isBusinessProfile = false}) async {
     final loading = Get.find<LoadingController>();
 
     try {
@@ -514,12 +509,20 @@ class ProfileController extends GetxController {
       final data = <String, dynamic>{
         "name": nameController.text.trim(),
         "bio": bioController.text.trim(),
+        "website": websiteController.text.trim(),
+        "taxId": taxIdController.text.trim(),
         "address": streetController.text.trim(),
         "zipCode": zipController.text.trim(),
         "city": cityController.text.trim(),
         "state": stateController.text.trim(),
         "country": countryController.text.trim(),
       };
+      
+      // Set role to business user if this is a business profile
+      if (isBusinessProfile) {
+        data["role"] = "biz-user";
+      }
+      
       log("Data is $data and profile pic is ${profilePhoto.value}");
       // Add image if selected
       if (profilePhoto.value != null) {
@@ -534,7 +537,14 @@ class ProfileController extends GetxController {
         await StorageService.setStepDone(StorageService.editProfileDone);
         loading.hide();
 
-        Get.offAllNamed(AppRoutes.petOwnership);
+        // Navigate based on profile type
+        if (isBusinessProfile) {
+          // Business users go to city view after profile completion
+          await Get.offAllNamed(AppRoutes.cityView);
+        } else {
+          // Regular users go to pet ownership
+          await Get.offAllNamed(AppRoutes.petOwnership);
+        }
       } else {
         loading.hide();
 
@@ -631,6 +641,8 @@ class ProfileController extends GetxController {
     if (profile.value != null) {
       nameController.text = profile.value!.name;
       bioController.text = profile.value!.bio ?? '';
+      websiteController.text = profile.value!.website ?? '';
+      taxIdController.text = profile.value!.taxId ?? '';
       imagePath.value = profile.value!.profilePic ?? '';
 
       final bankDetail = profile.value!.bankDetails;

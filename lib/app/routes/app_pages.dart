@@ -16,6 +16,7 @@ import 'package:chys/app/modules/podcast/views/podcost_view.dart';
 import 'package:chys/app/modules/podcast/views/start_podcast.dart';
 import 'package:chys/app/modules/profile/views/add_bank_info.dart';
 import 'package:chys/app/modules/profile/views/edit_profile.dart';
+import 'package:chys/app/modules/profile/views/edit_business_profile.dart';
 import 'package:chys/app/modules/profile/views/withdraw_view.dart';
 import 'package:chys/app/modules/signup/views/email_verify_view.dart';
 import 'package:chys/app/modules/signup/views/otp_view.dart';
@@ -337,6 +338,12 @@ class AppPages {
     GetPage(
       name: AppRoutes.editProfile,
       page: () => EditProfile(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.editBusinessProfile,
+      page: () => EditBusinessProfile(),
+      binding: ProfileBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(
