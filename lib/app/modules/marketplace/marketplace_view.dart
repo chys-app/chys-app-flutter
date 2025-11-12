@@ -450,6 +450,8 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
           : productsController.products.toList();
       
       if (sortBySales) {
+        // Filter to only include products with actual sales
+        products = products.where((p) => p.salesCount > 0).toList();
         products.sort((a, b) => b.salesCount.compareTo(a.salesCount));
       } else if (sortByViews) {
         products.sort((a, b) => b.viewCount.compareTo(a.viewCount));
