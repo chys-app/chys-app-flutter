@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:chys/app/modules/product/controllers/product_controller.dart';
+import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
+import 'package:chys/app/modules/signup/widgets/custom_text_field.dart';
 import 'package:chys/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,17 +20,33 @@ class _AddProductViewState extends State<AddProductView> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
+  final _discountController = TextEditingController();
   
   String _selectedType = 'Product';
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
 
+  bool get _isBusinessUser {
+    try {
+      if (Get.isRegistered<ProfileController>()) {
+        final profileController = Get.find<ProfileController>();
+        final userRole = profileController.profile.value?.role;
+        final isBusiness = userRole != null && userRole.toLowerCase() == 'biz-user';
+        return isBusiness;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
+    _discountController.dispose();
     super.dispose();
   }
 
@@ -86,6 +104,9 @@ class _AddProductViewState extends State<AddProductView> {
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         price: _priceController.text.trim(),
+        discount: _discountController.text.trim().isEmpty 
+            ? '0.0' 
+            : _discountController.text.trim(),
         type: _selectedType.toLowerCase(),
         imageFile: _selectedImage!,
       );
@@ -343,6 +364,49 @@ class _AddProductViewState extends State<AddProductView> {
                 },
               ),
               const SizedBox(height: 24),
+
+              // Discount field for business users
+              if (_isBusinessUser) ...[
+                const Text(
+                  'Discount (%)',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                CustomTextField(
+                  hint: "Enter discount percentage (optional)",
+                  controller: _discountController,
+                  keyboardType: TextInputType.number,
+                ),
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Set a discount to attract more customers to your product',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.blue[700],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
 
               // Photo upload
               const Text(

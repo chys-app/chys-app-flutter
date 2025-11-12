@@ -413,9 +413,9 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
       shrinkWrap: true,
       physics: const AlwaysScrollableScrollPhysics(),
       crossAxisCount: crossAxisCount,
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      padding: const EdgeInsets.all(16),
+      mainAxisSpacing: 0,
+      crossAxisSpacing: 0,
+      padding: const EdgeInsets.all(8),
       itemCount: 6,
       itemBuilder: (context, index) => Container(
         decoration: BoxDecoration(
@@ -460,17 +460,20 @@ class _MarketplaceViewState extends State<MarketplaceView> with WidgetsBindingOb
         shrinkWrap: true,
         physics: const AlwaysScrollableScrollPhysics(),
         crossAxisCount: crossAxisCount,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        padding: const EdgeInsets.all(16),
+        mainAxisSpacing: 0,
+        crossAxisSpacing: 0,
+        padding: const EdgeInsets.all(8),
         itemCount: products.length,
         itemBuilder: (context, index) {
           final product = products[index];
-          return ProductGridWidget(
-            product: product,
-            onTap: () {
-              Get.toNamed(AppRoutes.productDetail, arguments: product);
-            },
+          return Container(
+            margin: EdgeInsets.zero,
+            child: ProductGridWidget(
+              product: product,
+              onTap: () {
+                Get.toNamed(AppRoutes.productDetail, arguments: product);
+              },
+            ),
           );
         },
         staggeredTileBuilder: (index) {

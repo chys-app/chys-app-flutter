@@ -592,12 +592,12 @@ class ProductController extends GetxController {
         log("Initializing camera at index: ${selectedCameraIndex.value}");
         await initializeCamera(selectedCameraIndex.value);
       } else {
-        log("No cameras available");
-        ShortMessageUtils.showError('No cameras available on this device');
+        log("No cameras available - camera features disabled");
+        // Don't show error for add product flow since camera is optional
       }
     } catch (e) {
       log("Error initializing cameras: $e");
-      ShortMessageUtils.showError('Failed to initialize camera: $e');
+      // Don't show error for add product flow since camera is optional
     }
   }
 
@@ -1336,11 +1336,12 @@ class ProductController extends GetxController {
     Get.toNamed('/new-post-preview');
   }
 
-  /// Create a product/service from the simple form (name, description, price, image)
+  /// Create a product/service from the simple form (name, description, price, discount, image)
   Future<void> createProductFromForm({
     required String name,
     required String description,
     required String price,
+    required String discount,
     required String type,
     required File imageFile,
   }) async {
@@ -1355,6 +1356,7 @@ class ProductController extends GetxController {
           'name': name,
           'description': description,
           'price': price,
+          'discount': discount,
           'type': type,
         },
         imageField: 'media',
