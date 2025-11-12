@@ -94,6 +94,8 @@ class PaymentServices {
       };
 
       final secretKey = AppSecrets.secretKey;
+      log('Stripe secret key length: ${secretKey.length}');
+      log('Stripe secret key starts with sk_test_: ${secretKey.startsWith('sk_test_')}');
       if (secretKey.isEmpty) {
         log('Stripe secret key is missing');
         return null;
@@ -112,6 +114,7 @@ class PaymentServices {
         return json.decode(response.body);
       } else {
         log("Failed to create payment intent. Status Code: ${response.statusCode}");
+        log("Response body: ${response.body}");
         return null;
       }
     } catch (e) {

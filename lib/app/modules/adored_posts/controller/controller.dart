@@ -486,7 +486,7 @@ class AddoredPostsController extends GetxController {
       log("Post url is $postUrl");
       // STEP 2: Combine description + link
       final String contentToShare = '''
-${post.description ?? ''}
+${post.description}
 
 Check it out: $postUrl
 
@@ -1130,22 +1130,53 @@ class _FundBottomSheetState extends State<_FundBottomSheet> {
                     ),
                     onPressed: _isLoading
                         ? null
-                        : () {
+                        : () async {
                             setState(() => _isLoading = true);
                             Get.back();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text("In app purchases coming soon!"),
-                                duration: const Duration(seconds: 2),
-                                behavior: SnackBarBehavior.floating,
-                                backgroundColor: const Color(0xFFF59E0B),
-                                margin: const EdgeInsets.all(16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            );
-                            setState(() => _isLoading = false);
+                            
+                            try {
+                              final amount = _amountController.text.trim();
+                              final donationId = widget.post.id ?? 'donation_${DateTime.now().millisecondsSinceEpoch}';
+                              
+                              // Process Stripe payment
+                              final success = await PaymentServices.stripePayment(
+                                amount,
+                                donationId,
+                                context,
+                                onSuccess: () async {
+                                  // Show success message
+                                  Get.snackbar(
+                                    'Thank you for your donation! ❤️',
+                                    'Your donation of \$$amount has been processed successfully.',
+                                    backgroundColor: Colors.green.shade100,
+                                    colorText: Colors.green.shade800,
+                                    snackPosition: SnackPosition.TOP,
+                                    duration: const Duration(seconds: 4),
+                                    icon: const Icon(Icons.check_circle, color: Colors.green),
+                                  );
+                                  
+                                  // Call the onConfirm callback with the donation amount
+                                  widget.onConfirm(amount);
+                                },
+                              );
+                              
+                              if (!success) {
+                                // Payment failed or was cancelled
+                                log("Payment failed or cancelled");
+                              }
+                            } catch (e) {
+                              log("Error processing donation: $e");
+                              Get.snackbar(
+                                'Error',
+                                'Failed to process donation. Please try again.',
+                                backgroundColor: Colors.red.shade100,
+                                colorText: Colors.red.shade800,
+                              );
+                            } finally {
+                              if (mounted) {
+                                setState(() => _isLoading = false);
+                              }
+                            }
                           },
                     child: _isLoading
                         ? const SizedBox(
