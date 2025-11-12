@@ -3,14 +3,13 @@ import 'dart:io';
 import 'package:chys/app/core/const/app_colors.dart';
 import 'package:chys/app/core/const/app_image.dart';
 import 'package:chys/app/core/const/app_text.dart';
-import 'package:chys/app/core/utils/app_size.dart';
 import 'package:chys/app/core/widget/app_button.dart';
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:chys/app/modules/signup/widgets/custom_text_field.dart';
 import 'package:chys/app/widget/image/svg_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_places_autocomplete_widgets/widgets/address_autocomplete_textfield.dart';
+import '../../../routes/app_routes.dart';
 
 class EditProfile extends StatelessWidget {
   final profileController = Get.isRegistered<ProfileController>()
@@ -21,6 +20,9 @@ class EditProfile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCompleteProfile = Get.arguments ?? false;
+    
+    // Detect if this is part of registration flow
+    final isRegistrationFlow = Get.arguments is bool && Get.arguments == true;
 
     return Scaffold(
       appBar: AppBar(
@@ -35,11 +37,19 @@ class EditProfile extends StatelessWidget {
             ),
             child: const Icon(Icons.arrow_back_ios_new, size: 20),
           ),
-          onPressed: () => Get.back(),
+          onPressed: () {
+          if (isRegistrationFlow) {
+            // During registration, go back to pet ownership selection
+            Get.offAllNamed(AppRoutes.petOwnership);
+          } else {
+            // Regular edit, go back normally
+            Get.back();
+          }
+        },
         ),
-        title: const Text(
-          "Edit Profile",
-          style: TextStyle(
+        title: Text(
+          isRegistrationFlow ? "Complete Profile" : "Edit Profile",
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: Colors.black,
@@ -146,22 +156,10 @@ class EditProfile extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
               const SizedBox(height: 8),
-              AddressAutocompleteTextField(
-                controller: profileController.streetController,
-                mapsApiKey: 'AIzaSyBuWgYRQycmeaBRvBohDapMbEY-wZHre-U',
-                onSuggestionClick: profileController.onSuggestionClick,
-                clearButton: const Icon(Icons.clear),
-                decoration: const InputDecoration(
-                  hintText: "Start typing an address...",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 8),
               CustomTextField(
-                hint: "Enter street",
+                hint: "Enter street address",
                 controller: profileController.streetController,
                 keyboardType: TextInputType.text,
-                readOnly: true,
               ),
               const SizedBox(height: 16),
               Row(
@@ -254,7 +252,7 @@ class EditProfile extends StatelessWidget {
                 borderColor: AppColors.blue,
                 backgroundColor: AppColors.blue,
                 borderWidth: 0,
-                label: "Save Profile",
+                label: isRegistrationFlow ? "Complete Profile" : "Save Profile",
                 textColor: AppColors.secondary,
                 onPressed: () {
                   profileController.updateProfile(isCompleteProfile);

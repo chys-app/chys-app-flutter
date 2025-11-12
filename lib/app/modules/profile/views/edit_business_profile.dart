@@ -3,13 +3,13 @@ import 'dart:io';
 import 'package:chys/app/core/const/app_colors.dart';
 import 'package:chys/app/core/const/app_image.dart';
 import 'package:chys/app/core/const/app_text.dart';
-import 'package:chys/app/core/utils/app_size.dart';
 import 'package:chys/app/core/widget/app_button.dart';
 import 'package:chys/app/modules/profile/controllers/profile_controller.dart';
 import 'package:chys/app/modules/signup/widgets/custom_text_field.dart';
 import 'package:chys/app/widget/image/svg_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../routes/app_routes.dart';
 
 class EditBusinessProfile extends StatefulWidget {
   EditBusinessProfile({super.key});
@@ -46,7 +46,15 @@ class _EditBusinessProfileState extends State<EditBusinessProfile> {
             ),
             child: const Icon(Icons.arrow_back_ios_new, size: 20),
           ),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            if (isRegistrationFlow) {
+              // During registration, go back to pet ownership selection
+              Get.offAllNamed(AppRoutes.petOwnership);
+            } else {
+              // Regular edit, go back normally
+              Get.back();
+            }
+          },
         ),
         title: Text(
           isRegistrationFlow ? "Complete Business Profile" : "Edit Business Profile",

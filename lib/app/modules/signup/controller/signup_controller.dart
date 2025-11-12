@@ -631,10 +631,10 @@ class SignupController extends GetxController {
         await StorageService.setStepDone(StorageService.petOwnershipDone);
         await Get.offAllNamed(AppRoutes.petSelection);
       } else {
-        // Regular users without pets go to city view
-        log("Don't have pet");
-        await StorageService.setStepDone(StorageService.petProfileComplete);
-        await Get.offAllNamed(AppRoutes.cityView);
+        // Regular users without pets go to edit profile to update their info
+        log("Don't have pet - going to edit profile");
+        await StorageService.setStepDone(StorageService.petOwnershipDone);
+        await Get.offAllNamed(AppRoutes.editProfile, arguments: true);
       }
     } catch (e) {
       loading.hide();

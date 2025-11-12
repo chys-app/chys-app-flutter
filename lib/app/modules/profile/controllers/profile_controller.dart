@@ -542,8 +542,8 @@ class ProfileController extends GetxController {
           // Business users go to city view after profile completion
           await Get.offAllNamed(AppRoutes.cityView);
         } else {
-          // Regular users go to pet ownership
-          await Get.offAllNamed(AppRoutes.petOwnership);
+          // Regular users also go to city view after profile completion in registration
+          await Get.offAllNamed(AppRoutes.cityView);
         }
       } else {
         loading.hide();
